@@ -31,6 +31,7 @@ def apply_png_overlay(video_path, cage_number,width,autocount=None):
             "-filter_complex", "[0][1]overlay=x=0:y=0",
             "-c:v", "h264_nvenc",
             "-y",  # Overwrite output file if it exists
+            "-an",
             output_path
         ]
         

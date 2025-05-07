@@ -51,6 +51,7 @@ def resize_video_with_ffmpeg(input_list, width, folder_path):
                 "-c:v", "h264_nvenc",  # Use NVIDIA H.264 encoder
                 "-c:a", "copy",  # Copy audio without re-encoding
                 "-y",  # Overwrite output file if it exists
+                "-an",
                 output_path
             ]
             

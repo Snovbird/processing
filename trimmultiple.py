@@ -90,7 +90,8 @@ def convert_to_mp4(input_path, start_times, end_time,count):
             "-c:v", "h264_nvenc",  
             "-ss", start_times,      
             "-to", end_time,        
-            "-y",                   
+            "-y",
+            "-an",                   
             output_path
         ]
         

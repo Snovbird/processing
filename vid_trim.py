@@ -42,27 +42,27 @@ def main():
     if start_time is None:
         print("Start time not provided. Exiting...")
         return
-    
-    start_time = format_time_input(start_time)
-    
+
     end_time = simpledialog.askstring(title, "NO COLONS. END time (HHMMSS):")
     if end_time is None:
         print("End time not provided. Exiting...")
         return
-    
-    end_time = format_time_input(end_time)
-    
     root.destroy()
-    print("Start time:", start_time)
-    print("End time:", end_time)
-    for video in file_paths:
-        print("Selected file:", video)
-        output_path = convert_to_mp4(video, start_time, end_time)
-        
-    if output_path:
-        os.startfile(os.path.dirname(output_path))
-
-def convert_to_mp4(input_path, start_time, end_time):
+    if "f" not in start_time and "f" not in end_time:
+        start_time = format_time_input(start_time)
+        end_time = format_time_input(end_time)
+        print("Start time:", start_time)
+        print("End time:", end_time)
+        for video in file_paths:
+            print("Selected file:", video)
+            output_path = trim_video_timestamps(video, start_time, end_time)
+            
+        if output_path:
+            os.startfile(os.path.dirname(output_path))
+    elif "f" in start_time and "f" in end_time:
+        for video in file_paths:
+            trim_video_timestamps(video, start_time, end_time)
+def trim_video_timestamps(input_path, start_time, end_time):
     """
     Convert a media file to MP4 format using FFmpeg
     
@@ -107,20 +107,52 @@ def convert_to_mp4(input_path, start_time, end_time):
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
 
-def open_folder(file_path):
+def trim_frames(input_path, start_time, end_time):
     """
-    Open the folder containing the specified file.
+    Convert a media file to MP4 format using FFmpeg
     
     Args:
-        file_path (str): Path to the file whose folder should be opened.
+        input_path (str): Path to the input file
+        start_time (str): Start time for trimming (HH:MM:SS)
+        end_time (str): End time for trimming (HH:MM:SS)
+    
+    Returns:
+        str: Path to the output MP4 file
     """
-    folder_path = os.path.dirname(file_path)
-    if platform.system() == "Windows":
-        os.startfile(folder_path)  # Open folder on Windows
-    elif platform.system() == "Darwin":  # macOS
-        subprocess.run(["open", folder_path])
-    else:  # Assume Linux
-        subprocess.run(["xdg-open", folder_path])
+    if not os.path.isfile(input_path):
+        print(f"Error: The file '{input_path}' does not exist.")
+        return None
+    
+    file_dir = os.path.dirname(input_path)
+    file_name = os.path.splitext(os.path.basename(input_path))[0]
+    output_path = os.path.join(file_dir, f"{file_name}_trimmed.mp4")
+    
+    try:
+        cmd = [
+
+            "ffmpeg", 
+            "-i", input_path, 
+            "-c:v", "h264_nvenc",  
+            "-vf", f'"select=between(n\,{start_time.replace("f","")}\,{end_time.replace("f","")}),setpts=PTS-STARTPTS"',      
+            "-af", f'"aselect=between(n\,{start_time.replace("f","")}\,{end_time.replace("f","")}),asetpts=PTS-STARTPTS"',        
+            "-y",
+            "-an",                   
+            output_path
+        ]
+        
+        print("Starting conversion...")
+        subprocess.run(cmd, check=True)
+        print(f"Conversion completed successfully!")
+        print(f"Output saved to: {output_path}")
+        
+        return output_path
+    
+    except subprocess.CalledProcessError as e:
+        print(f"Error during conversion: {e}")
+        return None
+    except FileNotFoundError:
+        print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
+        return None
 
 if __name__ == "__main__":
     main()

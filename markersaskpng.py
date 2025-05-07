@@ -5,7 +5,7 @@ import subprocess
 import platform
 from tkinter import simpledialog
 
-def apply_png_overlay(video_path, cage_number,width):
+def apply_png_overlay(video_path, imgpath):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
     
@@ -27,10 +27,11 @@ def apply_png_overlay(video_path, cage_number,width):
             "ffmpeg",
             "-hwaccel", "cuda",
             "-i", video_path,
-            "-i", f"C:/Users/Labo Samaha/Desktop/.LabGym/z_misc_DONOTTOUCH/cage{cage_number}_{width}.png ",
+            "-i", imgpath,
             "-filter_complex", "[0][1]overlay=x=0:y=0",
             "-c:v", "h264_nvenc",
             "-y",  # Overwrite output file if it exists
+            "-an",
             output_path
         ]
         
@@ -69,23 +70,23 @@ def main():
         filetypes=[("PNG Files", "*.png")],
         initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/"
     )
-    if True:
+    if False:
         cage_number = simpledialog.askinteger("Cage Number", 
                                             "Enter cage number (1,2,4,5,6,7,8,9,10,11,12):",minvalue=1,maxvalue=12)
         if not cage_number or int(cage_number) not in [1,2,4,5,6,7,8,9,10,11,12]:
             print("No overlay image selected. Exiting...")
             return
-    
-    width = simpledialog.askinteger("Width dimension", 
-                                    "Enter width (2048, 1280, 1024, 480):",
-                                          initialvalue=1024,  
-                                          minvalue=480)
-    if not width or int(width) not in [2048, 1024, 1280, 480]:
-        print("No width selected. Exiting...")
-        return
+        width = simpledialog.askinteger("Width dimension", 
+                                        "Enter width (2048, 1280, 1024, 480):",
+                                            initialvalue=1024,  
+                                            minvalue=480)
+        if not width or int(width) not in [2048, 1024, 1280, 480]:
+            print("No width selected. Exiting...")
+            return
     
     # Apply the overlay to the video
-    output_path = apply_png_overlay(overlay_path, cage_number, width)
+    for vid in video_paths:
+        output_path = apply_png_overlay(vid, overlay_path)
     
     if output_path:
         # Show a success message

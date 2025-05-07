@@ -43,6 +43,7 @@ def resize_folder(input_list, width, input_path):
                 "-c:v", "h264_nvenc",
                 "-c:a", "copy",
                 "-y",
+                "-an",
                 output_path
             ]
             
@@ -78,6 +79,7 @@ def resize_single(input_path, width):
             "-c:v", "h264_nvenc",
             "-c:a", "copy",
             "-y",
+            "-an",
             output_path
         ]
         

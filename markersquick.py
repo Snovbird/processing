@@ -31,6 +31,7 @@ def apply_png_overlay(video_path, cage_number,width,autocount=None):
             "-filter_complex", "[0][1]overlay=x=0:y=0",
             "-c:v", "h264_nvenc",
             "-y",  # Overwrite output file if it exists
+            "-an",
             output_path
         ]
         
@@ -73,7 +74,10 @@ def main():
     #     filetypes=[("PNG Files", "*.png")],
     #     initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/"
     # )
-    if False:
+    
+    askforcage = False
+
+    if askforcage:
         cage_number = simpledialog.askinteger("Cage Number", 
                                             "Enter cage number (1,2,4,5,6,7,8,9,10,11,12):",minvalue=1,maxvalue=12)
         if not cage_number or int(cage_number) not in [1,2,4,5,6,7,8,9,10,11,12]:
@@ -89,12 +93,17 @@ def main():
         return
     
     # Apply the overlay to the video
+
     for vid in video_paths:
-        for i in range(12):
-            if str(i+1) == vid.split("/")[-2]: #there's a BUG here 
-                print(i+1,"***********************************************************************************************************************")
-                output_path = apply_png_overlay(vid, i+1, width)
-    
+        if not askforcage:
+            for i in range(12):
+                if len(str(12-i)) == 2 and str(12-i) in vid.split("/")[-2].removesuffix:
+                        output_path = apply_png_overlay(vid, i+1, width)
+                        break
+                elif str(12-i) in vid.split("/")[-2]: 
+                    output_path = apply_png_overlay(vid, 12-i, width)
+        elif askforcage:
+            output_path = apply_png_overlay(vid, cage_number, width) 
     if output_path:
         # Show a success message
         # messagebox.showinfo("Success", f"Video with overlay created successfully!/n/nSaved as: {os.path.basename(output_path)}")
