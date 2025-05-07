@@ -22,46 +22,6 @@ def format_time_input(time_input):
     else:
         return time_input  # Return the original input if it's not valid
 
-def main():
-    root = tk.Tk()
-    root.withdraw()
-    try:
-        file_paths = filedialog.askopenfilenames(title="Select one or multiple Video File(s) TO TRIM", 
-                                            filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv")],
-                                            initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/")
-    except:
-        file_paths = filedialog.askopenfilenames(title="Select a Video File", 
-                                            filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv")])  
-    if not file_paths:
-        print("No file selected. Exiting...")
-        return
-    
-    title = "Input Values"
-    
-    start_time = simpledialog.askstring(title, "DONT ADD COLONS, just numbers. START time (HHMMSS):")
-    if start_time is None:
-        print("Start time not provided. Exiting...")
-        return
-
-    end_time = simpledialog.askstring(title, "NO COLONS. END time (HHMMSS):")
-    if end_time is None:
-        print("End time not provided. Exiting...")
-        return
-    root.destroy()
-    if "f" not in start_time and "f" not in end_time:
-        start_time = format_time_input(start_time)
-        end_time = format_time_input(end_time)
-        print("Start time:", start_time)
-        print("End time:", end_time)
-        for video in file_paths:
-            print("Selected file:", video)
-            output_path = trim_video_timestamps(video, start_time, end_time)
-            
-        if output_path:
-            os.startfile(os.path.dirname(output_path))
-    elif "f" in start_time and "f" in end_time:
-        for video in file_paths:
-            trim_video_timestamps(video, start_time, end_time)
 def trim_video_timestamps(input_path, start_time, end_time):
     """
     Convert a media file to MP4 format using FFmpeg
@@ -113,8 +73,8 @@ def trim_frames(input_path, start_time, end_time):
     
     Args:
         input_path (str): Path to the input file
-        start_time (str): Start time for trimming (HH:MM:SS)
-        end_time (str): End time for trimming (HH:MM:SS)
+        start_time (str): Start frame for trimming 
+        end_time (str): End frame for trimming 
     
     Returns:
         str: Path to the output MP4 file
@@ -139,12 +99,7 @@ def trim_frames(input_path, start_time, end_time):
             "-an",                   
             output_path
         ]
-        
-        print("Starting conversion...")
         subprocess.run(cmd, check=True)
-        print(f"Conversion completed successfully!")
-        print(f"Output saved to: {output_path}")
-        
         return output_path
     
     except subprocess.CalledProcessError as e:
@@ -153,6 +108,50 @@ def trim_frames(input_path, start_time, end_time):
     except FileNotFoundError:
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
+
+def main():
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        file_paths = filedialog.askopenfilenames(title="Select one or multiple Video File(s) TO TRIM", 
+                                            filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv")],
+                                            initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/")
+    except:
+        file_paths = filedialog.askopenfilenames(title="Select a Video File", 
+                                            filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv")])  
+    if not file_paths:
+        print("No file selected. Exiting...")
+        return
+    
+    title = "Input Values"
+    
+    start_time = simpledialog.askstring(title, "DONT ADD COLONS, just numbers. START time (HHMMSS):")
+    if start_time is None:
+        print("Start time not provided. Exiting...")
+        return
+
+    end_time = simpledialog.askstring(title, "NO COLONS. END time (HHMMSS):")
+    if end_time is None:
+        print("End time not provided. Exiting...")
+        return
+    root.destroy()
+    if "f" not in start_time and "f" not in end_time:
+        start_time = format_time_input(start_time)
+        end_time = format_time_input(end_time)
+        print("Start time:", start_time)
+        print("End time:", end_time)
+        for video in file_paths:
+            print("Selected file:", video)
+            output_path = trim_video_timestamps(video, start_time, end_time)
+            
+        if output_path:
+            os.startfile(os.path.dirname(output_path))
+    elif "f" in start_time and "f" in end_time:
+        for video in file_paths:
+            output_path = trim_video_timestamps(video, start_time, end_time)
+
+    if output_path: #openfile
+        os.startfile(os.path.dirname(output_path))
 
 if __name__ == "__main__":
     main()
