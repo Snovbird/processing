@@ -1,6 +1,6 @@
 ﻿#SingleInstance, force
 !T::
-run, py "C:\Users\Labo SamahaC:\Users\Labo Samaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\vid_trim.py"
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\vid_trim.py"
 return
 ^+A::
 run, "C:\Users\Labo Samaha\Desktop\.LabGym"
@@ -11,19 +11,19 @@ return
 return
 
 ; !r::
-; run, py "C:\Users\Labo SamahaC:\Users\Labo Samaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resize.py"
+; run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resize.py"
 ; return
 
 !r::
-run, py "C:\Users\Labo SamahaC:\Users\Labo Samaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resizechoose.py"
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resizechoose.py"
 return
 
 !m::
-run, py "C:\Users\Labo SamahaC:\Users\Labo Samaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markers.py"
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersquick.py"
 return
 
 !+T::
-run, py "C:\Users\Labo SamahaC:\Users\Labo Samaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trimmultiple.py"
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trimmultiple.py"
 return
 
 ^!+A::
@@ -31,7 +31,7 @@ return
 return
 
 !+M::
-run, py "C:\Users\Labo SamahaC:\Users\Labo Samaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersask.py"
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersask.py"
 return
 
 #a::

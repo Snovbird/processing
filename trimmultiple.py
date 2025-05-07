@@ -27,9 +27,9 @@ def main():
     root = tk.Tk()
     root.withdraw()
     
-    file_path = filedialog.askopenfilename(title="Select a Video File", 
+    file_paths = filedialog.askopenfilenames(title="Select a Video File", 
                                            filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv")])
-    if not file_path:
+    if not file_paths:
         print("No file selected. Exiting...")
         return
     
@@ -49,14 +49,15 @@ def main():
     for i in range(len(end_times)):
         end_times[i] = format_time_input(end_times[i])
 
-    print("Selected file:", file_path)
+    print("Selected file:", file_paths)
     print("Start time:", start_times)
     print("End time:", end_times)
     root.destroy()
 
     if len(end_times) == len(start_times):
         for count in range(len(start_times)):
-            output_path = convert_to_mp4(file_path, start_times[count], end_times[count],count)
+            for vid in file_paths:
+                output_path = convert_to_mp4(vid, start_times[count], end_times[count],count)
     else:
         messagebox.showerror("ERROR", "Must enter same # of start times as end times")
     if output_path:
