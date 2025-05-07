@@ -10,12 +10,12 @@ def resize_folder(input_list, width, input_path):
     """
     # Create a new folder for resized videos
     resized_folder_name = f"{input_path.split('/')[-2]}_resized_{width}"
-    resized_folder_path = os.path.join("C:/Users/Labo Samaha/Desktop/LabGym/1) Processed videos/", resized_folder_name)
+    resized_folder_path = os.path.join("C:/Users/Labo Samaha/Desktop/.LabGym/1) Processed videos/", resized_folder_name)
 
     # Create the folder if it doesn't exist
     if os.path.exists(resized_folder_path):
         messagebox.showerror("ERROR", f"DELETE the folder called '{resized_folder_name}'")
-        os.startfile("C:/Users/Labo Samaha/Desktop/LabGym/1) Processed videos/")
+        os.startfile("C:/Users/Labo Samaha/Desktop/.LabGym/1) Processed videos/")
         return None
     if not os.path.exists(resized_folder_path):
         os.makedirs(resized_folder_path)
@@ -65,7 +65,7 @@ def resize_single(input_path, width):
     # Get the directory and filename of the input video
     file_dir = os.path.dirname(input_path)
     file_name = os.path.splitext(os.path.basename(input_path))[0]
-    output_path = os.path.join("C:/Users/Labo Samaha/Desktop/LabGym/1) Processed videos/", f"{file_name}_RESIZED{width}.mp4")
+    output_path = os.path.join("C:/Users/Labo Samaha/Desktop/.LabGym/1) Processed videos/", f"{file_name}_RESIZED{width}.mp4")
 
     try:
         # FFmpeg command to resize the video proportionally using GPU acceleration
@@ -105,9 +105,9 @@ def main():
         file_path = filedialog.askopenfilename(
             title="SELECT VIDEO - option to resize one or all videos in folder",
             filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")],
-            initialdir="C:/Users/Labo Samaha/Desktop/LabGym/0) RAW videos"
+            initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/0) RAW videos"
         )
-    except: #C:/Users/Labo Samaha/Desktop/LabGym/0) RAW videos DNE 
+    except: #C:/Users/Labo Samaha/Desktop/.LabGym/0) RAW videos DNE 
         file_path = filedialog.askopenfilename(
             title="SELECT VIDEO - option to resize one or all videos in folder",
             filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")]
@@ -210,7 +210,7 @@ def main():
     if resized_folder:
         os.startfile(resized_folder)
     elif output_single:
-        os.startfile("C:/Users/Labo Samaha/Desktop/LabGym/1) Processed videos/")
+        os.startfile("C:/Users/Labo Samaha/Desktop/.LabGym/1) Processed videos/")
 
 if __name__ == "__main__":
     main()

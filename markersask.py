@@ -19,7 +19,7 @@ def apply_png_overlay(video_path, cage_number,width):
     # Get the directory and filename of the input video
     video_dir = os.path.dirname(video_path)
     video_name = os.path.splitext(os.path.basename(video_path))[0]
-    output_path = os.path.join("C:/Users/Labo Samaha/Desktop/LabGym/2) MARKED videos", f"{video_name}_marked.mp4")
+    output_path = os.path.join("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos", f"{video_name}_marked.mp4")
     
     try:
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
@@ -27,7 +27,7 @@ def apply_png_overlay(video_path, cage_number,width):
             "ffmpeg",
             "-hwaccel", "cuda",
             "-i", video_path,
-            "-i", f"C:/Users/Labo Samaha/Desktop/LabGym/z_misc_DONOTTOUCH/cage{cage_number}_{width}.png ",
+            "-i", f"C:/Users/Labo Samaha/Desktop/.LabGym/z_misc_DONOTTOUCH/cage{cage_number}_{width}.png ",
             "-filter_complex", "[0][1]overlay=x=0:y=0",
             "-c:v", "h264_nvenc",
             "-y",  # Overwrite output file if it exists
@@ -56,7 +56,7 @@ def main():
     video_paths = filedialog.askopenfilenames(
         title="Select Input Video",
         filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")],
-        initialdir="C:/Users/Labo Samaha/Desktop/LabGym/"
+        initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/"
     )
     
     if not video_paths:
@@ -67,7 +67,7 @@ def main():
     overlay_path = filedialog.askopenfilename(
         title="Select Transparent PNG Overlay",
         filetypes=[("PNG Files", "*.png")],
-        initialdir="C:/Users/Labo Samaha/Desktop/LabGym/"
+        initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/"
     )
     if True:
         cage_number = simpledialog.askinteger("Cage Number", 
@@ -92,7 +92,7 @@ def main():
         # messagebox.showinfo("Success", f"Video with overlay created successfully!/n/nSaved as: {os.path.basename(output_path)}")
         # Open the folder containing the output video
         print(output_path)
-        os.startfile("C:/Users/Labo Samaha/Desktop/LabGym/2) MARKED videos")
+        os.startfile("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos")
     else:
         # Show an error message
         messagebox.showerror("Error", "Failed to apply overlay. Check console for details.")

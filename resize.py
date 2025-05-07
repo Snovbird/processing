@@ -47,20 +47,6 @@ def resize_video_with_ffmpeg(input_path, width):
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
 
-def open_folder(file_path):
-    """
-    Open the folder containing the specified file.
-    
-    Args:
-        file_path (str): Path to the file whose folder should be opened.
-    """
-    folder_path = os.path.dirname(file_path)
-    if platform.system() == "Windows":
-        os.startfile(folder_path)  # Open folder on Windows
-    elif platform.system() == "Darwin":  # macOS
-        subprocess.run(["open", folder_path])
-    else:  # Assume Linux
-        subprocess.run(["xdg-open", folder_path])
 
 def main():
     # Initialize tkinter and hide the root window
@@ -68,12 +54,12 @@ def main():
     root.withdraw()
     
     # Ask the user to select a video file
-    file_path = filedialog.askopenfilename(
+    file_paths = filedialog.askopenfilenames(
         title="Select one Video File",
         filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv")],
-        initialdir="C:/Users/Labo Samaha/Desktop/LabGym/0) RAW videos"
+        initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/0) RAW videos"
     )
-    if not file_path:
+    if not file_paths:
         print("No file selected. Exiting...")
         return
     
@@ -86,11 +72,12 @@ def main():
         messagebox.showerror("ERROR", "Width MUST be a multiple of 32\nExamples: 1920, 1280, 1024, 480")
         return
     # Resize the video
-    output_path = resize_video_with_ffmpeg(file_path, width)
+    for path in file_paths:
+        output_path = resize_video_with_ffmpeg(path, width)
     
     # Open the folder containing the resized video
     if output_path:
-        open_folder(output_path)
+        os.startfile(os.path.dirname(output_path))
 
 if __name__ == "__main__":
     main()

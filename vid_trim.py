@@ -26,9 +26,9 @@ def main():
     root = tk.Tk()
     root.withdraw()
     try:
-        file_paths = filedialog.askopenfilenames(title="Select a Video File", 
+        file_paths = filedialog.askopenfilenames(title="Select one or multiple Video File(s) TO TRIM", 
                                             filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv")],
-                                            initialdir="C:/Users/Labo Samaha/Desktop/LabGym/")
+                                            initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/")
     except:
         file_paths = filedialog.askopenfilenames(title="Select a Video File", 
                                             filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv")])  

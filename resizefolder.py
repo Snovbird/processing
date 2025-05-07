@@ -89,7 +89,7 @@ def main():
     file_path = filedialog.askopenfilename(
         title="SELECT VIDEO - ALL VIDEOS IN THE FOLDER WILL BE RESIZED",
         filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")],
-        initialdir="C:/Users/Labo Samaha/Desktop/LabGym/0) RAW videos"
+        initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/0) RAW videos"
     )
     
     if not file_path:
