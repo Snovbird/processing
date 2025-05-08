@@ -29,7 +29,6 @@ def resize_video_with_ffmpeg(input_path, width):
             "-i", input_path,  # Input file
             "-vf", f"scale_cuda={width}:-2",  # Resize with proportional height
             "-c:v", "h264_nvenc",  # Use NVIDIA H.264 encoder
-            "-c:a", "copy",  # Copy audio without re-encoding
             "-y",  # Overwrite output file if it exists
             "-an",
             output_path
@@ -48,6 +47,16 @@ def resize_video_with_ffmpeg(input_path, width):
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
 
+def clear_gpu_memory():
+    try:
+        # Reset GPU clocks temporarily to help clear memory
+        subprocess.run(["nvidia-smi", "-lgc", "0,0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["nvidia-smi", "-rgc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("GPU memory cleanup attempted")
+        return True
+    except Exception as e:
+        print(f"GPU memory cleanup failed: {e}")
+        return False
 
 def main():
     # Initialize tkinter and hide the root window
@@ -72,9 +81,11 @@ def main():
     elif width % 32 != 0:
         messagebox.showerror("ERROR", "Width MUST be a multiple of 32\nExamples: 1920, 1280, 1024, 480")
         return
-    # Resize the video
-    for path in file_paths:
-        output_path = resize_video_with_ffmpeg(path, width)
+    for i, path in enumerate(file_paths):
+        if i > 0:
+            # Clear GPU memory between files
+            clear_gpu_memory()
+        output_path = resize_video_with_ffmpeg(path)
     
     # Open the folder containing the resized video
     if output_path:

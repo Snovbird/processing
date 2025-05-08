@@ -48,6 +48,17 @@ def apply_png_overlay(video_path, cage_number,width,autocount=None):
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
 
+def clear_gpu_memory():
+    try:
+        # Reset GPU clocks temporarily to help clear memory
+        subprocess.run(["nvidia-smi", "-lgc", "0,0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["nvidia-smi", "-rgc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("GPU memory cleanup attempted")
+        return True
+    except Exception as e:
+        print(f"GPU memory cleanup failed: {e}")
+        return False
+    
 def main():
     # Initialize tkinter and hide the root window
     root = tk.Tk()
@@ -97,10 +108,11 @@ def main():
     for vid in video_paths:
         if not askforcage:
             for i in range(12):
-                if len(str(12-i)) == 2 and str(12-i) in vid.split("/")[-2].removesuffix:
+                if len(str(12-i)) == 2 and str(12-i) in vid.split("/")[-1].replace(".mp4",""):
+                        print(vid.split("/")[-1].replace(".mp4",""))
                         output_path = apply_png_overlay(vid, i+1, width)
                         break
-                elif str(12-i) in vid.split("/")[-2]: 
+                elif str(12-i) in vid.split("/")[-1].replace(".mp4",""): 
                     output_path = apply_png_overlay(vid, 12-i, width)
         elif askforcage:
             output_path = apply_png_overlay(vid, cage_number, width) 

@@ -31,7 +31,7 @@ return
 return
 
 !+M::
-run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersask.py"
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersquick.py"
 return
 
 #a::

@@ -93,8 +93,8 @@ def trim_frames(input_path, start_time, end_time):
             "ffmpeg", 
             "-i", input_path, 
             "-c:v", "h264_nvenc",  
-            "-vf", f'"select=between(n\,{start_time.replace("f","")}\,{end_time.replace("f","")}),setpts=PTS-STARTPTS"',      
-            "-af", f'"aselect=between(n\,{start_time.replace("f","")}\,{end_time.replace("f","")}),asetpts=PTS-STARTPTS"',        
+            "-vf", f'trim=start_frame={start_time.replace("f","")}:end_frame={end_time.replace("f","")},setpts=PTS-STARTPTS',      
+            "-af", f'aresample=async=1',        
             "-y",
             "-an",                   
             output_path
@@ -109,6 +109,17 @@ def trim_frames(input_path, start_time, end_time):
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
 
+def clear_gpu_memory():
+    try:
+        # Reset GPU clocks temporarily to help clear memory
+        subprocess.run(["nvidia-smi", "-lgc", "0,0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["nvidia-smi", "-rgc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("GPU memory cleanup attempted")
+        return True
+    except Exception as e:
+        print(f"GPU memory cleanup failed: {e}")
+        return False
+    
 def main():
     root = tk.Tk()
     root.withdraw()
@@ -140,15 +151,20 @@ def main():
         end_time = format_time_input(end_time)
         print("Start time:", start_time)
         print("End time:", end_time)
-        for video in file_paths:
-            print("Selected file:", video)
-            output_path = trim_video_timestamps(video, start_time, end_time)
+        for i, path in enumerate(file_paths):
+            if i > 0:
+                # Clear GPU memory between files
+                clear_gpu_memory()
+            output_path = trim_video_timestamps(path, start_time, end_time)
             
         if output_path:
             os.startfile(os.path.dirname(output_path))
     elif "f" in start_time and "f" in end_time:
-        for video in file_paths:
-            output_path = trim_video_timestamps(video, start_time, end_time)
+        for i, path in enumerate(file_paths):
+            if i > 0:
+                # Clear GPU memory between files
+                clear_gpu_memory()
+            output_path = trim_frames(path, start_time, end_time)
 
     if output_path: #openfile
         os.startfile(os.path.dirname(output_path))

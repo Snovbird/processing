@@ -41,7 +41,6 @@ def resize_folder(input_list, width, input_path):
                 "-i", input_path,
                 "-vf", f"scale_cuda={width}:-2",
                 "-c:v", "h264_nvenc",
-                "-c:a", "copy",
                 "-y",
                 "-an",
                 output_path
@@ -96,7 +95,17 @@ def resize_single(input_path, width):
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
 
-
+def clear_gpu_memory():
+    try:
+        # Reset GPU clocks temporarily to help clear memory
+        subprocess.run(["nvidia-smi", "-lgc", "0,0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["nvidia-smi", "-rgc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("GPU memory cleanup attempted")
+        return True
+    except Exception as e:
+        print(f"GPU memory cleanup failed: {e}")
+        return False
+    
 def main():
     # Initialize tkinter with a single root window
     root = tk.Tk()

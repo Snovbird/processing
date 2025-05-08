@@ -19,11 +19,18 @@
 #     elif askforcage:
 #         output_path = print(vid, cage_number, width)
 
-import tkinter as tk
-from tkinter import filedialog, messagebox
-import os
-import subprocess
-import platform
-from tkinter import simpledialog
-a = filedialog.askopenfilename()
-print(a.split("/")[-1].replace(".mp4",""),a.split("/")[-2].replace(".mp4",""))
+# import tkinter as tk
+# from tkinter import filedialog, messagebox
+# import os
+# import subprocess
+# import platform
+# from tkinter import simpledialog
+# a = filedialog.askopenfilename()
+# print(a.split("/")[-1].replace(".mp4",""),a.split("/")[-2].replace(".mp4",""))
+
+file_paths = ('a','b','c')
+for i, path in enumerate(file_paths):
+    if i > 0:
+        # Clear GPU memory between files
+        print('not first')
+    print(i, path)
