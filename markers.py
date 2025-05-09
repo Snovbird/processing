@@ -79,13 +79,6 @@ def main():
         print("No video file selected. Exiting...")
         return
     
-    # Ask the user to select the PNG overlay image
-    # overlay_path = filedialog.askopenfilename(
-    #     title="Select Transparent PNG Overlay",
-    #     filetypes=[("PNG Files", "*.png")],
-    #     initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/"
-    # )
-    
     askforcage = True
 
     if askforcage:
@@ -105,7 +98,10 @@ def main():
     
     # Apply the overlay to the video
     
-    for vid in video_paths:
+    for i, vid in enumerate(video_paths):
+        if i > 0:
+            # Clear GPU memory between files
+            pass
         if not askforcage:
             for i in range(12):
                 if len(str(i+1)) == 2:
@@ -116,6 +112,7 @@ def main():
                     output_path = apply_png_overlay(vid, i+1, width)
         elif askforcage:
             output_path = apply_png_overlay(vid, cage_number, width)
+    clear_gpu_memory()
     if output_path:
         # Show a success message
         # messagebox.showinfo("Success", f"Video with overlay created successfully!/n/nSaved as: {os.path.basename(output_path)}")

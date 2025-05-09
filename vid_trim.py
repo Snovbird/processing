@@ -154,18 +154,19 @@ def main():
         for i, path in enumerate(file_paths):
             if i > 0:
                 # Clear GPU memory between files
-                clear_gpu_memory()
+                pass
             output_path = trim_video_timestamps(path, start_time, end_time)
-            
+        clear_gpu_memory()   
         if output_path:
             os.startfile(os.path.dirname(output_path))
     elif "f" in start_time and "f" in end_time:
         for i, path in enumerate(file_paths):
             if i > 0:
                 # Clear GPU memory between files
-                clear_gpu_memory()
+                pass
             output_path = trim_frames(path, start_time, end_time)
-
+        clear_gpu_memory()
+        
     if output_path: #openfile
         os.startfile(os.path.dirname(output_path))
 

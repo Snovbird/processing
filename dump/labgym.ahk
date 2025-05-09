@@ -75,3 +75,7 @@ Sleep 450
 SplashTextOff
 run,"%A_ScriptDir%\labgym.ahk"
 return
+
+!f::
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\frameoverlay.py"
+return

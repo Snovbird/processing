@@ -84,9 +84,9 @@ def main():
     for i, path in enumerate(file_paths):
         if i > 0:
             # Clear GPU memory between files
-            clear_gpu_memory()
+            pass
         output_path = resize_video_with_ffmpeg(path)
-    
+    clear_gpu_memory()
     # Open the folder containing the resized video
     if output_path:
         os.startfile(os.path.dirname(output_path))
