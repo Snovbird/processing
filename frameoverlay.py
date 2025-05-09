@@ -16,9 +16,16 @@ def overlay_FRAMES(input_path,folder_path = False):
         str: Path to the resized video file.
     """
     # Get the directory and filename of the input video
-    file_dir = os.path.dirname(input_path)
-    file_name = os.path.splitext(os.path.basename(input_path))[0]
-    output_path = os.path.join(file_dir, f"{file_name}_FRAMES.mp4")
+    if not os.path.isfile(input_path):
+        print(f"Error: The file '{input_path}' does not exist.")
+        return None
+    if folder_path:
+        file_name = os.path.splitext(os.path.basename(input_path))[0]
+        output_path = os.path.join(folder_path, f"{file_name}_overlaid.mp4")
+    else:
+        file_dir = os.path.dirname(input_path)
+        file_name = os.path.splitext(os.path.basename(input_path))[0]
+        output_path = os.path.join(file_dir, f"{file_name}_overlaid.mp4")
     
     try:
         # FFmpeg command to resize the video proportionally using GPU acceleration
@@ -93,10 +100,9 @@ def main():
     if len(file_paths) > 1:
         answr = simpledialog.askstring("Question",'Create New Folder? (y/n)')
         if answr == 'y':
-            makefolder(file_paths[0])
+            folder_path = makefolder(file_paths[0])
     # overlay frame number
     if len(file_paths) > 1 and answr == 'y':
-        folder_path = makefolder(file_paths[0])
         for i, path in enumerate(file_paths):
             if i > 0:
                 # Clear GPU memory between files
