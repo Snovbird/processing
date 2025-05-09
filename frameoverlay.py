@@ -4,7 +4,7 @@ import os
 import subprocess
 import platform
 
-def overlay_FRAMES(input_path,folder_path = False):
+def overlay_FRAMES(input_path,folder_path = None):
     """
     Resize a video proportionally using FFmpeg with NVIDIA GPU acceleration.
     
@@ -96,13 +96,13 @@ def main():
     if not file_paths:
         print("No file selected. Exiting...")
         return
-    answr = 'n'
+    answer = 'no'
     if len(file_paths) > 1:
-        answr = simpledialog.askstring("Question",'Create New Folder? (y/n)')
-        if answr == 'y':
+        answer = messagebox.askquestion("Question", "Create New Folder?")
+        if answer == 'yes':
             folder_path = makefolder(file_paths[0])
     # overlay frame number
-    if len(file_paths) > 1 and answr == 'y':
+    if len(file_paths) > 1 and answer == 'yes':
         for i, path in enumerate(file_paths):
             if i > 0:
                 # Clear GPU memory between files
@@ -115,6 +115,7 @@ def main():
                 pass
             output_path = overlay_FRAMES(path)
     clear_gpu_memory()
+    root.destroy()
     # Open the folder containing the resized video
     if output_path:
         os.startfile(os.path.dirname(output_path))

@@ -148,7 +148,7 @@ def main():
         print("No file selected. Exiting...")
         return
     
-    start_times = simpledialog.askstring("Input Values", "Start time (HHMMSS): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):").split(".")
+    start_times = simpledialog.askstring("Input Values", "Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):").split(".")
     
     if start_times is None:
         print("Start time not provided. Exiting...")
@@ -156,7 +156,10 @@ def main():
     for i in range(len(start_times)):
         start_times[i] = format_time_input(start_times[i])
 
-    end_times = simpledialog.askstring("Input Values", "End time (HHMMSS): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::").split(".")
+    end_times = simpledialog.askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::").split(".")
+    
+    unitoption = custom_dialog("Unit","What is your format?", option1="HHMMSS", option2="Frames")
+
     if end_times is None:
         print("End time not provided. Exiting...")
         return
@@ -176,7 +179,7 @@ def main():
         for count, _ in enumerate(start_times):
             start_time = start_times[count]
             end_time = end_times[count]
-            if "f" not in start_time and "f" not in end_time:
+            if unitoption == 'HHMMSS':
                 start_time = format_time_input(start_time)
                 end_time = format_time_input(end_time)
                 print("Start time:", start_time)
@@ -188,12 +191,12 @@ def main():
                         pass
                     output_path = trim_video_timestamps(path, start_time, end_time, count, foldername)    
                 # Remove this line: os.startfile(os.path.dirname(output_path))
-            elif "f" in start_time and "f" in end_time:
+            elif unitoption == 'Frames':
                 for i, path in enumerate(file_paths):
                     if i > 0:
                         # Clear GPU memory between files
                         pass
-                    output_path = trim_frames(path, start_time.replace("f",''), end_time.replace("f",''), count, foldername)
+                    output_path = trim_frames(path, start_time, end_time, count, foldername)
                 
         clear_gpu_memory()
         all_processing_complete = True
@@ -206,6 +209,57 @@ def main():
     elif all_processing_complete and output_path:
         os.startfile(os.path.dirname(output_path))
 
+def custom_dialog(title, message, option1="Proceed", option2="Skip"):
+    result = [False]  # Using a list to store the result
+    
+    dialog = tk.Toplevel()
+    dialog.title(title)
+    dialog.geometry("300x150")
+    dialog.resizable(False, False)
+    dialog.grab_set()  # Make the dialog modal
+    
+        # Center the dialog on the screen
+    dialog.update_idletasks()  # Update "requested size" from geometry manager
+    
+    # Calculate position x, y
+    screen_width = dialog.winfo_screenwidth()
+    screen_height = dialog.winfo_screenheight()
+    dialog_width = dialog.winfo_width()
+    dialog_height = dialog.winfo_height()
+    
+    position_x = int(screen_width/2 - dialog_width/2)
+    position_y = int(screen_height/2 - dialog_height/2)
+    
+    # Position the window
+    dialog.geometry(f"+{position_x}+{position_y}")
+    
+    # Create message label
+    label = tk.Label(dialog, text=message, wraplength=250, pady=20)
+    label.pack()
+    
+    # Frame for buttons
+    button_frame = tk.Frame(dialog)
+    button_frame.pack(pady=10)
+    
+    # Yes button with custom text
+    def on_op1():
+        result[0] = option1
+        dialog.destroy()
+    def on_op2():
+        result[0] = option2
+        dialog.destroy()
+        
+    op1_button = tk.Button(button_frame, text=option1, width=8, command=on_op1)
+    op1_button.pack(side=tk.LEFT, padx=10)
+    
+    # No button with custom text
+    op2_button = tk.Button(button_frame, text=option2, width=8, command=on_op2)
+    op2_button.pack(side=tk.LEFT, padx=10)
+    
+    # Wait for the dialog to be closed
+    dialog.wait_window()
+    
+    return result[0]
 
 if __name__ == "__main__":
     main()
