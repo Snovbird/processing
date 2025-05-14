@@ -28,16 +28,15 @@ def overlay_FRAMES(input_path,folder_path = None):
         output_path = os.path.join(file_dir, f"{file_name}_overlaid.mp4")
     
     try:
-        # FFmpeg command to resize the video proportionally using GPU acceleration
+        # FFmpeg command to OVERLAY frames
         cmd = [
             "ffmpeg",
             "-hwaccel", "cuda",  # Use NVIDIA GPU acceleration
             "-i", input_path,  # Input file
             "-vf", "drawtext=fontfile=Arial.ttf:text=%{n}:x=(w-tw)/2:y=(h-th)/2:fontcolor=white:box=1:boxcolor=0x00000000",  # overlay
             "-c:v", "h264_nvenc",  # Use NVIDIA H.264 encoder
-            # "-c:a", "copy",  # Copy audio without re-encoding
             "-y",  # Overwrite output file if it exists
-            "-an",
+            "-an", #no audio stream output
             output_path
         ]
         

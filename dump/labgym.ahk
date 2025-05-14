@@ -27,7 +27,7 @@ run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trim
 return
 
 ^!+A::
-    Run "C:\Users\%Username%\AppData\Local\Programs\Microsoft VS Code\Code.exe" "C:\Users\Labo Samaha\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\labgym.ahk"
+    Run "C:\Users\%Username%\AppData\Local\Programs\Microsoft VS Code\Code.exe" "%A_ScriptDir%\labgym.ahk"
 return
 
 !+M::
@@ -78,4 +78,8 @@ return
 
 !f::
 run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\frameoverlay.py"
+return
+
+!n::
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\renamefolders.py"
 return
