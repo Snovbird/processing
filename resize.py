@@ -18,7 +18,7 @@ def resize_video_with_ffmpeg(input_path, width):
     # Get the directory and filename of the input video
     file_dir = os.path.dirname(input_path)
     file_name = os.path.splitext(os.path.basename(input_path))[0]
-    output_path = os.path.join(file_dir, f"{file_name}_RESIZED{width}.mp4")
+    output_path = os.path.join(file_dir, f"{file_name}-RESIZED{width}.mp4")
     
     try:
         # FFmpeg command to resize the video proportionally using GPU acceleration

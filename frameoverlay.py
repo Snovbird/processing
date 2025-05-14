@@ -21,11 +21,11 @@ def overlay_FRAMES(input_path,folder_path = None):
         return None
     if folder_path:
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(folder_path, f"{file_name}_overlaid.mp4")
+        output_path = os.path.join(folder_path, f"{file_name}-overlaid.mp4")
     else:
         file_dir = os.path.dirname(input_path)
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(file_dir, f"{file_name}_overlaid.mp4")
+        output_path = os.path.join(file_dir, f"{file_name}-overlaid.mp4")
     
     try:
         # FFmpeg command to OVERLAY frames
@@ -61,7 +61,7 @@ def makefolder(file_path):
     file_name = os.path.splitext(os.path.basename(file_path))[0]
     
     # Create folder name
-    resized_folder_name = f"_{file_name}_overlaid"
+    resized_folder_name = f"{file_name}-overlaid"
     
     # Create full path to new folder
     resized_folder_path = os.path.join(folder_path, resized_folder_name)
