@@ -51,11 +51,11 @@ def trim_frames(input_path, start_time, end_time,count,foldername=None):
         return None
     if foldername:
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(foldername, f"{file_name}_trimmed{count}.mp4")
+        output_path = os.path.join(foldername, f"{file_name}_trimmed({start_time}-{end_time}).mp4")
     else:
         file_dir = os.path.dirname(input_path)
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(file_dir, f"{file_name}_trimmed{count}.mp4")
+        output_path = os.path.join(file_dir, f"{file_name}_trimmed({start_time}-{end_time}).mp4")
 
     try:
         cmd = [
@@ -79,21 +79,22 @@ def trim_frames(input_path, start_time, end_time,count,foldername=None):
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
 
-def trim_video_timestamps(input_path, start_times, end_time,count,foldername=None):
+def trim_video_timestamps(input_path, start_time, end_time,count,foldername=None):
     if foldername:
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(foldername, f"{file_name}_trimmed{count}.mp4")
+        # output_path = os.path.join(foldername, f"{file_name}_trimmed{count}.mp4")
+        output_path = os.path.join(foldername, f"{file_name}_({start_time}-{end_time}).mp4")
     else:
         file_dir = os.path.dirname(input_path)
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(file_dir, f"{file_name}_trimmed{count}.mp4")
-    
+        # output_path = os.path.join(file_dir, f"{file_name}_trimmed{count}.mp4")
+        output_path = os.path.join(file_dir, f"{file_name}_({start_time}-{end_time}).mp4")
     try:
         cmd = [
             "ffmpeg", 
             "-i", input_path, 
             "-c:v", "h264_nvenc",  
-            "-ss", start_times,      
+            "-ss", start_time,      
             "-to", end_time,        
             "-y",
             "-an",                   
@@ -130,9 +131,10 @@ def makefolder(file_path):
     
     # Create the folder if it doesn't exist
     if os.path.exists(resized_folder_path):
-        messagebox.showerror("ERROR", f"DELETE the folder {resized_folder_name}")
-        os.startfile(os.path.dirname(resized_folder_path))
-        return None
+        # messagebox.showerror("ERROR", f"DELETE the folder {resized_folder_name}")
+        # os.startfile(os.path.dirname(resized_folder_path))
+        # return None
+        pass
     else:
         os.makedirs(resized_folder_path)
         print(f"Created folder: {resized_folder_path}")
@@ -153,8 +155,8 @@ def main():
     if start_times is None:
         print("Start time not provided. Exiting...")
         return
-    for i in range(len(start_times)):
-        start_times[i] = format_time_input(start_times[i])
+    # for i in range(len(start_times)):
+    #     start_times[i] = format_time_input(start_times[i])
 
     end_times = simpledialog.askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::").split(".")
     
@@ -163,15 +165,14 @@ def main():
     if end_times is None:
         print("End time not provided. Exiting...")
         return
-    for i in range(len(end_times)):
-        end_times[i] = format_time_input(end_times[i])
+    # for i in range(len(end_times)):
+    #     end_times[i] = format_time_input(end_times[i])
 
     root.destroy()
-    if len(file_paths) > 1:
+    if len(start_times) > 1 and len(file_paths) == 1:
         foldername = makefolder(file_paths[0])
     else:
         foldername = None
-
     all_processing_complete = False
     output_path = None
     
@@ -185,10 +186,10 @@ def main():
                 print("Start time:", start_time)
                 print("End time:", end_time)
                 for i, path in enumerate(file_paths):
-                    if i > 0:
-                        # # Clear GPU memory between files
-                        # clear_gpu_memory()
-                        pass
+                    if len(file_paths) > 1:
+                        foldername = makefolder(file_paths[0])
+                    else:
+                        foldername = None
                     output_path = trim_video_timestamps(path, start_time, end_time, count, foldername)    
                 # Remove this line: os.startfile(os.path.dirname(output_path))
             elif unitoption == 'Frames':
