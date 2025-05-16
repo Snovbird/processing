@@ -19,7 +19,7 @@ def apply_png_overlay(video_path, cage_number,width,autocount=None):
     # Get the directory and filename of the input video
     video_dir = os.path.dirname(video_path)
     video_name = os.path.splitext(os.path.basename(video_path))[0]
-    output_path = os.path.join("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos", f"{video_name}_marked.mp4")
+    output_path = os.path.join("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos", f"{video_name}-marked.mp4")
     
     try:
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
@@ -34,7 +34,7 @@ def apply_png_overlay(video_path, cage_number,width,autocount=None):
             "-an",
             output_path
         ]
-        
+        print(" ".join(cmd))
         print("Starting overlay process...")
         subprocess.run(cmd, check=True)
         print(f"Overlay completed successfully! Output saved to: {output_path}")
@@ -110,7 +110,7 @@ def main():
             for i in range(12):
                 if len(str(12-i)) == 2 and str(12-i) in vid.split("/")[-1].replace(".mp4",""):
                         print(vid.split("/")[-1].replace(".mp4",""))
-                        output_path = apply_png_overlay(vid, i+1, width)
+                        output_path = apply_png_overlay(vid, 12-i, width)
                         break
                 elif str(12-i) in vid.split("/")[-1].replace(".mp4",""): 
                     output_path = apply_png_overlay(vid, 12-i, width)

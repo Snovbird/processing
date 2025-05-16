@@ -51,11 +51,11 @@ def trim_frames(input_path, start_time, end_time,count,foldername=None):
         return None
     if foldername:
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(foldername, f"{file_name}_trimmed({start_time}-{end_time}).mp4")
+        output_path = os.path.join(foldername, f"{file_name}-trimmed({start_time}-{end_time}).mp4")
     else:
         file_dir = os.path.dirname(input_path)
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(file_dir, f"{file_name}_trimmed({start_time}-{end_time}).mp4")
+        output_path = os.path.join(file_dir, f"{file_name}-trimmed({start_time}-{end_time}).mp4")
 
     try:
         cmd = [

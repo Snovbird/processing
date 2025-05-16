@@ -19,7 +19,7 @@ def apply_png_overlay(video_path, cage_number,width,autocount=None):
     # Get the directory and filename of the input video
     video_dir = os.path.dirname(video_path)
     video_name = os.path.splitext(os.path.basename(video_path))[0]
-    output_path = os.path.join("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos", f"{video_name}_marked.mp4")
+    output_path = os.path.join("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos", f"{video_name}-marked.mp4")
     
     try:
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
@@ -27,7 +27,7 @@ def apply_png_overlay(video_path, cage_number,width,autocount=None):
             "ffmpeg",
             "-hwaccel", "cuda",
             "-i", video_path,
-            "-i", f"C:/Users/Labo Samaha/Desktop/.LabGym/z_misc_DONOTTOUCH/cage{cage_number}_{width}.png ",
+            "-i", f"C:/Users/Labo Samaha/Desktop/.LabGym/z_misc_DONOTTOUCH/cage{cage_number}-{width}.png ",
             "-filter_complex", "[0][1]overlay=x=0:y=0",
             "-c:v", "h264_nvenc",
             "-y",  # Overwrite output file if it exists
