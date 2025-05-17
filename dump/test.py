@@ -34,8 +34,10 @@
 #         # Clear GPU memory between files
 #         print('not first')
 #     print(i, path)
-a = 'apples'
-a = a.split('.')
+# a = 'apples'
+# a = a.split('.')
 
-for i in a:
-    print(i)
+# for i in a:
+#     print(i)
+
+print("apples"[-2:-1])

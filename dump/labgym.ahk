@@ -1,6 +1,6 @@
 ﻿#SingleInstance, force
-!T::
-run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\vid_trim.py"
+!+T::
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\dump\vid_trim.py"
 return
 ^+A::
 run, "C:\Users\Labo Samaha\Desktop\.LabGym"
@@ -22,7 +22,7 @@ return
 run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersquick.py"
 return
 
-!+T::
+!T::
 run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trimmultiple.py"
 return
 
