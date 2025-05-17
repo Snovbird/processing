@@ -58,7 +58,7 @@ def trim_frames(input_path, start_time, end_time,count,foldername=None):
             "-an",                   
             output_path
         ]
-        print(cmd)
+        print(" ".join(cmd))
         subprocess.run(cmd, check=True)
         return output_path
     
@@ -126,11 +126,13 @@ def makefolder(file_path, count=1):
         # messagebox.showerror("ERROR", f"DELETE the folder {resized_folder_name}")
         # os.startfile(os.path.dirname(resized_folder_path))
         # return None
-        makefolder(file_path, count=1)
+        makefolder(file_path, count+1)
     else:
         os.makedirs(resized_folder_path)
         print(f"Created folder: {resized_folder_path}")
-        return resized_folder_path
+    global path_long_nottoconfuse
+    path_long_nottoconfuse = resized_folder_path
+        
     
 def main():
     root = tk.Tk()
@@ -162,9 +164,11 @@ def main():
 
     root.destroy()
     if len(start_times) > 1 and len(file_paths) == 1:
-        foldername = makefolder(file_paths[0])
+        makefolder(file_paths[0])
+        foldername = path_long_nottoconfuse
     elif len(file_paths) > 1:
-        foldername = makefolder(file_paths[0])
+        makefolder(file_paths[0])
+        foldername = path_long_nottoconfuse
     else:
         foldername = None
     all_processing_complete = False
