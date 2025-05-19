@@ -39,5 +39,20 @@
 
 # for i in a:
 #     print(i)
-
-print("apples"[-2:-1])
+import tkinter as tk
+from tkinter import filedialog, simpledialog, messagebox
+import os
+import subprocess
+import platform
+def clear_gpu_memory():
+    try:
+        # Reset GPU clocks temporarily to help clear memory
+        subprocess.run(["nvidia-smi", "-lgc", "0,0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(["nvidia-smi", "-rgc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("GPU memory cleanup attempted")
+        return True
+    except Exception as e:
+        print(f"GPU memory cleanup failed: {e}")
+        return False
+    
+clear_gpu_memory()
