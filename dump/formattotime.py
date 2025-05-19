@@ -6,19 +6,25 @@ def main():
     # Get input string from dialog or use example
     # Uncomment next line to get user input
     # setofcss = simpledialog.askstring("Time Format", "Enter comma-separated time values:")
-    setofcss = simpledialog.askstring("comma input", "Integers separated by period (HHMMSS.HHMMSS. etc):").split(".")
-    # Split the string by periods 
+    setofcss = simpledialog.askstring("comma input", "Integers separated by period (HHMMSS.HHMMSS. etc):")
+    try:
+        int(setofcss)[-1]
+    except :
+        setofcss = setofcss[:-1]
+    setofcss = setofcss.split(".")
+    # Split the string by periods 645.845.1314.2454.2813.3124.3444
     corrected_values = []
-    for time_str in setofcss:
+    for c,time_str in enumerate(setofcss):
         if len(time_str) >= 2:  # Make sure it has at least 2 digits
             # Extract minutes and seconds
             if len(time_str) == 2:
                 minutes = 0
                 seconds = int(time_str)
+                print(f"time REFORMATTED {c}:",f"{minutes:02d}{seconds:02d}")
             else:
                 minutes = int(time_str[:-2])
                 seconds = int(time_str[-2:])
-            
+                
             # Fix values where seconds exceed 59
             if seconds > 59:
                 minutes += seconds // 60

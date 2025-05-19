@@ -13,6 +13,10 @@ def rename_files_from_subfolders():
     selected_folder = filedialog.askdirectory(
         title="Select parent folder",
     )
+    folder_dir_with_files_to_delete = filedialog.askdirectory(
+        title="Select parent folder",
+    )
+    
     # Function to process files in subfolders
     def process_files(folder_path):
         
@@ -43,11 +47,11 @@ def rename_files_from_subfolders():
                 for root_dir, dirs, files in os.walk(subfolder_path):
                     for file in files:
                         # Check if file contains "2a_trimmed"
-                        if "trimmed" in file:
+                        if "-marked-trim" in file:
                             file_path = os.path.join(root_dir, file)
                             
                             # Create the new filename by replacing "2a_trimmed" with subfolder name
-                            new_filename = subfolder + "_" + file.replace("trimmed", "")
+                            new_filename = subfolder + "_" + file.replace("-marked-trim", "")
                             new_path = os.path.join(rename_folder, new_filename)
                             
                             # Handle duplicate filenames

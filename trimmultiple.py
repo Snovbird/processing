@@ -58,7 +58,7 @@ def trim_frames(input_path, start_time, end_time,count,foldername=None):
             "-an",                   
             output_path
         ]
-        print(" ".join(cmd))
+        print(" ".join(cmd), "\n*****************************************************************************************************")
         subprocess.run(cmd, check=True)
         return output_path
     
@@ -92,7 +92,7 @@ def trim_video_timestamps(input_path, start_time, end_time,count,foldername=None
             "-an",                   
             output_path
         ]
-        print(cmd, "\n*****************************************************************************************************")
+        print(" ".join(cmd), "\n*****************************************************************************************************")
 
         subprocess.run(cmd, check=True)    
         return output_path
@@ -126,14 +126,18 @@ def makefolder(file_path, count=1):
         # messagebox.showerror("ERROR", f"DELETE the folder {resized_folder_name}")
         # os.startfile(os.path.dirname(resized_folder_path))
         # return None
-        makefolder(file_path, count+1)
+        return makefolder(file_path, count+1)
     else:
         os.makedirs(resized_folder_path)
         print(f"Created folder: {resized_folder_path}")
-    global path_long_nottoconfuse
-    path_long_nottoconfuse = resized_folder_path
-        
+    return resized_folder_path
     
+def remove_space(stringinput):
+    try:
+        int(stringinput[-1])
+    except:
+        return stringinput[:-1]
+    return stringinput
 def main():
     root = tk.Tk()
     root.withdraw()
@@ -144,7 +148,7 @@ def main():
         print("No file selected. Exiting...")
         return
     
-    start_times = simpledialog.askstring("Input Values", "Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):").split(".")
+    start_times = remove_space(simpledialog.askstring("Input Values", "Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):")).split(".")
     
     if start_times is None:
         print("Exiting...")
@@ -152,7 +156,7 @@ def main():
     # for i in range(len(start_times)):
     #     start_times[i] = format_time_input(start_times[i])
 
-    end_times = simpledialog.askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::").split(".")
+    end_times = remove_space(simpledialog.askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
     
     unitoption = custom_dialog("Unit","What is your format?", option1="HHMMSS", option2="Frames")
 
@@ -164,11 +168,10 @@ def main():
 
     root.destroy()
     if len(start_times) > 1 and len(file_paths) == 1:
-        makefolder(file_paths[0])
-        foldername = path_long_nottoconfuse
+        
+        foldername = makefolder(file_paths[0])
     elif len(file_paths) > 1:
-        makefolder(file_paths[0])
-        foldername = path_long_nottoconfuse
+        foldername = makefolder(file_paths[0])
     else:
         foldername = None
     all_processing_complete = False
