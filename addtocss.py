@@ -74,7 +74,7 @@ def main():
     print(f"After formatright: {formatted}")
     
     # Copy based on choice
-    choice = "HHMMSS"  # For testing
+    choice = custom_dialog("HMMSS or FRAMES", "HMMSS or FRAMES", "HHMMSS", "FRAME")
     if choice == "FRAME":
         pyperclip.copy(tocopy)
     elif choice == "HHMMSS":
