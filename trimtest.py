@@ -34,42 +34,7 @@ def clear_gpu_memory():
         print(f"GPU memory cleanup failed: {e}")
         return False
 
-def trim_frames(input_path, start_time, end_time,count,foldername=None):
-    if not os.path.isfile(input_path):
-        print(f"Error: The file '{input_path}' does not exist.")
-        return None
-    if foldername:
-        file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(foldername, f"{file_name}-trim({start_time}-{end_time}).mp4")
-    else:
-        file_dir = os.path.dirname(input_path)
-        file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(file_dir, f"{file_name}-trim({start_time}-{end_time}).mp4")
-
-    try:
-        cmd = [
-
-            "ffmpeg", 
-            "-i", input_path, 
-            "-c:v", "h264_nvenc",  
-            "-vf", f'trim=start_frame={start_time.replace("f","")}:end_frame={end_time.replace("f","")},setpts=PTS-STARTPTS',      
-            "-af", f'aresample=async=1',        
-            "-y",
-            "-an",                   
-            output_path
-        ]
-        print(" ".join(cmd), "\n*****************************************************************************************************")
-        subprocess.run(cmd, check=True)
-        return output_path
-    
-    except subprocess.CalledProcessError as e:
-        print(f"Error during conversion: {e}")
-        return None
-    except FileNotFoundError:
-        print("Error: FFmpeg not on PATH.")
-        return None
-
-def trim_video_timestamps_accelerated(input_path, start_time, end_time, count, foldername=None):
+def trim_video_timestamps_accelerated(input_path, start_time, end_time, foldername=None):
     startforname = start_time.replace(":", "")
     endforname = end_time.replace(":", "")
     
@@ -105,6 +70,7 @@ def trim_video_timestamps_accelerated(input_path, start_time, end_time, count, f
     except subprocess.CalledProcessError as e:
         print(f"Error during conversion: {e}")
         return None
+
 
 
 def makefolder(file_path, count=1):
@@ -161,17 +127,13 @@ def main():
 
     end_times = remove_space(simpledialog.askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
     
-    unitoption = custom_dialog("Unit","What is your format?", option1="HHMMSS", option2="Frames")
-
     if end_times is None:
         print("Exiting...")
         return
-    # for i in range(len(end_times)):
-    #     end_times[i] = format_time_input(end_times[i])
 
     root.destroy()
+
     if len(start_times) > 1 and len(file_paths) == 1:
-        
         foldername = makefolder(file_paths[0])
     elif len(file_paths) > 1:
         foldername = makefolder(file_paths[0])
@@ -181,24 +143,13 @@ def main():
     output_path = None
     
     if len(end_times) == len(start_times):
-        for count, _ in enumerate(start_times):
+        for count, AAAAAAAAAA in enumerate(start_times):
             start_time = start_times[count]
             end_time = end_times[count]
-            if unitoption == 'HHMMSS':
-                start_time = format_time_input(start_time)
-                end_time = format_time_input(end_time)
-                print("Start time:", start_time)
-                print("End time:", end_time)
-                for i, path in enumerate(file_paths):
-                    output_path = trim_video_timestamps_accelerated(path, start_time, end_time, count, foldername)    
-                # Remove this line: os.startfile(os.path.dirname(output_path))
-            elif unitoption == 'Frames':
-                for i, path in enumerate(file_paths):
-                    if i > 0:
-                        # Clear GPU memory between files
-                        pass
-                    output_path = trim_frames(path, start_time, end_time, count, foldername)
-                
+            start_time = format_time_input(start_time)
+            end_time = format_time_input(end_time)
+            for path in file_paths:
+                output_path = trim_video_timestamps_accelerated(path, start_time, end_time,  foldername)    
         clear_gpu_memory()
         all_processing_complete = True
     else:

@@ -2,11 +2,10 @@ import tkinter as tk
 from tkinter import simpledialog
 import pyperclip
 
-def main():
+def formatright(setofcss):
     # Get input string from dialog or use example
     # Uncomment next line to get user input
     # setofcss = simpledialog.askstring("Time Format", "Enter comma-separated time values:")
-    setofcss = simpledialog.askstring("comma input", "Integers separated by period (HHMMSS.HHMMSS. etc):")
     try:
         int(setofcss)[-1]
     except :

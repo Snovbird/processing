@@ -83,3 +83,7 @@ return
 !n::
 run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\renamefolders.py"
 return
+
+!a::
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\dump\addtocss.py"
+return
