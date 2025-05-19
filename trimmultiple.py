@@ -196,7 +196,7 @@ def main():
                         pass
                     output_path = trim_frames(path, start_time, end_time, count, foldername)
                 
-        # clear_gpu_memory()
+        clear_gpu_memory()
         all_processing_complete = True
     else:
         messagebox.showerror("ERROR", "Must enter same # of start times as end times")
