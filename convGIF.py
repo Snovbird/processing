@@ -5,7 +5,7 @@ import subprocess
 import platform
 from tkinter import simpledialog
 
-def apply_png_overlay(video_path,frame_rate):
+def conv_gif(video_path,frame_rate):
     """
     Convert to GIF
     """
@@ -18,14 +18,14 @@ def apply_png_overlay(video_path,frame_rate):
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
         cmd = [
             "ffmpeg",
-            "-hwaccel", "cuda",                # Use NVIDIA GPU for hardware acceleration
-            "-hwaccel_output_format", "cuda",
-            "-c:v", "h264_cuvid",              # Use NVIDIA decoder for input
-            "-i", video_path,                  # Input file path
-            "-filter_complex", f"fps={frame_rate},scale=-1:480[s]; [s]split[a][b]; [a]palettegen[palette]; [b][palette]paletteuse",  # Create optimal color palette
-            "-y",                              # Overwrite output without asking
-            output_path                        # Output GIF path
+            "-hwaccel", "cuda",
+            "-c:v", "h264_cuvid",
+            "-i", video_path,
+            "-vf", f"hwdownload,format=nv12,format=yuv420p,fps={frame_rate},scale=-1:480,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
+            "-y",
+            output_path
         ]
+
 
         
         print("Starting to convert to gif...")
@@ -72,7 +72,7 @@ def main():
         if i > 0:
             # Clear GPU memory between files
             pass
-        output_path = apply_png_overlay(vid, frame_rate)
+        output_path = conv_gif(vid, frame_rate)
     clear_gpu_memory()
     if output_path:
         # Show a success message
