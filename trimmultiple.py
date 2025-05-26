@@ -51,8 +51,12 @@ def trim_frames(input_path, start_time, end_time,count,foldername=None):
 
             "ffmpeg", 
             "-i", input_path, 
+            "-hwaccel", "cuda",
+            "-hwaccel_output_format", "cuda",
+            "-c:v", "h264_cuvid",
+            "-vf", f'trim=start_frame={start_time.replace("f","")}:end_frame={end_time.replace("f","")},setpts=PTS-STARTPTS', 
             "-c:v", "h264_nvenc",  
-            "-vf", f'trim=start_frame={start_time.replace("f","")}:end_frame={end_time.replace("f","")},setpts=PTS-STARTPTS',      
+            "-preset", "p1",
             "-af", f'aresample=async=1',        
             "-y",
             "-an",                   
