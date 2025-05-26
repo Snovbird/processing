@@ -16,9 +16,7 @@ def conv_gif(video_path,frame_rate):
     temp_path = os.path.join(video_dir, "temp_output.mkv")
     
     try:
-        # FFmpeg command to overlay the PNG on the video using GPU acceleration
-# Step 1: Decode with hardware acceleration to temporary file
-# Step 1: Decode with hardware acceleration to a temporary file with a lossless codec
+        # Step 1: Decode with hardware acceleration to a temporary file with a lossless codec
         step1_cmd = [
             "ffmpeg",
             "-hwaccel", "cuda",
@@ -26,7 +24,7 @@ def conv_gif(video_path,frame_rate):
             "-i", video_path,
             "-c:v", "ffv1",  # Lossless codec
             "-y",
-            "temp_output.yuv"
+            temp_path
         ]
 
         # Step 2: Create GIF from the intermediate file
@@ -37,6 +35,7 @@ def conv_gif(video_path,frame_rate):
             "-y",
             output_path
         ]
+
 
 
 
