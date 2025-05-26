@@ -30,8 +30,8 @@ def conv_gif(video_path,frame_rate):
         # Step 2: Create GIF from the intermediate file
         step2_cmd = [
             "ffmpeg",
-            "-i", "temp_output.mkv",
-            "-vf", f"fps={frame_rate},scale=-1:480,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
+            "-i", temp_path,
+            "-vf", f"fps={frame_rate},scale=-1:768,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
             "-y",
             output_path
         ]
@@ -46,7 +46,7 @@ def conv_gif(video_path,frame_rate):
         subprocess.run(step1_cmd, check=True)
         subprocess.run(step2_cmd, check=True)
         print(f"Overlay completed successfully! Output saved to: {output_path}")
-        
+        os.remove(temp_path)
         return output_path
     
     except subprocess.CalledProcessError as e:
@@ -80,9 +80,10 @@ def main():
         print("No video file selected. Exiting...")
         return
     
-    frame_rate = simpledialog.askinteger("Frame rate", 
+    frame_rate = simpledialog.askstring("Frame rate", 
                                             "Enter frame rate (1-12):",minvalue=1,maxvalue=12)
-
+    if not frame_rate:
+        frame_rate = 12
     for i, vid in enumerate(video_paths):
         if i > 0:
             # Clear GPU memory between files
