@@ -33,7 +33,7 @@ def overlay_FRAMES(input_path,folder_path = None):
             "ffmpeg",
             "-hwaccel", "cuda",  # Use NVIDIA GPU acceleration
             "-i", input_path,  # Input file
-            "-vf", "drawtext=fontfile=Arial.ttf:text=%{n}:x=(w-tw)/2:y=(h-th)/2:fontcolor=white:box=1:boxcolor=0x00000000",  # overlay
+            "-vf", "drawtext=fontfile=Arial.ttf:text=%{n}:x=(w-tw)/2:y=(h-th)/2:fontcolor=white:box=1:boxcolor=0x00000000:fontsize=h*16/768",  # overlay
             "-c:v", "h264_nvenc",  # Use NVIDIA H.264 encoder
             "-y",  # Overwrite output file if it exists
             "-an", #no audio stream output
