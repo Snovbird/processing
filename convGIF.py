@@ -58,22 +58,15 @@ def main():
     root.withdraw()
     
     # Ask the user to select the input video file
-    try:
-        video_paths = filedialog.askopenfilenames(
-            title="Select Input Video",
-            filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")],
-            initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/"
-        )
-    except:
-        video_paths = filedialog.askopenfilenames(
-            title="Select Input Video",
-            filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")])
+    video_paths = filedialog.askopenfilenames(
+        title="Select Input Video",
+        filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")])
     if not video_paths:
         print("No video file selected. Exiting...")
         return
     
     frame_rate = simpledialog.askinteger("Frame rate", 
-                                            "Enter frame rate (1-15):",minvalue=1,maxvalue=12)
+                                            "Enter frame rate (1-12):",minvalue=1,maxvalue=12)
 
     for i, vid in enumerate(video_paths):
         if i > 0:

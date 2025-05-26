@@ -12,6 +12,8 @@ def rename_files_from_subfolders():
     selected_folder = filedialog.askdirectory(
         title="Select parent folder",
     )
+    if not selected_folder:
+        return
     answer = messagebox.askyesno("Remove in name?","Enter a string to remove?")
     
     if answer:
