@@ -48,15 +48,20 @@ def trim_frames(input_path, start_time, end_time,count,foldername=None):
 
     try:
         cmd = [
-            "ffmpeg",
+
+            "ffmpeg", 
+            "-i", input_path, 
             "-hwaccel", "cuda",
+            "-hwaccel_output_format", "cuda",
             "-c:v", "h264_cuvid",
-            "-i", video_path,
-            "-vf", f"hwdownload,format=nv12,format=yuv420p,fps={frame_rate},scale=-1:480,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
+            "-vf", f'trim=start_frame={start_time.replace("f","")}:end_frame={end_time.replace("f","")},setpts=PTS-STARTPTS', 
+            "-c:v", "h264_nvenc",  
+            "-preset", "p1",
+            "-af", f'aresample=async=1',        
             "-y",
+            "-an",                   
             output_path
         ]
-
         print(" ".join(cmd), "\n*****************************************************************************************************")
         subprocess.run(cmd, check=True)
         return output_path
