@@ -18,25 +18,26 @@ def conv_gif(video_path,frame_rate):
     try:
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
 # Step 1: Decode with hardware acceleration to temporary file
+# Step 1: Decode with hardware acceleration to a temporary file with a lossless codec
         step1_cmd = [
             "ffmpeg",
             "-hwaccel", "cuda",
             "-c:v", "h264_cuvid",
             "-i", video_path,
-            "-c:v", "rawvideo",
-            "-pix_fmt", "yuv420p",
+            "-c:v", "ffv1",  # Lossless codec
             "-y",
-            temp_path
+            "temp_output.yuv"
         ]
 
         # Step 2: Create GIF from the intermediate file
         step2_cmd = [
             "ffmpeg",
-            "-i", "temp_output.yuv",
+            "-i", "temp_output.mkv",
             "-vf", f"fps={frame_rate},scale=-1:480,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
             "-y",
             output_path
         ]
+
 
 
 
