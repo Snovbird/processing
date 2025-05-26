@@ -21,10 +21,11 @@ def conv_gif(video_path,frame_rate):
             "-hwaccel", "cuda",
             "-c:v", "h264_cuvid",
             "-i", video_path,
-            "-vf", f"hwdownload,format=nv12,format=yuv420p,fps={frame_rate},scale=-1:480,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
+            "-vf", f"hwdownload,format=rgb24,fps={frame_rate},scale=-1:480,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
             "-y",
             output_path
         ]
+
 
 
         
