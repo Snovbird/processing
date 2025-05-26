@@ -67,24 +67,24 @@ def rename_files_from_subfolders():
                         else:
                             file_path = os.path.join(root_dir, file)
                             
-                            # Create the new filename by replacing "2a_trimmed" with subfolder name
-                            e_name, ext = os.path.splitext(file)
-                            print(file)
-                            print(ext)
-                            new_filename = subfolder + "_" + file + f"{files}{ext}"
+                            # Get the file extension
+                            _, ext = os.path.splitext(file)
+                            
+                            # Create the new filename as subfolder_counter.ext
+                            counter = 1
+                            new_filename = f"{subfolder}_{counter}{ext}"
                             new_path = os.path.join(rename_folder, new_filename)
                             
-                            # Handle duplicate filenames
-                            counter = 1
-                            base_name, ext = os.path.splitext(new_filename)
+                            # Increment counter until we find an unused filename
                             while os.path.exists(new_path):
-                                new_filename = f"{files}_{counter}{ext}"
-                                new_path = os.path.join(rename_folder, new_filename)
                                 counter += 1
+                                new_filename = f"{subfolder}_{counter}{ext}"
+                                new_path = os.path.join(rename_folder, new_filename)
                             
                             # Copy the file to the rename folder with new name
                             shutil.copy2(file_path, new_path)
-                root.update()
+                            total_renamed += 1
+
             
             # Show completion message
             if total_renamed > 0:
