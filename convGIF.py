@@ -16,21 +16,34 @@ def conv_gif(video_path,frame_rate):
     
     try:
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
-        cmd = [
+# Step 1: Decode with hardware acceleration to temporary file
+        step1_cmd = [
             "ffmpeg",
             "-hwaccel", "cuda",
             "-c:v", "h264_cuvid",
             "-i", video_path,
-            "-vf", f"hwdownload,format=rgb24,fps={frame_rate},scale=-1:480,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
+            "-c:v", "rawvideo",
+            "-pix_fmt", "yuv420p",
+            "-y",
+            "temp_output.yuv"
+        ]
+
+        # Step 2: Create GIF from the intermediate file
+        step2_cmd = [
+            "ffmpeg",
+            "-i", "temp_output.yuv",
+            "-vf", f"fps={frame_rate},scale=-1:480,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse",
             "-y",
             output_path
         ]
 
 
 
+
         
         print("Starting to convert to gif...")
-        subprocess.run(cmd, check=True)
+        subprocess.run(step1_cmd, check=True)
+        subprocess.run(step2_cmd, check=True)
         print(f"Overlay completed successfully! Output saved to: {output_path}")
         
         return output_path
