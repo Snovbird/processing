@@ -79,9 +79,9 @@ def main():
     if not video_paths:
         print("No video file selected. Exiting...")
         return
-    
-    frame_rate = simpledialog.askstring("Frame rate", 
-                                            "Enter frame rate (1-12):",minvalue=1,maxvalue=12)
+    frame_rate = None
+    # frame_rate = simpledialog.askstring("Frame rate", 
+    #                                         "Enter frame rate (1-12):",minvalue=1,maxvalue=12)
     if not frame_rate:
         frame_rate = 12
     for i, vid in enumerate(video_paths):

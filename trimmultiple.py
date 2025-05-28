@@ -54,7 +54,7 @@ def trim_frames(input_path, start_time, end_time,count,foldername=None):
             "-hwaccel_output_format", "cuda",
             "-c:v", "h264_cuvid",
             "-i", input_path, 
-            "-vf", f'trim=start_frame={start_time.replace("f","")}:end_frame={end_time.replace("f","")},setpts=PTS-STARTPTS', 
+            "-vf", f'trim=start_frame={start_time}:end_frame={end_time},setpts=PTS-STARTPTS', 
             "-c:v", "h264_nvenc",  
             "-preset", "p1",
             "-af", f'aresample=async=1',        
