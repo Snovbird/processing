@@ -88,10 +88,8 @@ def main():
             print("No overlay image selected. Exiting...")
             return
     
-    width = simpledialog.askinteger("INPUT WIDTH", 
-                                    "What's the width of the video you're selecting?\n(ex: 2048, 1280, 1024, 480)",
-                                          initialvalue=1024,  
-                                          minvalue=480)
+    # width = simpledialog.askinteger("INPUT WIDTH", "What's the width of the video you're selecting?\n(ex: 2048, 1280, 1024, 480)",initialvalue=1024,minvalue=480)
+    width = 2048
     if not width or int(width) not in [2048, 1024, 1280, 480]:
         print("No width selected. Exiting...")
         return
