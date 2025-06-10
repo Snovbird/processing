@@ -1,4 +1,5 @@
 ﻿#SingleInstance, force
+place := "FN"
 !+T::
 run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\dump\vid_trim.py"
 return
@@ -10,15 +11,16 @@ return
     Run "C:\Users\%Username%\AppData\Local\Programs\Microsoft VS Code\Code.exe" "%A_ScriptDir%\labgym.ahk"
 return
 
-!+R::
+!r::
 run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resize.py"
 return
 
-!r::
-run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resizechoose.py"
+!+R::
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\dump\appendtoname.py"
 return
 
 !m::
+send, ^{c}
 run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersquick.py"
 return
 
@@ -73,7 +75,7 @@ IsProcessorRunning := false
 
 ^!+r::
 SplashTextOn,,, rebooting...
-Sleep 450
+Sleep 325
 SplashTextOff
 run,"%A_ScriptDir%\labgym.ahk"
 return
@@ -88,4 +90,57 @@ return
 
 !a::
 run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\addtocss.py"
+return
+
+#IfWinActive, ahk_exe Photoshop.exe
+$s::
+InputBox, userInput, User Input, Cage number:
+send, ^!s
+sleep, 150
+SendRaw, cage%userInput%-2048%place%
+sleep, 100
+send, {Tab}
+sleep, 100
+SendInput, {p}cage7-2048FF
+sleep, 100
+SendInput, {p}
+sleep, 100
+SendInput, {p}
+sleep, 100
+SendInput, {p}
+sleep, 100
+SendInput, {p}
+sleep, 100
+SendInput, {p}
+sleep, 100
+SendInput, {p}
+sleep, 100
+SendInput, {p}
+sleep, 100
+SendInput, {p}
+sleep, 100
+SendInput, {Enter}
+sleep, 100
+SendInput, {Enter}
+sleep, 100
+SendInput, {Enter}
+return
+$d::
+if place = FN
+{
+    place := "FF"
+}
+else if place = FF
+{
+    place := "FN"
+}
+SplashTextOn,,, %place%
+Sleep, 350
+SplashTextOff
+return
+#If, 
+#IfWinActive, ahk_exe explorer.exe
+!C::
+SendInput, ^{c}
+Run, pyw "C:\Users\Labo Samaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\cagename.py"
 return

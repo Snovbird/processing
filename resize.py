@@ -67,7 +67,7 @@ def main():
     file_paths = filedialog.askopenfilenames(
         title="Select one Video File",
         filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv")],
-        initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/0) RAW videos"
+        initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/0) RECORDINGS"
     )
     if not file_paths:
         print("No file selected. Exiting...")

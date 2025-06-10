@@ -16,7 +16,7 @@ def main():
     append_string = get_string_input("Enter string to append to filenames:", 
                             "String Input")
     if not append_string:
-        return
+        append_string = ''
     
     # Step 3: Process files
     try:
@@ -24,6 +24,7 @@ def main():
         wx.MessageBox(f"Successfully copied files to {append_string} folder with appended string!", 
                       "Success", wx.OK | wx.ICON_INFORMATION)
     except Exception as e:
+        print(f'Error: {str(e)}')
         wx.MessageBox(f"Error: {str(e)}", "Error", wx.OK | wx.ICON_ERROR)
 
 def select_folder():
@@ -41,15 +42,18 @@ def get_string_input(question,title):
         if dlg.ShowModal() == wx.ID_OK:
             input_string = dlg.GetValue().strip()
             if not input_string:
-                wx.MessageBox("Please enter a valid string!", "Warning", 
-                              wx.OK | wx.ICON_WARNING)
-                return None
+                # wx.MessageBox("Please enter a valid string!", "Warning", 
+                #               wx.OK | wx.ICON_WARNING)
+                return ''
                 
             # Remove invalid filename characters
             invalid_chars = '<>:"/\\|?*'
             for char in invalid_chars:
                 input_string = input_string.replace(char, '')
-            return input_string
+            if input_string =='xx':
+                return ''
+            else:
+                return input_string
         return None
 
 def process_files(source_folder, append_string,toreplace):
@@ -58,11 +62,11 @@ def process_files(source_folder, append_string,toreplace):
     subfolder_path = os.path.join(source_folder, append_string)
     
     # Create subfolder if it doesn't exist
-    if not os.path.exists(subfolder_path):
-        os.makedirs(subfolder_path)
+    # if not os.path.exists(subfolder_path):
+    #     os.makedirs(subfolder_path)
     
     # Get all files in source folder
-    files = [f.replace(toreplace,'') for f in os.listdir(source_folder) 
+    files = [f for f in os.listdir(source_folder) 
              if os.path.isfile(os.path.join(source_folder, f))]
     
     if not files:
@@ -74,11 +78,11 @@ def process_files(source_folder, append_string,toreplace):
         
         # Create new filename with appended string
         name, extension = os.path.splitext(filename)
-        new_filename = f"{name}{append_string}{extension}" # can add a separator if necessary
+        new_filename = f"{name.replace(toreplace,'')}{append_string}{extension}" # can add a separator if necessary
         destination_file_path = os.path.join(subfolder_path, new_filename)
         
         # Copy file to subfolder with new name
-        shutil.copy2(source_file_path, destination_file_path)
-
+        # os.rename(source_file_path, destination_file_path) # if new folder needs to be created
+        os.rename(source_file_path, os.path.join(source_folder,new_filename))
 if __name__ == "__main__":
     main()

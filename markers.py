@@ -67,7 +67,7 @@ def main():
     # Ask the user to select the input video file
     try:
         video_paths = filedialog.askopenfilenames(
-            title="Select Input Video",
+            title="Select Input Video of a single cage (will ask cage #)",
             filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")],
             initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/"
         )
