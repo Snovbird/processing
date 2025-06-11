@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import simpledialog, filedialog
 import os
 import subprocess
-import platform
 from tkinter import messagebox
+from common.common import clear_gpu_memory,custom_dialog
 
 def format_time_input(time_input):
     """
@@ -22,17 +22,6 @@ def format_time_input(time_input):
         return f"{time_input[:-4]}:{time_input[-4:-2]}:{time_input[-2:]}"
     else:
         return time_input  # Return the original input if it's not valid
-
-def clear_gpu_memory():
-    try:
-        # Reset GPU clocks temporarily to clear memory
-        subprocess.run(["nvidia-smi", "-lgc", "0,0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["nvidia-smi", "-rgc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("GPU memory cleanup attempted")
-        return True
-    except Exception as e:
-        print(f"GPU memory cleanup failed: {e}")
-        return False
 
 def trim_frames(input_path, start_time, end_time,count,foldername=None):
     if not os.path.isfile(input_path):
@@ -145,6 +134,7 @@ def remove_space(stringinput):
     except:
         return stringinput[:-1]
     return stringinput
+
 def main():
     root = tk.Tk()
     root.withdraw()
@@ -213,58 +203,6 @@ def main():
         os.startfile(foldername)
     elif all_processing_complete and output_path:
         os.startfile(os.path.dirname(output_path))
-
-def custom_dialog(title, message, option1="Proceed", option2="Skip"):
-    result = [False]  # Using a list to store the result
-    
-    dialog = tk.Toplevel()
-    dialog.title(title)
-    dialog.geometry("300x150")
-    dialog.resizable(False, False)
-    dialog.grab_set()  # Make the dialog modal
-    
-        # Center the dialog on the screen
-    dialog.update_idletasks()  # Update "requested size" from geometry manager
-    
-    # Calculate position x, y
-    screen_width = dialog.winfo_screenwidth()
-    screen_height = dialog.winfo_screenheight()
-    dialog_width = dialog.winfo_width()
-    dialog_height = dialog.winfo_height()
-    
-    position_x = int(screen_width/2 - dialog_width/2)
-    position_y = int(screen_height/2 - dialog_height/2)
-    
-    # Position the window
-    dialog.geometry(f"+{position_x}+{position_y}")
-    
-    # Create message label
-    label = tk.Label(dialog, text=message, wraplength=250, pady=20)
-    label.pack()
-    
-    # Frame for buttons
-    button_frame = tk.Frame(dialog)
-    button_frame.pack(pady=10)
-    
-    # Yes button with custom text
-    def on_op1():
-        result[0] = option1
-        dialog.destroy()
-    def on_op2():
-        result[0] = option2
-        dialog.destroy()
-        
-    op1_button = tk.Button(button_frame, text=option1, width=8, command=on_op1)
-    op1_button.pack(side=tk.LEFT, padx=10)
-    
-    # No button with custom text
-    op2_button = tk.Button(button_frame, text=option2, width=8, command=on_op2)
-    op2_button.pack(side=tk.LEFT, padx=10)
-    
-    # Wait for the dialog to be closed
-    dialog.wait_window()
-    
-    return result[0]
 
 if __name__ == "__main__":
     main()

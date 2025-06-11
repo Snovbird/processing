@@ -3,6 +3,8 @@ from tkinter import filedialog, messagebox
 import os
 import subprocess
 import pyperclip
+import wx
+from common.common import clear_gpu_memory,custom_dialog
 
 def apply_png_overlay(video_path, cage_number,width,where):
     """
@@ -47,17 +49,6 @@ def apply_png_overlay(video_path, cage_number,width,where):
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
 
-def clear_gpu_memory():
-    try:
-        # Reset GPU clocks temporarily to help clear memory
-        subprocess.run(["nvidia-smi", "-lgc", "0,0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["nvidia-smi", "-rgc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("GPU memory cleanup attempted")
-        return True
-    except Exception as e:
-        print(f"GPU memory cleanup failed: {e}")
-        return False
-
 def askfiles():
     try:
             video_paths = filedialog.askopenfilenames(
@@ -94,7 +85,7 @@ def main():
         print("No video file selected. Exiting...")
         return
     
-    AL_position = custom_dialog("Active lever position", "Is the active lever near the door (FN) or away (FF)",'FN','FF')
+    AL_position = custom_dialog(None, title="Active lever position", message="Is the active lever near the door (FN) or away (FF)", option1="FN", option2="FF")
     
     # width = simpledialog.askinteger("INPUT WIDTH", "What's the width of the video you're selecting?\n(ex: 2048, 1280, 1024, 480)",initialvalue=1024,minvalue=480)
     width = 2048
@@ -117,56 +108,5 @@ def main():
         # Show an error message
         messagebox.showerror("Error", "Failed to apply overlay. Check console for details.")
 
-def custom_dialog(title, message, option1="Proceed", option2="Skip"):
-    result = [False]  # Using a list to store the result
-    
-    dialog = tk.Toplevel()
-    dialog.title(title)
-    dialog.geometry("300x150")
-    dialog.resizable(False, False)
-    dialog.grab_set()  # Make the dialog modal
-    
-        # Center the dialog on the screen
-    dialog.update_idletasks()  # Update "requested size" from geometry manager
-    
-    # Calculate position x, y
-    screen_width = dialog.winfo_screenwidth()
-    screen_height = dialog.winfo_screenheight()
-    dialog_width = dialog.winfo_width()
-    dialog_height = dialog.winfo_height()
-    
-    position_x = int(screen_width/2 - dialog_width/2)
-    position_y = int(screen_height/2 - dialog_height/2)
-    
-    # Position the window
-    dialog.geometry(f"+{position_x}+{position_y}")
-    
-    # Create message label
-    label = tk.Label(dialog, text=message, wraplength=250, pady=20)
-    label.pack()
-    
-    # Frame for buttons
-    button_frame = tk.Frame(dialog)
-    button_frame.pack(pady=10)
-    
-    # Yes button with custom text
-    def on_op1():
-        result[0] = option1
-        dialog.destroy()
-    def on_op2():
-        result[0] = option2
-        dialog.destroy()
-        
-    op1_button = tk.Button(button_frame, text=option1, width=8, command=on_op1)
-    op1_button.pack(side=tk.LEFT, padx=10)
-    
-    # No button with custom text
-    op2_button = tk.Button(button_frame, text=option2, width=8, command=on_op2)
-    op2_button.pack(side=tk.LEFT, padx=10)
-    
-    # Wait for the dialog to be closed
-    dialog.wait_window()
-    
-    return result[0]
 if __name__ == "__main__":
     main()

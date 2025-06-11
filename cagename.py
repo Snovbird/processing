@@ -1,15 +1,8 @@
 import os
 import wx
 import pyperclip
+from common.common import select_folder
 
-def select_folder():
-    """Show folder selection dialog and return selected path"""
-    with wx.DirDialog(None, "Choose a directory containing files:", 
-                      style=wx.DD_DEFAULT_STYLE) as dlg:
-        if dlg.ShowModal() == wx.ID_OK:
-            folder_path = dlg.GetPath()
-            return folder_path
-        return None
 
 def get_string_input(question,title):
     """Show text input dialog for string"""
@@ -17,9 +10,9 @@ def get_string_input(question,title):
         if dlg.ShowModal() == wx.ID_OK:
             input_string = dlg.GetValue().strip()
             if not input_string:
-                wx.MessageBox("Please enter a valid string!", "Warning", 
-                              wx.OK | wx.ICON_WARNING)
-                return None
+                # wx.MessageBox("Please enter a valid string!", "Warning", 
+                #               wx.OK | wx.ICON_WARNING)
+                return ''
                 
             # Remove invalid filename characters
             invalid_chars = '<>:"/\\|?*'
@@ -28,7 +21,7 @@ def get_string_input(question,title):
             return input_string
         return None
 
-def process_files(source_folder):
+def name_cages(source_folder):
     """Create subfolder and copy files with modified names"""    
     # Get all files in source folder
     files = [f for f in os.listdir(source_folder) 
@@ -67,7 +60,7 @@ def main():
         
     # Step 3: Process files
     try:
-        process_files(source_folder)
+        name_cages(source_folder)
     except Exception as e:
         wx.MessageBox(f"Error: {str(e)}", "Error", wx.OK | wx.ICON_ERROR)
 

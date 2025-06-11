@@ -2,8 +2,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import os
 import subprocess
-import platform
 from tkinter import simpledialog
+from common.common import clear_gpu_memory
 
 def apply_png_overlay(video_path, cage_number,width,autocount=None):
     """
@@ -47,17 +47,6 @@ def apply_png_overlay(video_path, cage_number,width,autocount=None):
     except FileNotFoundError:
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
-
-def clear_gpu_memory():
-    try:
-        # Reset GPU clocks temporarily to help clear memory
-        subprocess.run(["nvidia-smi", "-lgc", "0,0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["nvidia-smi", "-rgc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("GPU memory cleanup attempted")
-        return True
-    except Exception as e:
-        print(f"GPU memory cleanup failed: {e}")
-        return False
     
 def main():
     # Initialize tkinter and hide the root window
