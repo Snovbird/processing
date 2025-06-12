@@ -1,55 +1,74 @@
-import tkinter as tk
+# import tkinter as tk
 import wx
 import subprocess
 import os
 
 # answer = CustomDialog(None, title="", message="", option1="", option2="")
-class custom_dialog(wx.Dialog):
-    def __init__(self, parent, title, message, option1="Proceed", option2="Skip"):
-        super().__init__(parent, title=title, size=(300, 150), style=wx.DEFAULT_DIALOG_STYLE)
-        
-        # Create a vertical box sizer for layout
-        vbox = wx.BoxSizer(wx.VERTICAL)
-        
-        # Add the message text
-        message_label = wx.StaticText(self, label=message, style=wx.ALIGN_CENTER)
-        vbox.Add(message_label, 1, wx.ALL | wx.EXPAND, 10)
-        
-        # Create a horizontal box sizer for the buttons
-        hbox = wx.BoxSizer(wx.HORIZONTAL)
-        
-        # Add the first button
-        self.option1_btn = wx.Button(self, label=option1)
-        self.option1_btn.Bind(wx.EVT_BUTTON, self.on_option1)
-        hbox.Add(self.option1_btn, 1, wx.ALL | wx.EXPAND, 5)
-        
-        # Add the second button
-        self.option2_btn = wx.Button(self, label=option2)
-        self.option2_btn.Bind(wx.EVT_BUTTON, self.on_option2)
-        hbox.Add(self.option2_btn, 1, wx.ALL | wx.EXPAND, 5)
-        
-        # Add the button sizer to the main sizer
-        vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
-        
-        # Set the sizer for the dialog
-        self.SetSizer(vbox)
-        
-        # Center the dialog on the screen
-        self.Centre()
-        
-        # Variable to store the result
-        self.result = None
+def custom_dialog(title,msg,op1,op2):
 
-    def on_option1(self, event):
-        """Handle the first button click."""
-        self.result = self.option1_btn.GetLabel()  # Store the button label as the result
-        self.EndModal(wx.ID_OK)  # Close the dialog with OK status
+    class custom_dialog(wx.Dialog):
+        def __init__(self, parent, title, message, option1="Proceed", option2="Skip"):
+            super().__init__(parent, title=title, size=(300, 150), style=wx.DEFAULT_DIALOG_STYLE)
+            
+            # Create a vertical box sizer for layout
+            vbox = wx.BoxSizer(wx.VERTICAL)
+            
+            # Add the message text
+            message_label = wx.StaticText(self, label=message, style=wx.ALIGN_CENTER)
+            vbox.Add(message_label, 1, wx.ALL | wx.EXPAND, 10)
+            
+            # Create a horizontal box sizer for the buttons
+            hbox = wx.BoxSizer(wx.HORIZONTAL)
+            
+            # Add the first button
+            self.option1_btn = wx.Button(self, label=option1)
+            self.option1_btn.Bind(wx.EVT_BUTTON, self.on_option1)
+            hbox.Add(self.option1_btn, 1, wx.ALL | wx.EXPAND, 5)
+            
+            # Add the second button
+            self.option2_btn = wx.Button(self, label=option2)
+            self.option2_btn.Bind(wx.EVT_BUTTON, self.on_option2)
+            hbox.Add(self.option2_btn, 1, wx.ALL | wx.EXPAND, 5)
+            
+            # Add the button sizer to the main sizer
+            vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
+            
+            # Set the sizer for the dialog
+            self.SetSizer(vbox)
+            
+            # Center the dialog on the screen
+            self.Centre()
+            
+            # Variable to store the result
+            self.result = None
 
-    def on_option2(self, event):
-        """Handle the second button click."""
-        self.result = self.option2_btn.GetLabel()  # Store the button label as the result
-        self.EndModal(wx.ID_CANCEL)  # Close the dialog with Cancel status
+        def on_option1(self, event):
+            """Handle the first button click."""
+            self.result = self.option1_btn.GetLabel()  # Store the button label as the result
+            self.EndModal(wx.ID_OK)  # Close the dialog with OK status
 
+        def on_option2(self, event):
+            """Handle the second button click."""
+            self.result = self.option2_btn.GetLabel()  # Store the button label as the result
+            self.EndModal(wx.ID_CANCEL)  # Close the dialog with Cancel status
+
+        app = wx.App(False)  # Create the wx.App instance
+    
+    app = wx.App()
+    # Create the dialog
+    dialog = custom_dialog(None, title=title, message=msg, option1=op1, option2=op2)
+    
+    # Show the dialog modally and get the result
+    if dialog.ShowModal() == wx.ID_OK:
+        dialog.Destroy()  # Clean up the dialog
+        app.MainLoop()
+        return dialog.result
+    else:
+        dialog.Destroy()  # Clean up the dialog
+        app.MainLoop()
+        return dialog.result
+        
+    
 # def custom_dialog(title, message, option1="Proceed", option2="Skip"):
 #     result = [False]  # Using a list to store the result
     

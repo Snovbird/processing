@@ -16,7 +16,8 @@ run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resi
 return
 
 !+R::
-run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\dump\appendtoname.py"
+send, ^{c}
+run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\filenamereplaceappend.py"
 return
 
 !m::
@@ -31,9 +32,11 @@ return
 ^!+A::
     Run "C:\Users\%Username%\AppData\Local\Programs\Microsoft VS Code\Code.exe" "%A_ScriptDir%\labgym.ahk"
 return
+
 !g::
 run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\convGIF.py"
 return
+
 !+M::
 run, py "C:\Users\Labo SamahA\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markers.py"
 return

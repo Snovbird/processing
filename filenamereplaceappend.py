@@ -1,13 +1,15 @@
 import os
 import shutil
 import wx
-
+import pyperclip
 def main():
     # Initialize wx application
     app = wx.App(False)
     
     # Step 1: Ask for folder directory
-    source_folder = select_folder()
+    source_folder = pyperclip.paste()
+    if not os.path.isdir(source_folder):
+        source_folder = select_folder()
     if not source_folder:
         return
     

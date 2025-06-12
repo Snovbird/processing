@@ -23,17 +23,23 @@ def format_time_input(time_input):
     else:
         return time_input  # Return the original input if it's not valid
 
-def trim_frames(input_path, start_time, end_time,count,foldername=None):
+def trim_frames(input_path, start_time, end_time,count,output_times=False,foldername=None):
     if not os.path.isfile(input_path):
         print(f"Error: The file '{input_path}' does not exist.")
         return None
+    
+    if output_times == True:
+        output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"
+    else:
+        output_name = f"{file_name}.mp4"
+    
     if foldername:
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(foldername, f"{file_name}-trim({start_time}-{end_time}).mp4")
+        output_path = os.path.join(foldername, output_name)
     else:
         file_dir = os.path.dirname(input_path)
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(file_dir, f"{file_name}-trim({start_time}-{end_time}).mp4")
+        output_path = os.path.join(file_dir, output_name)
 
     try:
         cmd = [
@@ -62,18 +68,21 @@ def trim_frames(input_path, start_time, end_time,count,foldername=None):
         print("Error: FFmpeg not on PATH.")
         return None
 
-def trim_video_timestamps_accelerated(input_path, start_time, end_time, count, foldername=None):
+def trim_video_timestamps_accelerated(input_path, start_time, end_time, count, output_times=False,foldername=None):
     startforname = start_time.replace(":", "")
     endforname = end_time.replace(":", "")
-    
+    if output_times == True:
+        output_name = f"{file_name}-trim({startforname}-{endforname}).mp4"
+    else:
+        output_name = f"{file_name}.mp4"
     # Create unique output path for each segment
     if foldername:
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(foldername, f"{file_name}-trim({startforname}-{endforname}).mp4")
+        output_path = os.path.join(foldername, output_name)
     else:
         file_dir = os.path.dirname(input_path)
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(file_dir, f"{file_name}-trim({startforname}-{endforname}).mp4")
+        output_path = os.path.join(file_dir, output_name)
     
     try:
         # GPU-accelerated command for a single segment
@@ -128,12 +137,12 @@ def makefolder(file_path, count=1):
         print(f"Created folder: {resized_folder_path}")
     return resized_folder_path
     
-def remove_space(stringinput):
-    try:
-        int(stringinput[-1])
-    except:
-        return stringinput[:-1]
-    return stringinput
+def remove_other(stringinput):
+    a = ""
+    for i in stringinput:
+        if i in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.']:
+            a += i
+    return a
 
 def main():
     root = tk.Tk()
@@ -145,7 +154,7 @@ def main():
         print("No file selected. Exiting...")
         return
     
-    start_times = remove_space(simpledialog.askstring("Input Values", "Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):")).split(".")
+    start_times = remove_other(simpledialog.askstring("Input Values", "Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):")).split(".")
     
     if start_times is None:
         print("Exiting...")
@@ -153,9 +162,10 @@ def main():
     # for i in range(len(start_times)):
     #     start_times[i] = format_time_input(start_times[i])
 
-    end_times = remove_space(simpledialog.askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
+    end_times = remove_other(simpledialog.askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
     
-    unitoption = custom_dialog("Unit","What is your format?", option1="HHMMSS", option2="Frames")
+    unitoption = custom_dialog("Unit","What is your format?", op1="HHMMSS", op2="Frames")
+        
 
     if end_times is None:
         print("Exiting...")
@@ -164,12 +174,20 @@ def main():
     #     end_times[i] = format_time_input(end_times[i])
 
     root.destroy()
+    if len(start_times) == 1: 
+        output_answer = custom_dialog("File name","Include timestamps in file name?", op1="Yes", op2="no")
+
+        if output_answer == 'Yes':
+            output_answer = True
+    else:
+        output_answer = False
     if len(start_times) > 1 and len(file_paths) == 1:
         
         foldername = makefolder(file_paths[0])
     elif len(file_paths) > 1:
         foldername = makefolder(file_paths[0])
     else:
+        
         foldername = None
     all_processing_complete = False
     output_path = None
@@ -184,14 +202,14 @@ def main():
                 print("Start time:", start_time)
                 print("End time:", end_time)
                 for i, path in enumerate(file_paths):
-                    output_path = trim_video_timestamps_accelerated(path, start_time, end_time, count, foldername)    
+                    output_path = trim_video_timestamps_accelerated(path, start_time, end_time, count,output_times=output_answer, foldername=foldername)    
                 # Remove this line: os.startfile(os.path.dirname(output_path))
             elif unitoption == 'Frames':
                 for i, path in enumerate(file_paths):
                     if i > 0:
                         # Clear GPU memory between files
                         pass
-                    output_path = trim_frames(path, start_time, end_time, count, foldername)
+                    output_path = trim_frames(path, start_time, end_time, count, output_times=output_answer,foldername=foldername)
                 
         clear_gpu_memory()
         all_processing_complete = True

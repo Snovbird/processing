@@ -85,7 +85,7 @@ def main():
         print("No video file selected. Exiting...")
         return
     
-    AL_position = custom_dialog(None, title="Active lever position", message="Is the active lever near the door (FN) or away (FF)", option1="FN", option2="FF")
+    AL_position = custom_dialog(title="Active lever position", msg="Is the active lever near the door (FN) or away (FF)", op1="FN", op2="FF")
     
     # width = simpledialog.askinteger("INPUT WIDTH", "What's the width of the video you're selecting?\n(ex: 2048, 1280, 1024, 480)",initialvalue=1024,minvalue=480)
     width = 2048
