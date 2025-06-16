@@ -1,10 +1,7 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox
 import os
 import subprocess
-import pyperclip
 import wx
-from common.common import clear_gpu_memory,custom_dialog
+from common.common import clear_gpu_memory,custom_dialog,select_video,windowpath
 
 def apply_png_overlay(video_path, cage_number,width,where):
     """
@@ -20,7 +17,7 @@ def apply_png_overlay(video_path, cage_number,width,where):
     # Get the directory and filename of the input video
     video_dir = os.path.dirname(video_path)
     video_name = os.path.splitext(os.path.basename(video_path))[0]
-    output_path = os.path.join("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos", f"{video_name}-marked.mp4")
+    output_path = os.path.join("C:/Users/LaboSamaha/Desktop/.LabGym/2) MARKED videos", f"{video_name}-marked.mp4")
     
     try:
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
@@ -28,7 +25,7 @@ def apply_png_overlay(video_path, cage_number,width,where):
             "ffmpeg",
             "-hwaccel", "cuda",
             "-i", video_path,
-            "-i", f"C:/Users/Labo Samaha/Desktop/.LabGym/z_misc_DONOTTOUCH/{width}{where}/cage{cage_number}-{width}{where}.png ",
+            "-i", f"C:/Users/LaboSamaha/Desktop/.LabGym/z_misc_DONOTTOUCH/MARKERS/{width}{where}/cage{cage_number}-{width}{where}.png ",
             "-filter_complex", "[0][1]overlay=x=0:y=0",
             "-c:v", "h264_nvenc",
             "-y",  # Overwrite output file if it exists
@@ -49,37 +46,21 @@ def apply_png_overlay(video_path, cage_number,width,where):
         print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
 
-def askfiles():
-    try:
-            video_paths = filedialog.askopenfilenames(
-                title="Select Input Video (markersquick)",
-                filetypes=[("Video Files", "*.mp4")],
-                initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/"
-            )
-    except:
-            video_paths = filedialog.askopenfilenames(
-                title="Select Input Video",
-                filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")])
-    return video_paths
-
 def main():
     # Initialize tkinter and hide the root window
-    root = tk.Tk()
-    root.withdraw()
-    folderpath = pyperclip.paste()
+    folderpath = windowpath()
     if os.path.isdir(folderpath):
         video_paths = []
         count = 0
         filesinside = os.listdir(folderpath)
         for file in filesinside:
             count +=1
-            if os.path.splitext(file)[1] in ['.mp4']: #'.avi','.mov.','.webm','.mkv']: # is file extension the right one
+            if os.path.splitext(file)[1] in ['.mp4'] and os.path.isfile(file): #'.avi','.mov.','.webm','.mkv']: # is file extension the right one
                 video_paths.append(os.path.join(folderpath,file))
-            elif count == len(filesinside):
-                video_paths = askfiles()
-    else:
-        video_paths = askfiles()
-    # Ask the user to select the input video file
+            elif count == len(filesinside) and os.path.isfile(file): # looped through all files inside folderpath and there was no mp4 file
+                video_paths = select_video(title="Select videos for MARKERS QUICK", chosenpath="C:/Users/Labo Samaha/Desktop/.LabGym/")
+    else: # last copied item in clipboard is not a folder path
+        video_paths = select_video(title="Select videos for MARKERS QUICK",chosenpath="C:/Users/Labo Samaha/Desktop/.LabGym/")
         
     if not video_paths:
         print("No video file selected. Exiting...")
@@ -106,7 +87,7 @@ def main():
         os.startfile("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos")
     else:
         # Show an error message
-        messagebox.showerror("Error", "Failed to apply overlay. Check console for details.")
+        print("Error", "Failed to apply overlay. Check console for details.")
 
 if __name__ == "__main__":
     main()

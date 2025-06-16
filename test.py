@@ -1,4 +1,6 @@
-import pyperclip
+
+import time
 
 
-pyperclip.copy(list("1234567890."))
+
+print(get_active_window_title())

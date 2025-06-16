@@ -1,7 +1,7 @@
 import os
 import wx
 import pyperclip
-from common.common import select_folder
+from common.common import select_folder,windowpath
 
 
 def get_string_input(question,title):
@@ -49,10 +49,10 @@ def main():
     app = wx.App(False)
     
     # Step 1: Ask for folder directory
-    lastclip = pyperclip.paste().replace('\\','/')
-    print(lastclip)
-    if os.path.isdir(lastclip):
-        source_folder = lastclip
+    currentwindow = windowpath()
+    print(currentwindow)
+    if os.path.isdir(currentwindow): # is it a file explorer window and is the setting to show full path in window name active (if not → else)
+        source_folder = currentwindow
     else:
         source_folder = select_folder()
     if not source_folder:

@@ -1,9 +1,15 @@
-# import tkinter as tk
+# no need to import modules present in __init__ (will be run first) # NOT SURE ABOUT THAT ACTUALLY
 import wx
-import subprocess
 import os
-
+import subprocess
 # answer = CustomDialog(None, title="", message="", option1="", option2="")
+
+def windowpath():
+    import win32gui
+    window = win32gui.GetForegroundWindow()
+    print(type(win32gui.GetWindowText(window)))
+    return win32gui.GetWindowText(window).replace(' - File Explorer','')
+
 def custom_dialog(title,msg,op1,op2):
 
     class custom_dialog(wx.Dialog):
@@ -67,58 +73,6 @@ def custom_dialog(title,msg,op1,op2):
         dialog.Destroy()  # Clean up the dialog
         app.MainLoop()
         return dialog.result
-        
-    
-# def custom_dialog(title, message, option1="Proceed", option2="Skip"):
-#     result = [False]  # Using a list to store the result
-    
-#     dialog = tk.Toplevel()
-#     dialog.title(title)
-#     dialog.geometry("300x150")
-#     dialog.resizable(False, False)
-#     dialog.grab_set()  # Make the dialog modal
-#         # Center the dialog on the screen
-#     dialog.update_idletasks()  # Update "requested size" from geometry manager
-    
-#     # Calculate position x, y
-#     screen_width = dialog.winfo_screenwidth()
-#     screen_height = dialog.winfo_screenheight()
-#     dialog_width = dialog.winfo_width()
-#     dialog_height = dialog.winfo_height()
-    
-#     position_x = int(screen_width/2 - dialog_width/2)
-#     position_y = int(screen_height/2 - dialog_height/2)
-    
-#     # Position the window
-#     dialog.geometry(f"+{position_x}+{position_y}")
-    
-#     # Create message label
-#     label = tk.Label(dialog, text=message, wraplength=250, pady=20)
-#     label.pack()
-    
-#     # Frame for buttons
-#     button_frame = tk.Frame(dialog)
-#     button_frame.pack(pady=10)
-    
-#     # Yes button with custom text
-#     def on_op1():
-#         result[0] = option1
-#         dialog.destroy()
-#     def on_op2():
-#         result[0] = option2
-#         dialog.destroy()
-        
-#     op1_button = tk.Button(button_frame, text=option1, width=8, command=on_op1)
-#     op1_button.pack(side=tk.LEFT, padx=10)
-    
-#     # No button with custom text
-#     op2_button = tk.Button(button_frame, text=option2, width=8, command=on_op2)
-#     op2_button.pack(side=tk.LEFT, padx=10)
-    
-#     # Wait for the dialog to be closed
-#     dialog.wait_window()
-    
-#     return result[0]
 
 def select_folder():
     """Show folder selection dialog and return selected path"""
@@ -128,34 +82,6 @@ def select_folder():
             folder_path = dlg.GetPath()
             return folder_path
         return None
-    
-def select_anyfile(msg="Select files"):
-    """Show file selection dialog for any file type and return selected paths."""
-    app = wx.App(False)  # Create a wx.App instance
-    with wx.FileDialog(
-        None,
-        message=msg,
-        wildcard="All files (*.*)|*.*",
-        style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST
-    ) as dlg:
-        if dlg.ShowModal() == wx.ID_OK:
-            paths = dlg.GetPaths()  # Get a list of selected file paths
-            return paths
-    return None
-
-def select_video(msg="Select video files"):
-    """Show file selection dialog for video files and return selected paths."""
-    app = wx.App(False)  # Create a wx.App instance
-    with wx.FileDialog(
-        None,
-        message=msg,
-        wildcard="Video files (*.mp4;*.avi)|*.mp4;*.avi",
-        style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST
-    ) as dlg:
-        if dlg.ShowModal() == wx.ID_OK:
-            paths = dlg.GetPaths()  # Get a list of selected file paths
-            return paths
-    return None
 
 def clear_gpu_memory():
     try:
@@ -168,7 +94,91 @@ def clear_gpu_memory():
         print(f"GPU memory cleanup failed: {e}")
         return False
     
+def select_video(title="Select videos",chosenpath=None):
+    app = wx.App(False)
 
+    def pathDNE():
+        with wx.FileDialog(
+            None,
+            message=title,
+            wildcard=wildcard,
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE
+        ) as file_dialog:
+            
+            # Show the dialog and check if user clicked OK
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return []  # Return empty list if canceled
+                
+            # Get the selected paths
+            video_paths = file_dialog.GetPaths()
+            return video_paths
+        
+    # Create wildcard string for mp4 files only
+    wildcard = "Video Files (*.mp4)|*.mp4" #"Video files (*.mp4;*.avi)|*.mp4;*.avi" #"Video Files (*.mp4)|*.mp4" #"Video Files (*.mp4;*.avi;*.mov;*.mkv;*.webm)|*.mp4;*.avi;*.mov;*.mkv;*.webm"
+    if chosenpath:
+        try:
+            with wx.FileDialog(
+                None,
+                message=title,
+                defaultDir=chosenpath,
+                wildcard=wildcard,
+                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE
+            ) as file_dialog:
+                
+                # Show the dialog and check if user clicked OK
+                if file_dialog.ShowModal() == wx.ID_CANCEL:
+                    return []  # Return empty list if canceled
+                    
+                # Get the selected paths
+                video_paths = file_dialog.GetPaths()
+                return video_paths
+        except:
+            return pathDNE()
+    else:
+        return pathDNE()
+
+
+def select_anyfile(title="Select files",chosenpath=None):
+    # Create wildcard string for video files
+    app = wx.App(False)
+    wildcard = "Any files (*.*)|*.*"
+    def pathDNE():
+        with wx.FileDialog(
+            None,
+            message=title,
+            wildcard=wildcard,
+            style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE
+        ) as file_dialog:
+            
+            # Show the dialog and check if user clicked OK
+            if file_dialog.ShowModal() == wx.ID_CANCEL:
+                return []  # Return empty list if canceled
+                
+            # Get the selected paths
+            video_paths = file_dialog.GetPaths()
+            return video_paths
+    # Create the file dialog
+    if chosenpath:
+        try:
+            with wx.FileDialog(
+                None,
+                message=title,
+                defaultDir=chosenpath,
+                wildcard=wildcard,
+                style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE
+            ) as file_dialog:
+                
+                # Show the dialog and check if user clicked OK
+                if file_dialog.ShowModal() == wx.ID_CANCEL:
+                    return []  # Return empty list if canceled
+                    
+                # Get the selected paths
+                video_paths = file_dialog.GetPaths()
+                return video_paths
+        except:
+            return pathDNE()
+    else:
+        return pathDNE()
 
 
 

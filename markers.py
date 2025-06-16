@@ -3,7 +3,7 @@ from tkinter import filedialog, messagebox
 import os
 import subprocess
 from tkinter import simpledialog
-from common.common import clear_gpu_memory
+from common.common import clear_gpu_memory,select_video,windowpath
 
 def apply_png_overlay(video_path, cage_number,width,autocount=None):
     """
@@ -54,16 +54,11 @@ def main():
     root.withdraw()
     
     # Ask the user to select the input video file
-    try:
-        video_paths = filedialog.askopenfilenames(
-            title="Select Input Video of a single cage (will ask cage #)",
-            filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")],
-            initialdir="C:/Users/Labo Samaha/Desktop/.LabGym/"
-        )
-    except:
-        video_paths = filedialog.askopenfilenames(
-            title="Select Input Video",
-            filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv *.webm")])
+    startpath = windowpath()
+    if not os.path.isdir(startpath): # current window is not a file explorer window
+        startpath = "C:/Users/Labo Samaha/Desktop/.LabGym/"
+    video_paths = select_video(title="Select Input Video(s) for ONE cage",chosenpath=startpath)
+    
     if not video_paths:
         print("No video file selected. Exiting...")
         return
