@@ -53,14 +53,16 @@ def main():
         video_paths = []
         count = 0
         filesinside = os.listdir(folderpath)
+        print(filesinside)
         for file in filesinside:
             count +=1
-            if os.path.splitext(file)[1] in ['.mp4'] and os.path.isfile(file): #'.avi','.mov.','.webm','.mkv']: # is file extension the right one
-                video_paths.append(os.path.join(folderpath,file))
+            fullfilepath = os.path.join(folderpath,file)
+            if os.path.splitext(file)[1] in ['.mp4'] and os.path.isfile(fullfilepath): #'.avi','.mov.','.webm','.mkv']: # is file extension the right one
+                video_paths.append(fullfilepath)
             elif count == len(filesinside) and os.path.isfile(file): # looped through all files inside folderpath and there was no mp4 file
-                video_paths = select_video(title="Select videos for MARKERS QUICK", chosenpath="C:/Users/Labo Samaha/Desktop/.LabGym/")
-    else: # last copied item in clipboard is not a folder path
-        video_paths = select_video(title="Select videos for MARKERS QUICK",chosenpath="C:/Users/Labo Samaha/Desktop/.LabGym/")
+                video_paths = select_video(title="Select videos for MARKERS QUICK", chosenpath="C:/Users/samahalabo/Desktop/.LabGym/")
+    else: 
+        video_paths = select_video(title="Select videos for MARKERS QUICK",chosenpath="C:/Users/samahalabo/Desktop/.LabGym/")
         
     if not video_paths:
         print("No video file selected. Exiting...")

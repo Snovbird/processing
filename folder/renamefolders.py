@@ -1,29 +1,27 @@
 import os
-import tkinter as tk
-from tkinter import filedialog, messagebox,simpledialog,messagebox
+from common.common import select_folder,askstring,custom_dialog
 import shutil
 
 def rename_files_from_subfolders():
     # Create the main window
-    root = tk.Tk()
-    root.withdraw()
-    
+    #     
     # Variable to store selected folder path
-    selected_folder = filedialog.askdirectory(
+    selected_folder = select_folder(
         title="Select parent folder",
     )
     if not selected_folder:
         return
-    answer = messagebox.askyesno("Remove in name?","Enter a string to remove?")
+    answer = custom_dialog("Remove in name?","Enter a string to remove?",op1='yes',op2='no')
     
-    if answer:
-        strtoremove = simpledialog.askstring("To remove", "Enter a string to remove in filenames:")
-    
+    if answer == 'yes':
+        strtoremove = askstring("To remove", "Enter a string to remove in filenames:")
+    else:
+        strtoremove = ''
     # Function to process files in subfolders
     def process_files(folder_path):
         
         if not folder_path:
-            messagebox.showwarning("Warning", "Please select a parent folder first!")
+            print("Warning", "Please select a parent folder first!")
             return
         
         try:    
@@ -90,17 +88,16 @@ def rename_files_from_subfolders():
             
             # Show completion message
             if total_renamed > 0:
-                messagebox.showinfo("Success", f"Successfully renamed and copied {total_renamed} files to {rename_folder}")
+                print("Success", f"Successfully renamed and copied {total_renamed} files to {rename_folder}")
                 # Open the folder in explorer/finder
                 if os.name == 'nt':  # Windows
                     os.startfile(rename_folder)
             else:
-                messagebox.showinfo("Information", "No files with '2a_trimmed' were found in any subfolder")
+                print("Information", "No files with were found in any subfolder")
                 
         except Exception as e:
             error_msg = f"An error occurred: {str(e)}"
-            messagebox.showerror("Error", error_msg)
-    root.destroy()
+            print("Error:", error_msg)
     process_files(selected_folder)
 
 if __name__ == "__main__":

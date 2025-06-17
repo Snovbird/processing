@@ -1,13 +1,13 @@
 import os
 import shutil
 import wx
-import pyperclip
+from common.common import windowpath,select_folder
 def main():
     # Initialize wx application
     app = wx.App(False)
     
     # Step 1: Ask for folder directory
-    source_folder = pyperclip.paste()
+    source_folder = windowpath()
     if not os.path.isdir(source_folder):
         source_folder = select_folder()
     if not source_folder:
@@ -28,15 +28,6 @@ def main():
     except Exception as e:
         print(f'Error: {str(e)}')
         wx.MessageBox(f"Error: {str(e)}", "Error", wx.OK | wx.ICON_ERROR)
-
-def select_folder():
-    """Show folder selection dialog and return selected path"""
-    with wx.DirDialog(None, "Choose a directory containing files:", 
-                      style=wx.DD_DEFAULT_STYLE) as dlg:
-        if dlg.ShowModal() == wx.ID_OK:
-            folder_path = dlg.GetPath()
-            return folder_path
-        return None
 
 def get_string_input(question,title):
     """Show text input dialog for string"""

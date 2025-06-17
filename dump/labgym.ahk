@@ -6,7 +6,12 @@ return
 ^+A::
 run, "C:\Users\samahalabo\Desktop\.LabGym"
 return
-
+^+z::
+run, "C:\Users\samahalabo\Videos"
+return
+!p::
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\extractpng.py"
+return
 ^!+l::
     Run "C:\Users\%Username%\AppData\Local\Programs\Microsoft VS Code\Code.exe" "%A_ScriptDir%\labgym.ahk"
 return

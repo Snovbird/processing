@@ -68,6 +68,7 @@ def trim_frames(input_path, start_time, end_time,count,output_times=False,folder
 def trim_video_timestamps_accelerated(input_path, start_time, end_time, count, output_times=False,foldername=None):
     startforname = start_time.replace(":", "")
     endforname = end_time.replace(":", "")
+    file_name = os.path.splitext(os.path.basename(input_path))[0]
     if output_times == True:
         output_name = f"{file_name}-trim({startforname}-{endforname}).mp4"
     else:
@@ -113,8 +114,7 @@ def remove_other(stringinput):
     return a
 
 def main():
-    
-    file_paths = select_video(title="Select Video(S) to TRIM")
+    file_paths = select_video(title="Select Video(S) to TRIM",chosenpath=windowpath())
     if not file_paths:
         print("No file selected. Exiting...")
         return

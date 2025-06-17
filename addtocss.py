@@ -1,19 +1,18 @@
 #add to comma separated string
-import tkinter as tk
-from tkinter import simpledialog, filedialog
+from common.common import askstring,askint
 import pyperclip
 
 from common.common import custom_dialog
 
 
 def main():
-    setofcss = simpledialog.askstring("comma input", "Integers separated by period (HHMMSS.HHMMSS. etc):")
+    setofcss = askstring("comma input", "Integers separated by period (HHMMSS.HHMMSS. etc):")
     if setofcss.endswith("."):
         setofcss = setofcss[:-1]
     
     setofcss = setofcss.split(".")
     
-    toadd = simpledialog.askinteger("integer", "toadd:")
+    toadd = askint("integer", "toadd:")
 
     for c in range(len(setofcss)):
         setofcss[c] = int(setofcss[c]) + toadd
@@ -25,9 +24,8 @@ def main():
     
     formatted = formatright(tocopy)
     print(f"After formatright: {formatted}")
-    
-    # Copy based on choice
-    choice = custom_dialog("HMMSS or FRAMES", "HMMSS or FRAMES", "HHMMSS", "FRAME")
+    # Copy based on choice 
+    choice = custom_dialog(title="HMMSS or FRAMES", msg="HMMSS or FRAMES", op1="HHMMSS", op2="FRAME")
     if choice == "FRAME":
         pyperclip.copy(tocopy)
     elif choice == "HHMMSS":

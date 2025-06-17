@@ -67,14 +67,12 @@ def custom_dialog(title,msg,op1,op2):
     # Show the dialog modally and get the result
     if dialog.ShowModal() == wx.ID_OK:
         dialog.Destroy()  # Clean up the dialog
-        app.MainLoop()
         return dialog.result
     else:
         dialog.Destroy()  # Clean up the dialog
-        app.MainLoop()
         return dialog.result
 
-def select_folder(title="Choose a directory",chosenpath=None):
+def select_folder(title="Choose a directory",chosenpath=''):
     """Show folder selection dialog and return selected path"""
     app = wx.App(False)
 
@@ -109,7 +107,7 @@ def clear_gpu_memory():
         print(f"GPU memory cleanup failed: {e}")
         return False
     
-def select_video(title="Select videos",chosenpath=None):
+def select_video(title="Select videos",chosenpath=''):
     app = wx.App(False)
 
     def pathDNE():
@@ -152,7 +150,7 @@ def select_video(title="Select videos",chosenpath=None):
     else:
         return pathDNE()
 
-def select_anyfile(title="Select files",chosenpath=None):
+def select_anyfile(title="Select files",chosenpath=''):
     # Create wildcard string for video files
     app = wx.App(False)
     wildcard = "Any files (*.*)|*.*"
@@ -194,7 +192,7 @@ def select_anyfile(title="Select files",chosenpath=None):
     else:
         return pathDNE()
 
-def askint(title="Integer Input",question="Enter an integer:",fill=None):
+def askint(title="Integer Input",question="Enter an integer:",fill=''):
     """Open a dialog to ask for an integer, pre-filled with 10."""
     app = wx.App(False)  # Create the wx.App instance
     dlg = wx.TextEntryDialog(None, question, title, value='0')
@@ -209,7 +207,7 @@ def askint(title="Integer Input",question="Enter an integer:",fill=None):
     dlg.Destroy()  # Clean up the dialog
     return None
 
-def askstring(title="String Input",question="Enter a string:",fill=None):
+def askstring(title="String Input",question="Enter a string:",fill=''):
     """Open a dialog to ask for a string, pre-filled with 'abcde123'."""
     app = wx.App(False)  # Create the wx.App instance
     dlg = wx.TextEntryDialog(None, question, title, value=f'{fill}')
@@ -221,12 +219,13 @@ def askstring(title="String Input",question="Enter a string:",fill=None):
     dlg.Destroy()  # Clean up the dialog
     return None
 
-def makefolder(file_path, foldername=None,count=1):
+def makefolder(file_path, foldername='',count=1):
     # Get directory containing the file
-    folder_path = os.path.dirname(file_path)
-    
-    # Get just the filename without extension
-    file_name = os.path.splitext(os.path.basename(file_path))[0]
+    if os.path.isdir(file_path):
+        folder_path = file_path
+    else:
+        folder_path = os.path.dirname(file_path)
+        # file_name = os.path.splitext(os.path.basename(file_path))[0]    # Get just the filename without extension
     
     # Create folder name
     resized_folder_name = f"{foldername}{count}"
@@ -243,7 +242,7 @@ def makefolder(file_path, foldername=None,count=1):
         # messagebox.showerror("ERROR", f"DELETE the folder {resized_folder_name}")
         # os.startfile(os.path.dirname(resized_folder_path))
         # return None
-        return makefolder(file_path, count+1)
+        return makefolder(file_path,foldername,count+1)
     else:
         os.makedirs(resized_folder_path)
         print(f"Created folder: {resized_folder_path}")
