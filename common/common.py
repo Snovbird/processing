@@ -74,14 +74,29 @@ def custom_dialog(title,msg,op1,op2):
         app.MainLoop()
         return dialog.result
 
-def select_folder():
+def select_folder(title="Choose a directory",chosenpath=None):
     """Show folder selection dialog and return selected path"""
-    with wx.DirDialog(None, "Choose a directory containing files:", 
-                      style=wx.DD_DEFAULT_STYLE) as dlg:
-        if dlg.ShowModal() == wx.ID_OK:
-            folder_path = dlg.GetPath()
-            return folder_path
-        return None
+    app = wx.App(False)
+
+    def pathDNE():
+        with wx.DirDialog(None, title, 
+                        style=wx.DD_DEFAULT_STYLE) as dlg:
+            if dlg.ShowModal() == wx.ID_OK:
+                folder_path = dlg.GetPath()
+                return folder_path
+            return None
+    # Create wildcard string for mp4 files only
+    wildcard = "Video Files (*.mp4)|*.mp4" #"Video files (*.mp4;*.avi)|*.mp4;*.avi" #"Video Files (*.mp4)|*.mp4" #"Video Files (*.mp4;*.avi;*.mov;*.mkv;*.webm)|*.mp4;*.avi;*.mov;*.mkv;*.webm"
+    if chosenpath:
+        try:
+            with wx.DirDialog(None, title, defaultPath=chosenpath,style=wx.DD_DEFAULT_STYLE) as dlg:
+                if dlg.ShowModal() == wx.ID_OK:
+                    folder_path = dlg.GetPath()
+                    return folder_path
+        except:
+            return pathDNE()
+    else:
+        return pathDNE()
 
 def clear_gpu_memory():
     try:
@@ -137,7 +152,6 @@ def select_video(title="Select videos",chosenpath=None):
     else:
         return pathDNE()
 
-
 def select_anyfile(title="Select files",chosenpath=None):
     # Create wildcard string for video files
     app = wx.App(False)
@@ -180,5 +194,59 @@ def select_anyfile(title="Select files",chosenpath=None):
     else:
         return pathDNE()
 
+def askint(title="Integer Input",question="Enter an integer:",fill=None):
+    """Open a dialog to ask for an integer, pre-filled with 10."""
+    app = wx.App(False)  # Create the wx.App instance
+    dlg = wx.TextEntryDialog(None, question, title, value='0')
+    
+    if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
+        try:
+            result = int(dlg.GetValue())  # Convert the input to an integer
+            print(f"Entered integer: {result}")
+            return result
+        except ValueError:
+            wx.MessageBox("Invalid input. Please enter a valid integer.", "Error", wx.ICON_ERROR)
+    dlg.Destroy()  # Clean up the dialog
+    return None
+
+def askstring(title="String Input",question="Enter a string:",fill=None):
+    """Open a dialog to ask for a string, pre-filled with 'abcde123'."""
+    app = wx.App(False)  # Create the wx.App instance
+    dlg = wx.TextEntryDialog(None, question, title, value=f'{fill}')
+    
+    if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
+        result = dlg.GetValue()  # Get the entered string
+        print(f"Entered string: {result}")
+        return result
+    dlg.Destroy()  # Clean up the dialog
+    return None
+
+def makefolder(file_path, foldername=None,count=1):
+    # Get directory containing the file
+    folder_path = os.path.dirname(file_path)
+    
+    # Get just the filename without extension
+    file_name = os.path.splitext(os.path.basename(file_path))[0]
+    
+    # Create folder name
+    resized_folder_name = f"{foldername}{count}"
+    
+    # Create full path to new folder
+    resized_folder_path = os.path.join(folder_path, resized_folder_name)
+    
+    # Check if folder exists and print debug info
+    print(f"Checking if folder exists: {resized_folder_path}")
+    print(f"Folder exists: {os.path.exists(resized_folder_path)}")
+    
+    # Create the folder if it doesn't exist
+    if os.path.exists(resized_folder_path):
+        # messagebox.showerror("ERROR", f"DELETE the folder {resized_folder_name}")
+        # os.startfile(os.path.dirname(resized_folder_path))
+        # return None
+        return makefolder(file_path, count+1)
+    else:
+        os.makedirs(resized_folder_path)
+        print(f"Created folder: {resized_folder_path}")
+    return resized_folder_path
 
 

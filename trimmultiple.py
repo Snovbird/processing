@@ -1,9 +1,6 @@
-import tkinter as tk
-from tkinter import simpledialog, filedialog
 import os
 import subprocess
-from tkinter import messagebox
-from common.common import clear_gpu_memory,custom_dialog
+from common.common import clear_gpu_memory,custom_dialog,select_video,windowpath,askstring,makefolder
 
 def format_time_input(time_input):
     """
@@ -107,35 +104,6 @@ def trim_video_timestamps_accelerated(input_path, start_time, end_time, count, o
     except subprocess.CalledProcessError as e:
         print(f"Error during conversion: {e}")
         return None
-
-
-def makefolder(file_path, count=1):
-    # Get directory containing the file
-    folder_path = os.path.dirname(file_path)
-    
-    # Get just the filename without extension
-    file_name = os.path.splitext(os.path.basename(file_path))[0]
-    
-    # Create folder name
-    resized_folder_name = f"trimmed-{count}"
-    
-    # Create full path to new folder
-    resized_folder_path = os.path.join(folder_path, resized_folder_name)
-    
-    # Check if folder exists and print debug info
-    print(f"Checking if folder exists: {resized_folder_path}")
-    print(f"Folder exists: {os.path.exists(resized_folder_path)}")
-    
-    # Create the folder if it doesn't exist
-    if os.path.exists(resized_folder_path):
-        # messagebox.showerror("ERROR", f"DELETE the folder {resized_folder_name}")
-        # os.startfile(os.path.dirname(resized_folder_path))
-        # return None
-        return makefolder(file_path, count+1)
-    else:
-        os.makedirs(resized_folder_path)
-        print(f"Created folder: {resized_folder_path}")
-    return resized_folder_path
     
 def remove_other(stringinput):
     a = ""
@@ -145,16 +113,13 @@ def remove_other(stringinput):
     return a
 
 def main():
-    root = tk.Tk()
-    root.withdraw()
     
-    file_paths = filedialog.askopenfilenames(title="Select one or multiple Video File(s)", 
-                                           filetypes=[("Video Files", "*.mp4 *.avi *.mov *.mkv")])
+    file_paths = select_video(title="Select Video(S) to TRIM")
     if not file_paths:
         print("No file selected. Exiting...")
         return
     
-    start_times = remove_other(simpledialog.askstring("Input Values", "Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):")).split(".")
+    start_times = remove_other(askstring("Input Values", "Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):")).split(".")
     
     if start_times is None:
         print("Exiting...")
@@ -162,7 +127,7 @@ def main():
     # for i in range(len(start_times)):
     #     start_times[i] = format_time_input(start_times[i])
 
-    end_times = remove_other(simpledialog.askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
+    end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
     
     unitoption = custom_dialog("Unit","What is your format?", op1="HHMMSS", op2="Frames")
         
@@ -173,7 +138,6 @@ def main():
     # for i in range(len(end_times)):
     #     end_times[i] = format_time_input(end_times[i])
 
-    root.destroy()
     if len(start_times) == 1: 
         output_answer = custom_dialog("File name","Include timestamps in file name?", op1="Yes", op2="no")
 
@@ -183,9 +147,9 @@ def main():
         output_answer = False
     if len(start_times) > 1 and len(file_paths) == 1:
         
-        foldername = makefolder(file_paths[0])
+        foldername = makefolder(file_paths[0],foldername="trimmed-")
     elif len(file_paths) > 1:
-        foldername = makefolder(file_paths[0])
+        foldername = makefolder(file_paths[0],foldername="trimmed-")
     else:
         
         foldername = None
@@ -214,7 +178,7 @@ def main():
         clear_gpu_memory()
         all_processing_complete = True
     else:
-        messagebox.showerror("ERROR", "Must enter same # of start times as end times")
+        print("ERROR", "Must enter same # of start times as end times")
     
     # Only open the directory once all processing is complete and multiple files were selected
     if all_processing_complete and len(file_paths) > 1 and foldername and output_path:

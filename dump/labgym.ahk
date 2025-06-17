@@ -1,10 +1,10 @@
 ﻿#SingleInstance, force
 place := "FN"
 !+T::
-run, py "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\dump\vid_trim.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\dump\vid_trim.py"
 return
 ^+A::
-run, "C:\Users\LaboSamaha\Desktop\.LabGym"
+run, "C:\Users\samahalabo\Desktop\.LabGym"
 return
 
 ^!+l::
@@ -12,21 +12,19 @@ return
 return
 
 !r::
-run, py "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resize.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resize.py"
 return
 
 !+R::
-send, ^{c}
-run, py "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\filenamereplaceappend.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\filenamereplaceappend.py"
 return
 
 !m::
-send, ^{c}
-run, py "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersquick.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersquick.py"
 return
 
 !T::
-run, py "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trimmultiple.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trimmultiple.py"
 return
 
 ^!+A::
@@ -34,11 +32,11 @@ return
 return
 
 !g::
-run, py "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\convGIF.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\convGIF.py"
 return
 
 !+M::
-run, py "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markers.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markers.py"
 return
 
 #a::
@@ -84,15 +82,15 @@ run,"%A_ScriptDir%\labgym.ahk"
 return
 
 !f::
-run, py "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\frameoverlay.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\frameoverlay.py"
 return
 
 !n::
-run, py "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\renamefolders.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\renamefolders.py"
 return
 
 !a::
-run, py "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\addtocss.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\addtocss.py"
 return
 
 #IfWinActive, ahk_exe Photoshop.exe
@@ -147,6 +145,5 @@ return
 #If, 
 #IfWinActive, ahk_exe explorer.exe
 !c::
-SendInput, ^{c}
-Run, pyw "C:\Users\LaboSamaha\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\cagename.py"
+Run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\cagename.py"
 return
