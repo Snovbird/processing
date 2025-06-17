@@ -3,8 +3,14 @@ from common.common import askstring,askint
 import pyperclip
 
 from common.common import custom_dialog
-
-
+# import pyperclip
+# a = 18
+# d = [18]
+# for i in range(6):
+#     for b in [40,80,150]:
+#         a += (b+40)
+#         d.append(a)
+# pyperclip.copy(".".join([f'{ a//60}{str(a % 60).zfill(2)}' for a in d]))
 def main():
     setofcss = askstring("comma input", "Integers separated by period (HHMMSS.HHMMSS. etc):")
     if setofcss.endswith("."):

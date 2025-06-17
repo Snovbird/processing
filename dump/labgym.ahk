@@ -29,7 +29,7 @@ run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\mark
 return
 
 !T::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trimmultiple.py"
+run, py "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trimmultiple.py"
 return
 
 ^!+A::

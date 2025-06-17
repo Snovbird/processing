@@ -10,7 +10,7 @@ def windowpath():
     print(type(win32gui.GetWindowText(window)))
     return win32gui.GetWindowText(window).replace(' - File Explorer','')
 
-def custom_dialog(title,msg,op1,op2):
+def custom_dialog(title,msg,op1="yes",op2="No"):
 
     class custom_dialog(wx.Dialog):
         def __init__(self, parent, title, message, option1="Proceed", option2="Skip"):

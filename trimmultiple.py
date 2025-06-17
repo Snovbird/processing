@@ -65,7 +65,7 @@ def trim_frames(input_path, start_time, end_time,count,output_times=False,folder
         print("Error: FFmpeg not on PATH.")
         return None
 
-def trim_video_timestamps_accelerated(input_path, start_time, end_time, count, output_times=False,foldername=None):
+def trim_video_timestamps_accelerated(input_path, start_time, end_time, count=1, output_times=False,foldername=None):
     startforname = start_time.replace(":", "")
     endforname = end_time.replace(":", "")
     file_name = os.path.splitext(os.path.basename(input_path))[0]
@@ -73,10 +73,16 @@ def trim_video_timestamps_accelerated(input_path, start_time, end_time, count, o
         output_name = f"{file_name}-trim({startforname}-{endforname}).mp4"
     else:
         output_name = f"{file_name}.mp4"
+        
     # Create unique output path for each segment
     if foldername:
         file_name = os.path.splitext(os.path.basename(input_path))[0]
         output_path = os.path.join(foldername, output_name)
+        while os.path.exists(output_path):
+            count +=1
+            output_name = f"{file_name}{count}.mp4"
+            output_path = os.path.join(foldername, output_name)
+
     else:
         file_dir = os.path.dirname(input_path)
         file_name = os.path.splitext(os.path.basename(input_path))[0]
@@ -139,6 +145,7 @@ def main():
     #     end_times[i] = format_time_input(end_times[i])
 
     if len(start_times) == 1: 
+        print('****************************************************************************')
         output_answer = custom_dialog("File name","Include timestamps in file name?", op1="Yes", op2="no")
 
         if output_answer == 'Yes':
