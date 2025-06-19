@@ -7,11 +7,10 @@ import subprocess
 def windowpath():
     import win32gui
     window = win32gui.GetForegroundWindow()
-    print(type(win32gui.GetWindowText(window)))
-    return win32gui.GetWindowText(window).replace(' - File Explorer','')
+    return str(win32gui.GetWindowText(window)).replace(' - File Explorer','').replace("\\\\","/")
 
-def custom_dialog(title,msg,op1="yes",op2="No"):
-
+def custom_dialog(title='',msg="",op1="yes",op2="No"):
+    import wx
     class custom_dialog(wx.Dialog):
         def __init__(self, parent, title, message, option1="Proceed", option2="Skip"):
             super().__init__(parent, title=title, size=(300, 150), style=wx.DEFAULT_DIALOG_STYLE)
@@ -74,6 +73,7 @@ def custom_dialog(title,msg,op1="yes",op2="No"):
 
 def select_folder(title="Choose a directory",chosenpath=''):
     """Show folder selection dialog and return selected path"""
+    import wx
     app = wx.App(False)
 
     def pathDNE():
@@ -97,6 +97,7 @@ def select_folder(title="Choose a directory",chosenpath=''):
         return pathDNE()
 
 def clear_gpu_memory():
+    import subprocess
     try:
         # Reset GPU clocks temporarily to help clear memory
         subprocess.run(["nvidia-smi", "-lgc", "0,0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -108,6 +109,7 @@ def clear_gpu_memory():
         return False
     
 def select_video(title="Select videos",chosenpath=''):
+    import wx
     app = wx.App(False)
 
     def pathDNE():
@@ -128,7 +130,7 @@ def select_video(title="Select videos",chosenpath=''):
         
     # Create wildcard string for mp4 files only
     wildcard = "Video Files (*.mp4)|*.mp4" #"Video files (*.mp4;*.avi)|*.mp4;*.avi" #"Video Files (*.mp4)|*.mp4" #"Video Files (*.mp4;*.avi;*.mov;*.mkv;*.webm)|*.mp4;*.avi;*.mov;*.mkv;*.webm"
-    if chosenpath:
+    if os.path.isdir(chosenpath):
         try:
             with wx.FileDialog(
                 None,
@@ -145,13 +147,14 @@ def select_video(title="Select videos",chosenpath=''):
                 # Get the selected paths
                 video_paths = file_dialog.GetPaths()
                 return video_paths
-        except:
+        except Exception as e:
+            custom_dialog(msg="here " + str(e))
             return pathDNE()
     else:
         return pathDNE()
 
 def select_anyfile(title="Select files",chosenpath=''):
-    # Create wildcard string for video files
+    import wx
     app = wx.App(False)
     wildcard = "Any files (*.*)|*.*"
     def pathDNE():
@@ -193,6 +196,8 @@ def select_anyfile(title="Select files",chosenpath=''):
         return pathDNE()
 
 def askint(title="Integer Input",question="Enter an integer:",fill=''):
+    import wx
+
     """Open a dialog to ask for an integer, pre-filled with 10."""
     app = wx.App(False)  # Create the wx.App instance
     dlg = wx.TextEntryDialog(None, question, title, value='0')
@@ -209,6 +214,8 @@ def askint(title="Integer Input",question="Enter an integer:",fill=''):
 
 def askstring(title="String Input",question="Enter a string:",fill=''):
     """Open a dialog to ask for a string, pre-filled with 'abcde123'."""
+    import wx
+
     app = wx.App(False)  # Create the wx.App instance
     dlg = wx.TextEntryDialog(None, question, title, value=f'{fill}')
     
@@ -220,6 +227,7 @@ def askstring(title="String Input",question="Enter a string:",fill=''):
     return None
 
 def makefolder(file_path, foldername='',count=1):
+    import os
     # Get directory containing the file
     if os.path.isdir(file_path):
         folder_path = file_path
@@ -247,5 +255,51 @@ def makefolder(file_path, foldername='',count=1):
         os.makedirs(resized_folder_path)
         print(f"Created folder: {resized_folder_path}")
     return resized_folder_path
+
+def get_duration(video_path):
+
+    import cv2
+    import datetime
+    """
+    Get the duration of a video file
+    
+    Args:
+        video_path: Path to the video file
+        
+    Returns:
+        A tuple containing (seconds, formatted_time)
+    """
+    # Check if file exists
+    if not os.path.isfile(video_path):
+        print(f"Error: File '{video_path}' does not exist")
+        return None
+        
+    # Create video capture object
+    video = cv2.VideoCapture(video_path)
+    
+    # Check if video opened successfully
+    if not video.isOpened():
+        print(f"Error: Could not open video '{video_path}'")
+        return None
+    
+    # Count the number of frames
+    frames = video.get(cv2.CAP_PROP_FRAME_COUNT)
+    fps = video.get(cv2.CAP_PROP_FPS)
+    
+    # Calculate duration in seconds
+    seconds = round(frames / fps)
+    
+    # Format time as HH:MM:SS
+    HHMMSS = str(datetime.timedelta(seconds=seconds)).replace(":","")
+    
+    # Release the video object
+    video.release()
+    
+    return frames, seconds, HHMMSS
+
+
+
+
+
 
 

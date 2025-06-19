@@ -1,3 +1,9 @@
+# from common.common import windowpath
+# import subprocess
+
+# a = windowpath().replace("\\","\\\\")
+
+# subprocess.run("py -3.10 ")
 import os
 import subprocess
 from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,get_duration
@@ -26,16 +32,17 @@ def trim_frames(input_path, start_time, end_time,count,output_times=False,folder
         print(f"Error: The file '{input_path}' does not exist.")
         return None
     
-    file_name = os.path.splitext(os.path.basename(input_path))[0]
     if output_times == True:
         output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"
     else:
         output_name = f"{file_name}.mp4"
     
     if foldername:
+        file_name = os.path.splitext(os.path.basename(input_path))[0]
         output_path = os.path.join(foldername, output_name)
     else:
         file_dir = os.path.dirname(input_path)
+        file_name = os.path.splitext(os.path.basename(input_path))[0]
         output_path = os.path.join(file_dir, output_name)
 
     try:
@@ -121,29 +128,12 @@ def remove_other(stringinput):
 
 def main():
     try:
-        # Get argument
         startpath = sys.argv[1]
-        
-        # If the path doesn't exist as-is, try to construct a proper path
-        if not os.path.isdir(startpath):
-            # Try to match with common Windows folders
-            possible_paths = [
-                os.path.join(os.path.expanduser("~"), startpath),  # User folder
-                os.path.join(os.path.expanduser("~"), "Desktop", startpath),    # Desktop
-                os.path.join("C:\\", startpath)  # Root drive
-            ]
-            
-            for path in possible_paths:
-                if os.path.isdir(path):
-                    startpath = path
-                    break
-
+        import pyperclip
+        pyperclip.copy(startpath)
     except Exception as e:
-        startpath = ''
-        with open(r"C:\Users\samahalabo\Downloads\result.txt",'w') as f:
-            f.write(str(e))
-            print(str(e))
-
+        custom_dialog(msg=str(e))
+        startpath = None
     file_paths = select_video(title=f"Select Video(S) to TRIM",chosenpath=startpath)
     if not file_paths:
         print("No file selected. Exiting...")
@@ -169,13 +159,14 @@ def main():
     #     end_times[i] = format_time_input(end_times[i])
 
     if len(start_times) == 1: 
-        # output_answer = custom_dialog("File name","Include timestamps in file name?", op1="Yes", op2="no") # D
-        output_answer = True
+        print('****************************************************************************')
+        output_answer = custom_dialog("File name","Include timestamps in file name?", op1="Yes", op2="no")
+
         if output_answer == 'Yes':
             output_answer = True
     else:
         output_answer = False
-    if len(start_times) > 1 and len(file_paths) == 1:  # folder if multiple trims for one file
+    if len(start_times) > 1 and len(file_paths) == 1:
         
         foldername = makefolder(file_paths[0],foldername="trimmed-")
     elif len(file_paths) > 1:

@@ -1,5 +1,12 @@
 ﻿#SingleInstance, force
 place := "FN"
+
+::**::018.138.338.648.808.1008.1318.1438.1638.1948.2108.2308.2618.2738.2938.3248.3408.3608.3918
+return
+
+::***::0108.0228.0428.0738.0858.1058.1408.1528.1728.2038.2158.2358.2708.2828.3028.3338.3458.3658.4008
+return
+
 !+T::
 run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\dump\vid_trim.py"
 return
@@ -29,8 +36,26 @@ run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\mark
 return
 
 !T::
-run, py "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trimmultiple.py"
+; eck if the active window is File Explorer
+    WinGetClass, activeClass, A
+    if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
+        MsgBox, This hotkey only works in File Explorer
+        return
+    }
+
+    ; Use the Explorer COM object to get the actual path
+    for window in ComObjCreate("Shell.Application").Windows {
+        try {
+            if (window.HWND == WinExist("A")) {
+                fullPath := window.Document.Folder.Self.Path
+                Run, % "py -3.10 ""C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trimmultiple.py"" """ fullPath """"
+                return
+            }
+        }
+    }
+    MsgBox, Could not retrieve folder path
 return
+
 
 ^!+A::
     Run "C:\Users\%Username%\AppData\Local\Programs\Microsoft VS Code\Code.exe" "%A_ScriptDir%\labgym.ahk"
