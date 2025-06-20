@@ -56,7 +56,7 @@ def main():
     # Ask the user to select a video file
     file_paths = select_video(
         title="Select one Video File",
-        chosenpath=windowpath()
+        path=windowpath()
     )
     if not file_paths:
         print("No file selected. Exiting...")

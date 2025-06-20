@@ -1,7 +1,6 @@
 import os
 import subprocess
-from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,get_duration
-import sys
+from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,get_duration,getahkpath
 
 def format_time_input(time_input):
     """
@@ -16,7 +15,7 @@ def format_time_input(time_input):
     time_input = time_input.strip()
     
     if time_input.isdigit():
-        time_input = time_input.zfill(6)
+        time_input = time_input.zfill(6) # or f"{time_input:06d}" would've also worked
         return f"{time_input[:-4]}:{time_input[-4:-2]}:{time_input[-2:]}"
     else:
         return time_input  # Return the original input if it's not valid
@@ -120,36 +119,14 @@ def remove_other(stringinput):
     return a
 
 def main():
-    try:
-        # Get argument
-        startpath = sys.argv[1]
-        
-        # If the path doesn't exist as-is, try to construct a proper path
-        if not os.path.isdir(startpath):
-            # Try to match with common Windows folders
-            possible_paths = [
-                os.path.join(os.path.expanduser("~"), startpath),  # User folder
-                os.path.join(os.path.expanduser("~"), "Desktop", startpath),    # Desktop
-                os.path.join("C:\\", startpath)  # Root drive
-            ]
-            
-            for path in possible_paths:
-                if os.path.isdir(path):
-                    startpath = path
-                    break
+    startpath = getahkpath()
 
-    except Exception as e:
-        startpath = ''
-        with open(r"C:\Users\samahalabo\Downloads\result.txt",'w') as f:
-            f.write(str(e))
-            print(str(e))
-
-    file_paths = select_video(title=f"Select Video(S) to TRIM",chosenpath=startpath)
+    file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
     if not file_paths:
         print("No file selected. Exiting...")
         return
     
-    start_times = remove_other(askstring("Input Values", "Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):")).split(".")
+    start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")).split(".")
     
     if start_times is None:
         print("Exiting...")

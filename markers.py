@@ -57,7 +57,7 @@ def main():
     startpath = windowpath()
     if not os.path.isdir(startpath): # current window is not a file explorer window
         startpath = "C:/Users/Labo Samaha/Desktop/.LabGym/"
-    video_paths = select_video(title="Select Input Video(s) for ONE cage",chosenpath=startpath)
+    video_paths = select_video(title="Select Input Video(s) for ONE cage",path=startpath)
     
     if not video_paths:
         print("No video file selected. Exiting...")

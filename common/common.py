@@ -9,7 +9,7 @@ def windowpath():
     window = win32gui.GetForegroundWindow()
     return str(win32gui.GetWindowText(window)).replace(' - File Explorer','').replace("\\\\","/")
 
-def custom_dialog(title='',msg="",op1="yes",op2="No"):
+def custom_dialog(msg="",title='',op1="yes",op2="No"):
     import wx
     class custom_dialog(wx.Dialog):
         def __init__(self, parent, title, message, option1="Proceed", option2="Skip"):
@@ -71,7 +71,7 @@ def custom_dialog(title='',msg="",op1="yes",op2="No"):
         dialog.Destroy()  # Clean up the dialog
         return dialog.result
 
-def select_folder(title="Choose a directory",chosenpath=''):
+def select_folder(title="Choose a directory",path=''):
     """Show folder selection dialog and return selected path"""
     import wx
     app = wx.App(False)
@@ -85,9 +85,9 @@ def select_folder(title="Choose a directory",chosenpath=''):
             return None
     # Create wildcard string for mp4 files only
     wildcard = "Video Files (*.mp4)|*.mp4" #"Video files (*.mp4;*.avi)|*.mp4;*.avi" #"Video Files (*.mp4)|*.mp4" #"Video Files (*.mp4;*.avi;*.mov;*.mkv;*.webm)|*.mp4;*.avi;*.mov;*.mkv;*.webm"
-    if chosenpath:
+    if path:
         try:
-            with wx.DirDialog(None, title, defaultPath=chosenpath,style=wx.DD_DEFAULT_STYLE) as dlg:
+            with wx.DirDialog(None, title, defaultPath=path,style=wx.DD_DEFAULT_STYLE) as dlg:
                 if dlg.ShowModal() == wx.ID_OK:
                     folder_path = dlg.GetPath()
                     return folder_path
@@ -108,7 +108,7 @@ def clear_gpu_memory():
         print(f"GPU memory cleanup failed: {e}")
         return False
     
-def select_video(title="Select videos",chosenpath=''):
+def select_video(title="Select videos",path=''):
     import wx
     app = wx.App(False)
 
@@ -130,12 +130,17 @@ def select_video(title="Select videos",chosenpath=''):
         
     # Create wildcard string for mp4 files only
     wildcard = "Video Files (*.mp4)|*.mp4" #"Video files (*.mp4;*.avi)|*.mp4;*.avi" #"Video Files (*.mp4)|*.mp4" #"Video Files (*.mp4;*.avi;*.mov;*.mkv;*.webm)|*.mp4;*.avi;*.mov;*.mkv;*.webm"
-    if os.path.isdir(chosenpath):
+    try:
+        os.path.isdir(path)
+        isadir = True
+    except:
+        isadir = False
+    if isadir:
         try:
             with wx.FileDialog(
                 None,
                 message=title,
-                defaultDir=chosenpath,
+                defaultDir=path,
                 wildcard=wildcard,
                 style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE
             ) as file_dialog:
@@ -153,7 +158,7 @@ def select_video(title="Select videos",chosenpath=''):
     else:
         return pathDNE()
 
-def select_anyfile(title="Select files",chosenpath=''):
+def select_anyfile(title="Select files",path=''):
     import wx
     app = wx.App(False)
     wildcard = "Any files (*.*)|*.*"
@@ -173,12 +178,12 @@ def select_anyfile(title="Select files",chosenpath=''):
             video_paths = file_dialog.GetPaths()
             return video_paths
     # Create the file dialog
-    if chosenpath:
+    if path:
         try:
             with wx.FileDialog(
                 None,
                 message=title,
-                defaultDir=chosenpath,
+                defaultDir=path,
                 wildcard=wildcard,
                 style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE
             ) as file_dialog:
@@ -195,13 +200,13 @@ def select_anyfile(title="Select files",chosenpath=''):
     else:
         return pathDNE()
 
-def askint(title="Integer Input",question="Enter an integer:",fill=''):
+def askint(msg="Enter an integer:",title="Integer Input",fill=''):
     import wx
 
     """Open a dialog to ask for an integer, pre-filled with 10."""
     app = wx.App(False)  # Create the wx.App instance
-    dlg = wx.TextEntryDialog(None, question, title, value='0')
-    
+    dlg = wx.TextEntryDialog(None, msg, title, value='0', style=wx.STAY_ON_TOP)
+
     if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
         try:
             result = int(dlg.GetValue())  # Convert the input to an integer
@@ -212,12 +217,11 @@ def askint(title="Integer Input",question="Enter an integer:",fill=''):
     dlg.Destroy()  # Clean up the dialog
     return None
 
-def askstring(title="String Input",question="Enter a string:",fill=''):
-    """Open a dialog to ask for a string, pre-filled with 'abcde123'."""
+def askstring(msg="Enter a string:",title="String Input",fill=''):
     import wx
 
     app = wx.App(False)  # Create the wx.App instance
-    dlg = wx.TextEntryDialog(None, question, title, value=f'{fill}')
+    dlg = wx.TextEntryDialog(None, msg, title, value=f'{fill}',style=wx.STAY_ON_TOP)
     
     if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
         result = dlg.GetValue()  # Get the entered string
@@ -297,7 +301,49 @@ def get_duration(video_path):
     
     return frames, seconds, HHMMSS
 
+def msgbox(msg,title=''):
+    import wx
 
+    app = wx.App(False)  # Create the wx.App instance
+
+    wx.MessageBox(msg, title, wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP)
+
+def error(msg):
+    import wx
+
+    app = wx.App(False)  # Create the wx.App instance
+
+    wx.MessageBox(f"Error: {msg}", "Error", wx.OK | wx.ICON_ERROR | wx.STAY_ON_TOP)
+
+def getahkpath():
+    import sys
+    try:
+        # Get argument
+        startpath = sys.argv[1]
+        
+        # If the path doesn't exist as-is, try to construct a proper path
+        if not os.path.isdir(startpath):
+            # Try to match with common Windows folders
+            possible_paths = [
+                os.path.join(os.path.expanduser("~"), startpath),  # User folder
+                os.path.join(os.path.expanduser("~"), "Desktop", startpath),    # Desktop
+                os.path.join("C:\\", startpath)  # Root drive
+            ]
+            
+            for path in possible_paths:
+                if os.path.isdir(path):
+                    startpath = path
+                    break
+
+    except Exception as e:
+        startpath = ''
+        user_profile = os.environ['USERPROFILE']
+        downloads_folder = os.path.join(user_profile, 'Downloads')
+
+        with open(os.path.join(downloads_folder, f"error.txt"),'a') as f:
+            f.write(str(e) + '\n')
+            f.write('-'*35 + '\n')
+            print(str(e))
 
 
 

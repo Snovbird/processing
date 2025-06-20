@@ -1,10 +1,10 @@
 import os
 import shutil
 import wx
-from common.common import windowpath,select_folder
+from common.common import windowpath,select_folder,custom_dialog,askstring,msgbox,error
 def main():
     # Initialize wx application
-    app = wx.App(False)
+    # app = wx.App(False)
     
     # Step 1: Ask for folder directory
     source_folder = windowpath()
@@ -14,42 +14,24 @@ def main():
         return
     
     # Step 2: Ask for string input
-    toreplace = get_string_input("Str to replace",'replace')
-    append_string = get_string_input("Enter string to append to filenames:", 
-                            "String Input")
+    toreplace = askstring("Enter String to REPLACE", 'Str remover')
+    append_string = askstring("Enter string to append to filenames:","String Input")
+    if append_string:
+        START_or_END = custom_dialog('Place string at the START or END of the file name?','START or END','START',"END")
+
     if not append_string:
         append_string = ''
+        START_or_END = 'END'
     
     # Step 3: Process files
     try:
-        process_files(source_folder, append_string,toreplace)
-        wx.MessageBox(f"Successfully copied files to {append_string} folder with appended string!", 
-                      "Success", wx.OK | wx.ICON_INFORMATION)
+        process_files(source_folder, append_string,toreplace,START_or_END)
+        msgbox(f"Successfully copied files to {append_string} folder with appended string!", "Success")
     except Exception as e:
-        print(f'Error: {str(e)}')
-        wx.MessageBox(f"Error: {str(e)}", "Error", wx.OK | wx.ICON_ERROR)
+        error(str(e))
 
-def get_string_input(question,title):
-    """Show text input dialog for string"""
-    with wx.TextEntryDialog(None, question,title) as dlg:
-        if dlg.ShowModal() == wx.ID_OK:
-            input_string = dlg.GetValue().strip()
-            if not input_string:
-                # wx.MessageBox("Please enter a valid string!", "Warning", 
-                #               wx.OK | wx.ICON_WARNING)
-                return ''
-                
-            # Remove invalid filename characters
-            invalid_chars = '<>:"/\\|?*'
-            for char in invalid_chars:
-                input_string = input_string.replace(char, '')
-            if input_string =='xx':
-                return ''
-            else:
-                return input_string
-        return None
 
-def process_files(source_folder, append_string,toreplace):
+def process_files(source_folder, append_string,toreplace,START_or_END):
     """Create subfolder and copy files with modified names"""
     # Create subfolder path
     subfolder_path = os.path.join(source_folder, append_string)
@@ -71,7 +53,11 @@ def process_files(source_folder, append_string,toreplace):
         
         # Create new filename with appended string
         name, extension = os.path.splitext(filename)
-        new_filename = f"{name.replace(toreplace,'')}{append_string}{extension}" # can add a separator if necessary
+        if START_or_END == 'START':
+            new_filename = f"{append_string}{name.replace(toreplace,'')}{extension}" # can add a separator if necessary
+        elif START_or_END == 'END':
+            new_filename = f"{name.replace(toreplace,'')}{append_string}{extension}" # can add a separator if necessary
+
         destination_file_path = os.path.join(subfolder_path, new_filename)
         
         # Copy file to subfolder with new name

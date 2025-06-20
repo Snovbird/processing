@@ -1,10 +1,9 @@
 ﻿#SingleInstance, force
 place := "FN"
 
-::**::018.138.338.648.808.1008.1318.1438.1638.1948.2108.2308.2618.2738.2938.3248.3408.3608.3918
+::++::00020.00345.00815.01325.01645.02115.02625.02945.03415.03925.04245.04715.05225.05545.10015
 return
-
-::***::0108.0228.0428.0738.0858.1058.1408.1528.1728.2038.2158.2358.2708.2828.3028.3338.3458.3658.4008
+::--::
 return
 
 !+T::
@@ -30,7 +29,12 @@ return
 !+R::
 run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\filenamereplaceappend.py"
 return
-
+!+C::
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\concatenate.py"
+return
+!n::
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\replacefilenames.py"
+return
 !m::
 run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersquick.py"
 return
@@ -48,7 +52,7 @@ return
         try {
             if (window.HWND == WinExist("A")) {
                 fullPath := window.Document.Folder.Self.Path
-                Run, % "py -3.10 ""C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trimmultiple.py"" """ fullPath """"
+                Run, % "py -3.10 ""C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\TRIM.py"" """ fullPath """"
                 return
             }
         }
@@ -115,9 +119,6 @@ return
 run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\frameoverlay.py"
 return
 
-!n::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\renamefolders.py"
-return
 
 !a::
 run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\addtocss.py"
