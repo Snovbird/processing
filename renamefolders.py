@@ -11,10 +11,10 @@ def rename_files_from_subfolders():
     )
     if not selected_folder:
         return
-    answer = custom_dialog("Remove in name?","Enter a string to remove?",op1='yes',op2='no')
+    answer = custom_dialog("Enter a string to remove?","Remove in name?",op1='yes',op2='no')
     
     if answer == 'yes':
-        strtoremove = askstring("To remove", "Enter a string to remove in filenames:")
+        strtoremove = askstring( "Enter a string to remove in filenames:","To remove")
     else:
         strtoremove = ''
     # Function to process files in subfolders

@@ -205,7 +205,8 @@ def askint(msg="Enter an integer:",title="Integer Input",fill=''):
 
     """Open a dialog to ask for an integer, pre-filled with 10."""
     app = wx.App(False)  # Create the wx.App instance
-    dlg = wx.TextEntryDialog(None, msg, title, value='0', style=wx.STAY_ON_TOP)
+    dlg = wx.TextEntryDialog(None, msg, title, value='0', style=wx.OK | wx.STAY_ON_TOP)
+    dlg.Centre()
 
     if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
         try:
@@ -221,8 +222,8 @@ def askstring(msg="Enter a string:",title="String Input",fill=''):
     import wx
 
     app = wx.App(False)  # Create the wx.App instance
-    dlg = wx.TextEntryDialog(None, msg, title, value=f'{fill}',style=wx.STAY_ON_TOP)
-    
+    dlg = wx.TextEntryDialog(None, msg, title, value=f'{fill}',style= wx.OK | wx.STAY_ON_TOP)
+    dlg.Centre()
     if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
         result = dlg.GetValue()  # Get the entered string
         print(f"Entered string: {result}")

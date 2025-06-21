@@ -52,7 +52,7 @@ def combine_videos_with_cuda(input_files,output_folder):
 
 def main():
     startpath = windowpath()
-    number_of_concats = askint(title="Output number",question='How many concatenations to do?')
+    number_of_concats = askint(title="Output number",msg='How many concatenations to do?')
     toconcat = [select_video(title="select videos to concatenate first",path=startpath) for c in range(number_of_concats)]
     output_folder = makefolder(toconcat[0][0],foldername='concat')
 
