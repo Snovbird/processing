@@ -3,52 +3,68 @@ import tempfile
 import os
 from common.common import select_video,askint,windowpath,clear_gpu_memory,makefolder
 
-def combine_videos_with_cuda(input_files,output_folder):
+def combine_videos_with_cuda(input_files, output_folder):
     """
-    Combine multiple video files using NVIDIA CUDA hardware acceleration.
+    Combine multiple video files using NVIDIA CUDA hardware acceleration with two-stage approach.
+    """
+    # Create intermediate directory for temporary files
+    temp_dir = tempfile.mkdtemp()
+    intermediate_files = []
     
-    Args:
-        input_files (list): List of paths to input video files in desired order
-        output_file (str): Path to the output video file
-        video_bitrate (str): Video bitrate for encoding
-        preset (str): NVENC encoding preset (p1-p7)
-    """
-    # Create a temporary file for the concat list
-    with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as temp:
-        for file in input_files:
-            # Escape single quotes in filenames and use absolute paths
-            escaped_file = os.path.abspath(file).replace("'", "'\\''")
-            temp.write(f"file '{escaped_file}'\n")
-        temp_filename = temp.name
-
-    outputfile = f'concat{os.path.basename(input_files[0])}'
-    output = os.path.join(output_folder,outputfile)
-
     try:
-        # Build the ffmpeg command
+        # STAGE 1: Transcode each file to ensure consistency
+        for i, file in enumerate(input_files):
+            temp_output = os.path.join(temp_dir, f"temp_{i}.mp4")
+            intermediate_files.append(temp_output)
+            
+            # Each file processed individually with CUDA
+            cmd = [
+                'ffmpeg', '-y',
+                '-hwaccel', 'cuda',
+                '-i', file,
+                '-c:v', 'h264_nvenc',
+                '-preset', 'p1',
+                '-an',  # No audio
+                temp_output
+            ]
+            subprocess.run(cmd, check=True)
+        
+        # STAGE 2: Concatenate the uniformly encoded files
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as temp:
+            for file in intermediate_files:
+                escaped_file = os.path.abspath(file).replace("'", "'\\''")
+                temp.write(f"file '{escaped_file}'\n")
+            concat_list = temp.name
+        
+        outputfile = f'concat{os.path.basename(input_files[0])}'
+        output = os.path.join(output_folder, outputfile)
+        
+        # Simple concatenation of consistently encoded files (no CUDA needed for this stage)
         cmd = [
-            'ffmpeg',
-            '-y',                          # Overwrite output file if it exists
-            '-hwaccel', 'cuda',            # Use CUDA for decoding
-            '-hwaccel_output_format', 'cuda',  # Keep frames in GPU memory
+            'ffmpeg', '-y',
             '-f', 'concat',
             '-safe', '0',
-            '-i', temp_filename,
-            '-c:v', 'h264_nvenc',          # Use NVIDIA hardware encoder
-            '-preset', 'p1', #preset,
-            # '-b:v', video_bitrate,
-            '-an',                
+            '-i', concat_list,
+            '-c', 'copy',  # Just copy streams without re-encoding
             output
         ]
-        print(cmd)
-        # Run the command with error checking
         subprocess.run(cmd, check=True)
         return True
-    
+        
     finally:
-        # Clean up the temporary file
-        if os.path.exists(temp_filename):
-            os.remove(temp_filename)
+        # Clean up all temporary files
+        for file in intermediate_files:
+            if os.path.exists(file):
+                try:
+                    os.remove(file)
+                except:
+                    pass
+        if os.path.exists(concat_list):
+            os.remove(concat_list)
+        try:
+            os.rmdir(temp_dir)
+        except:
+            pass
 
 def main():
     startpath = windowpath()
