@@ -1,7 +1,7 @@
 import os
 import subprocess
-from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,get_duration,getahkpath
-
+from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,get_duration
+import sys
 def format_time_input(time_input):
     """
     Format the time input to HH:MM:SS.
@@ -119,8 +119,33 @@ def remove_other(stringinput):
     return a
 
 def main():
-    startpath = getahkpath()
+    try:
+        # Get argument
+        startpath = sys.argv[1]
+        
+        # If the path doesn't exist as-is, try to construct a proper path
+        if not os.path.isdir(startpath):
+            # Try to match with common Windows folders
+            possible_paths = [
+                os.path.join(os.path.expanduser("~"), startpath),  # User folder
+                os.path.join(os.path.expanduser("~"), "Desktop", startpath),    # Desktop
+                os.path.join("C:\\", startpath)  # Root drive
+            ]
+            
+            for path in possible_paths:
+                if os.path.isdir(path):
+                    startpath =  path
+                    break
 
+    except Exception as e:
+        startpath = ''
+        user_profile = os.environ['USERPROFILE']
+        downloads_folder = os.path.join(user_profile, 'Downloads')
+
+        with open(os.path.join(downloads_folder, f"error.txt"),'a') as f:
+            f.write(str(e) + '\n')
+            f.write('-'*35 + '\n')
+            print(str(e))
     file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
     if not file_paths:
         print("No file selected. Exiting...")
@@ -135,13 +160,15 @@ def main():
     #     start_times[i] = format_time_input(start_times[i])
 
     end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
-    
-    unitoption = custom_dialog("Unit","What is your format?", op1="HHMMSS", op2="Frames")
-        
-
     if end_times is None:
         print("Exiting...")
         return
+    
+    unitoption = custom_dialog("Unit","What is your format?", op1="HHMMSS", op2="Frames")
+    if unitoption is None:
+        print("Exiting...")
+        return
+
     # for i in range(len(end_times)):
     #     end_times[i] = format_time_input(end_times[i])
 

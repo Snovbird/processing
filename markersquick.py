@@ -1,9 +1,8 @@
 import os
 import subprocess
-import wx
-from common.common import clear_gpu_memory,custom_dialog,select_video,windowpath
+from common.common import clear_gpu_memory,askstring,select_video,windowpath,find_folder,findval,error,assignval
 
-def apply_png_overlay(video_path, cage_number,width,where):
+def apply_png_overlay(video_path, cage_number,width,thedate,overlays_path, output_path):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
     
@@ -15,17 +14,26 @@ def apply_png_overlay(video_path, cage_number,width,where):
         str: Path to the output video file.
     """
     # Get the directory and filename of the input video
-    video_dir = os.path.dirname(video_path)
     video_name = os.path.splitext(os.path.basename(video_path))[0]
-    output_path = os.path.join("C:/Users/samahalabo/Desktop/.LabGym/2) MARKED videos", f"{video_name}-marked.mp4")
-    
+
+    output_path = os.path.join(output_path, f"{video_name}.mp4")
+
+    alldates = findval("dates")[::-1]
+    for d in range(alldates.index(thedate),len(alldates)):
+        imagepath = os.path.join(overlays_path, f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
+        if os.path.exists(imagepath):
+            break
+    if not os.path.exists(imagepath):
+        error(msg=f"There is no overlay images for cage {cage_number}")
+        return
+
     try:
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
         cmd = [
             "ffmpeg",
             "-hwaccel", "cuda",
             "-i", video_path,
-            "-i", f"C:/Users/samahalabo/Desktop/.LabGym/z_misc_DONOTTOUCH/MARKERS/{width}{where}/cage{cage_number}-{width}{where}.png ",
+            "-i", imagepath,
             "-filter_complex", "[0][1]overlay=x=0:y=0",
             "-c:v", "h264_nvenc",
             "-y",  # Overwrite output file if it exists
@@ -48,45 +56,44 @@ def apply_png_overlay(video_path, cage_number,width,where):
 
 def main():
     # Initialize tkinter and hide the root window
-    folderpath = windowpath()
-    if os.path.isdir(folderpath):
-        video_paths = []
-        count = 0
-        filesinside = os.listdir(folderpath)
-        print(filesinside)
-        for file in filesinside:
-            count +=1
-            fullfilepath = os.path.join(folderpath,file)
-            if os.path.splitext(file)[1] in ['.mp4'] and os.path.isfile(fullfilepath): #'.avi','.mov.','.webm','.mkv']: # is file extension the right one
-                video_paths.append(fullfilepath)
-            elif count == len(filesinside) and os.path.isfile(file): # looped through all files inside folderpath and there was no mp4 file
-                video_paths = select_video(title="Select videos for MARKERS QUICK", path="C:/Users/samahalabo/Desktop/.LabGym/")
-    else: 
-        video_paths = select_video(title="Select videos for MARKERS QUICK",path="C:/Users/samahalabo/Desktop/.LabGym/")
-        
+    startpath = windowpath()
+
+    video_paths = select_video(title="Select videos for MARKERS QUICK",path=startpath)
+
     if not video_paths:
         print("No video file selected. Exiting...")
         return
+    thedate = askstring(msg= "Enter the date formatted as MM-DD:", title="Enter Date",fill="06-")
+    # AL_position = custom_dialog(title="Active lever position", msg="Is the active lever near the door (FN) or away (FF)", op1="FN", op2="FF")
     
-    AL_position = custom_dialog(title="Active lever position", msg="Is the active lever near the door (FN) or away (FF)", op1="FN", op2="FF")
-    
-    # width = simpledialog.askinteger("INPUT WIDTH", "What's the width of the video you're selecting?\n(ex: 2048, 1280, 1024, 480)",initialvalue=1024,minvalue=480)
     width = 2048
     if not width or int(width) not in [2048, 1024, 1280, 480]:
         return
+    
 
+    from datetime import date
+    # Get today's date
+    today = date.today()
+    # Format the date as MM-DD
+    formatted_date = today.strftime("%m-%d")
+    alldates = findval("dates")
+    if alldates[-1] != formatted_date:
+        alldates.append(formatted_date)
+        assignval("dates",alldates)
+        print(f"Added date: {formatted_date}")
+
+    # Find output folder named "2) MARKED videos"
+    output_path = find_folder("2) MARKED videos")
+    overlays_path = find_folder("MARKERS_overlays") # Contains images
+    
     for vid in video_paths:
-        for i in range(12):
-            if len(str(12-i)) == 2 and str(12-i) in vid.split("/")[-1].replace(".mp4",""):
-                    print(vid.split("/")[-1].replace(".mp4",""))
-                    output_path = apply_png_overlay(vid, 12-i, width,AL_position)
-                    break
-            elif str(12-i) in vid.split("/")[-1].replace(".mp4",""): 
-                output_path = apply_png_overlay(vid, 12-i, width,AL_position)
-    if output_path:
-        print(output_path)
+        cage_number = ''.join(char for char in os.path.splitext(os.path.basename(vid))[0] if char.isdigit())
+        output_vid_path = apply_png_overlay(vid, cage_number, width,thedate,overlays_path,output_path=output_path)
+
+    if output_vid_path:
+        print(output_vid_path)
         clear_gpu_memory()
-        os.startfile("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos")
+        os.startfile(output_path)
     else:
         # Show an error message
         print("Error", "Failed to apply overlay. Check console for details.")

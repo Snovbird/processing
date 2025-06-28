@@ -26,7 +26,7 @@ def main():
     # Step 3: Process files
     try:
         process_files(source_folder, append_string,toreplace,START_or_END)
-        msgbox(f"Successfully copied files to {append_string} folder with appended string!", "Success")
+        msgbox(f"Successfully renamed files!", "Success")
     except Exception as e:
         error(str(e))
 

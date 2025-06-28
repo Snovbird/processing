@@ -23,7 +23,7 @@ def main():
     os.startfile(outputfolder)
     msgbox(f"Successfully renamed files to: '{newname}'",'Success')
 
-def renamefiles(file, newname,count=0):
+def renamefiles(file, newname,count=1):
         if os.path.isfile(file):
             
             ext = os.path.splitext(os.path.basename(file))[1]

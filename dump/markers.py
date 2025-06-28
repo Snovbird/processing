@@ -1,11 +1,8 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox
 import os
 import subprocess
-from tkinter import simpledialog
-from common.common import clear_gpu_memory,select_video,windowpath
+from common.common import clear_gpu_memory,select_video,windowpath,askint,error,askstring,find_folder,find_value
 
-def apply_png_overlay(video_path, cage_number,width,autocount=None):
+def apply_png_overlay(video_path, cage_number,width,date,overlays_path,output_path):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
     
@@ -17,17 +14,15 @@ def apply_png_overlay(video_path, cage_number,width,autocount=None):
         str: Path to the output video file.
     """
     # Get the directory and filename of the input video
-    video_dir = os.path.dirname(video_path)
     video_name = os.path.splitext(os.path.basename(video_path))[0]
-    output_path = os.path.join("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos", f"{video_name}-marked.mp4")
-    
+    output_path = os.path.join(output_path, f"{video_name}.mp4")
     try:
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
         cmd = [
             "ffmpeg",
             "-hwaccel", "cuda",
             "-i", video_path,
-            "-i", f"C:/Users/Labo Samaha/Desktop/.LabGym/z_misc_DONOTTOUCH/{width}/cage{cage_number}-{width}.png ",
+            "-i", os.path.join(overlays_path, f"{width}/cage{cage_number}_{date}_{width}.png"),
             "-filter_complex", "[0][1]overlay=x=0:y=0",
             "-c:v", "h264_nvenc",
             "-y",  # Overwrite output file if it exists
@@ -49,14 +44,9 @@ def apply_png_overlay(video_path, cage_number,width,autocount=None):
         return None
     
 def main():
-    # Initialize tkinter and hide the root window
-    root = tk.Tk()
-    root.withdraw()
-    
+    # Initialize tkinter and hide the root window    
     # Ask the user to select the input video file
     startpath = windowpath()
-    if not os.path.isdir(startpath): # current window is not a file explorer window
-        startpath = "C:/Users/Labo Samaha/Desktop/.LabGym/"
     video_paths = select_video(title="Select Input Video(s) for ONE cage",path=startpath)
     
     if not video_paths:
@@ -66,8 +56,7 @@ def main():
     askforcage = True
 
     if askforcage:
-        cage_number = simpledialog.askinteger("Cage Number", 
-                                            "Enter cage number (1,2,4,5,6,7,8,9,10,11,12):",minvalue=1,maxvalue=12)
+        cage_number = askint("Cage Number", "Enter cage number (1,2,4,5,6,7,8,9,10,11,12):")
         if not cage_number or int(cage_number) not in [1,2,4,5,6,7,8,9,10,11,12]:
             print("No overlay image selected. Exiting...")
             return
@@ -79,22 +68,17 @@ def main():
         return
     
     # Apply the overlay to the video
-    
-    for i, vid in enumerate(video_paths):
-        if i > 0:
-            # Clear GPU memory between files
-            pass
-        if not askforcage:
-            for i in range(12):
-                if len(str(i+1)) == 2:
-                    if str(i+1) in vid.split("/")[-2]:
-                        output_path = apply_png_overlay(vid, i+1, width)
-                elif str(i+1) in vid.split("/")[-2]: #there's a BUG here 
-                    print(i+1,"***********************************************************************************************************************")
-                    output_path = apply_png_overlay(vid, i+1, width)
-        elif askforcage:
-            output_path = apply_png_overlay(vid, cage_number, width)
+    date = askstring(msg= "Enter the date formatted as MM-DD:", title="Enter Date",fill="06-")
+
+    # Find 2) MAKRED VIDEOS folder
+    output_path = find_folder("2) MARKED videos")
+    overlays_path = find_folder("MARKERS_overlays")
+
+    for vid in video_paths:
+        output_path = apply_png_overlay(vid, cage_number, width,date,overlays_path,output_path)
+
     clear_gpu_memory()
+
     if output_path:
         # Show a success message
         # messagebox.showinfo("Success", f"Video with overlay created successfully!/n/nSaved as: {os.path.basename(output_path)}")
@@ -103,7 +87,7 @@ def main():
         os.startfile("C:/Users/Labo Samaha/Desktop/.LabGym/2) MARKED videos")
     else:
         # Show an error message
-        messagebox.showerror("Error", "Failed to apply overlay. Check console for details.")
+        error(msg="Failed to apply overlay. Check console for details.")
 
 if __name__ == "__main__":
     main()

@@ -48,7 +48,7 @@ def formatright(setofcss):
         elif str_len == 4:  # MMSS format
             minutes = int(time_str[:-2])
             seconds = int(time_str[-2:])
-        elif str_len == 6:  # HHMMSS format
+        elif str_len in [5,6]:  # HHMMSS format
             hours = int(time_str[:-4])
             minutes = int(time_str[-4:-2])
             seconds = int(time_str[-2:])

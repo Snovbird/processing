@@ -1,7 +1,4 @@
 # no need to import modules present in __init__ (will be run first) # NOT SURE ABOUT THAT ACTUALLY
-import wx
-import os
-import subprocess
 # answer = CustomDialog(None, title="", message="", option1="", option2="")
 
 def windowpath():
@@ -131,6 +128,7 @@ def select_video(title="Select videos",path=''):
     # Create wildcard string for mp4 files only
     wildcard = "Video Files (*.mp4)|*.mp4" #"Video files (*.mp4;*.avi)|*.mp4;*.avi" #"Video Files (*.mp4)|*.mp4" #"Video Files (*.mp4;*.avi;*.mov;*.mkv;*.webm)|*.mp4;*.avi;*.mov;*.mkv;*.webm"
     try:
+        import os
         os.path.isdir(path)
         isadir = True
     except:
@@ -245,7 +243,6 @@ def makefolder(file_path, foldername='',count=1):
     
     # Create full path to new folder
     resized_folder_path = os.path.join(folder_path, resized_folder_name)
-    
     # Check if folder exists and print debug info
     print(f"Checking if folder exists: {resized_folder_path}")
     print(f"Folder exists: {os.path.exists(resized_folder_path)}")
@@ -262,7 +259,7 @@ def makefolder(file_path, foldername='',count=1):
     return resized_folder_path
 
 def get_duration(video_path):
-
+    import os
     import cv2
     import datetime
     """
@@ -302,51 +299,88 @@ def get_duration(video_path):
     
     return frames, seconds, HHMMSS
 
-def msgbox(msg,title=''):
+def msgbox(msg:str,title=''):
     import wx
 
     app = wx.App(False)  # Create the wx.App instance
 
     wx.MessageBox(msg, title, wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP)
 
-def error(msg):
+def error(msg:str):
     import wx
 
     app = wx.App(False)  # Create the wx.App instance
 
     wx.MessageBox(f"Error: {msg}", "Error", wx.OK | wx.ICON_ERROR | wx.STAY_ON_TOP)
 
-def getahkpath():
-    import sys
+def find_folder(foldername:str):
+    import os
+    import json
+
+    # First, read the JSON data
     try:
-        # Get argument
-        startpath = sys.argv[1]
+        with open("common/data.json", 'r') as j:
+            jsondata = json.load(j)
+    except FileNotFoundError:
+        # Create default structure if file doesn't exist
+        jsondata = {"folder_dirs": {},"values":{}}
+    
+    def longfind():
+        desktop_path = os.path.expanduser("~")
+        for root, dirs, files in os.walk(desktop_path):
+            if foldername in dirs:
+                output_path = os.path.join(root, foldername)
+                # Update the JSON data in memory
+                if "folder_dirs" not in jsondata:
+                    jsondata["folder_dirs"] = {}
+                jsondata['folder_dirs'][foldername] = output_path
+                
+                # Write the updated JSON data back to the file
+                with open("common/data.json", 'w') as j:
+                    json.dump(jsondata, j,indent=4)
+                return output_path
+        print("No folder with the given name")
+        return None
+
+    try:
+        findfolder = jsondata['folder_dirs'][foldername]
+        if os.path.exists(findfolder):
+            return findfolder
+        else:
+            return longfind()
+    except KeyError:
+        return longfind()
+    
+def findval(valuename:str):
+    import json
+
+    # First, read the JSON data
+    try:
+        with open("common/data.json", 'r') as j:
+            jsondata = json.load(j)
+    except FileNotFoundError:
+        # Create default structure if file doesn't exist
+        jsondata = {"folder_dirs": {},"values":{}}
+        print("No folder with the given name")
+
+    try:
+        print(jsondata['values'][valuename])
+        return jsondata['values'][valuename]
+    except KeyError:
+        print(f"The value {valuename} doesn't exist in 'values'")
+        # from common.common import askstring
+        # jsondata['values'][valuename] = askstring(msg="Provide the value for this key:")
+        # with open("common/data.json", 'w') as j:
+        #     json.dump(jsondata,j)
+
+def assignval(valuename:str,value):
+    import json
+    with open("common/data.json", 'r') as j:
+        jsondata = json.load(j)
+    jsondata['values'][valuename] = value
+    
+    with open("common/data.json", 'w') as j:
+        json.dump(jsondata,j,indent=4)
+
+
         
-        # If the path doesn't exist as-is, try to construct a proper path
-        if not os.path.isdir(startpath):
-            # Try to match with common Windows folders
-            possible_paths = [
-                os.path.join(os.path.expanduser("~"), startpath),  # User folder
-                os.path.join(os.path.expanduser("~"), "Desktop", startpath),    # Desktop
-                os.path.join("C:\\", startpath)  # Root drive
-            ]
-            
-            for path in possible_paths:
-                if os.path.isdir(path):
-                    startpath = path
-                    break
-
-    except Exception as e:
-        startpath = ''
-        user_profile = os.environ['USERPROFILE']
-        downloads_folder = os.path.join(user_profile, 'Downloads')
-
-        with open(os.path.join(downloads_folder, f"error.txt"),'a') as f:
-            f.write(str(e) + '\n')
-            f.write('-'*35 + '\n')
-            print(str(e))
-
-
-
-
-

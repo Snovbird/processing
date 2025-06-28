@@ -1,7 +1,7 @@
 ﻿#SingleInstance, force
 place := "FF"
 
-::++::00020.00345.00815.01325.01645.02115.02625.02945.03415.03925.04245.04715.05225.05545.10015
+::++::00020.00340.00810.01320.01640.02110.02620.02940.03410.03920.04240.04710.05220.05540.10010
 return
 ::--::
 return
@@ -21,7 +21,9 @@ return
 ^!+l::
     Run "C:\Users\%Username%\AppData\Local\Programs\Microsoft VS Code\Code.exe" "%A_ScriptDir%\labgym.ahk"
 return
-
+!+F::
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trial_formula.py"
+return
 !r::
 run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resize.py"
 return
@@ -30,8 +32,26 @@ return
 run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\filenamereplaceappend.py"
 return
 !+C::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\concatenate.py"
+; eck if the active window is File Explorer
+    WinGetClass, activeClass, A
+    if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
+        MsgBox, This hotkey only works in File Explorer
+        return
+    }
+
+    ; Use the Explorer COM object to get the actual path
+    for window in ComObjCreate("Shell.Application").Windows {
+        try {
+            if (window.HWND == WinExist("A")) {
+                fullPath := window.Document.Folder.Self.Path
+                Run, % "py -3.10 ""C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\concatenate.py"" """ fullPath """"
+                return
+            }
+        }
+    }
+    MsgBox, Could not retrieve folder path
 return
+
 !n::
 run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\replacefilenames.py"
 return
@@ -119,21 +139,21 @@ return
 run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\frameoverlay.py"
 return
 
-
 !a::
 run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\addtocss.py"
 return
 
 #IfWinActive, ahk_exe Photoshop.exe
 $s::
-InputBox, userInput, User Input, Cage number:
+InputBox, CAGENUMB, Cage, Cage number:
+InputBox, thedate, Enter Date, Date formated as MM-DD:
 send, ^!s
 sleep, 150
-SendRaw, cage%userInput%-2048%place%
+SendRaw, cage%CAGENUMB%_06-%thedate%_2048 ; %place%
 sleep, 100
 send, {Tab}
 sleep, 100
-SendInput, {p}cage7-2048FF
+SendInput, {p}
 sleep, 100
 SendInput, {p}
 sleep, 100
@@ -157,8 +177,8 @@ SendInput, {Enter}
 sleep, 100
 SendInput, {Enter}
 sleep, 100
-SendInput, ^{s}
-SendInput, ^{w}
+
+; SendInput, ^{w}
 return
 $d::
 if place = FN
