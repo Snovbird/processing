@@ -2,7 +2,7 @@ import os
 import re
 
 for content in os.listdir():
-    if os.path.isdir(content):
+    if os.path.isdir(content) and content != ".git":
         try:
             # Count items in the directory
             item_count = len([item for item in os.listdir(content) if os.path.isfile(os.path.join(content, item))])
