@@ -1,6 +1,6 @@
 import os
 import subprocess
-from common.common import clear_gpu_memory,askstring,select_video,windowpath,find_folder,findval,error,assignval
+from common.common import clear_gpu_memory,askstring,select_video,windowpath,find_folder_path,findval,error,assignval,makefolder
 
 def apply_png_overlay(video_path, cage_number,width,thedate,overlays_path, output_path):
     """
@@ -24,7 +24,7 @@ def apply_png_overlay(video_path, cage_number,width,thedate,overlays_path, outpu
         if os.path.exists(imagepath):
             break
     if not os.path.exists(imagepath):
-        error(msg=f"There is no overlay images for cage {cage_number}")
+        error(msg=f"There is no overlay images for cage {cage_number}\nPath {imagepath} DNE")
         return
 
     try:
@@ -63,7 +63,7 @@ def main():
     if not video_paths:
         print("No video file selected. Exiting...")
         return
-    thedate = askstring(msg= "Enter the date formatted as MM-DD:", title="Enter Date",fill="06-")
+    thedate = askstring(msg= "Enter the date formatted as MM-DD:", title="Enter Date",fill=findval("last_used_date"))
     # AL_position = custom_dialog(title="Active lever position", msg="Is the active lever near the door (FN) or away (FF)", op1="FN", op2="FF")
     
     width = 2048
@@ -83,8 +83,9 @@ def main():
         print(f"Added date: {formatted_date}")
 
     # Find output folder named "2) MARKED videos"
-    output_path = find_folder("2) MARKED videos")
-    overlays_path = find_folder("MARKERS_overlays") # Contains images
+    # output_path = find_folder("2) MARKED videos")
+    output_path = makefolder(video_paths[0],foldername="marked")
+    overlays_path = find_folder_path("MARKERS_overlays") # Contains images
     
     for vid in video_paths:
         cage_number = ''.join(char for char in os.path.splitext(os.path.basename(vid))[0] if char.isdigit())

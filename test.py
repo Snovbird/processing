@@ -1,4 +1,4 @@
-from common.common import assignval
+from common.common import select_video
 
 # find_value("dates")
 
@@ -6,4 +6,4 @@ from common.common import assignval
 
 # assignval("dates",["06-11","06-12","06-13","06-16","06-17","06-18","06-19","06-20","06-23","06-25"])
 
-print(['06-11', '06-12', '06-13', '06-16', '06-17', '06-18', '06-19', '06-20', '06-23', '06-25'][::-1].index("06-25"))
+select_video()

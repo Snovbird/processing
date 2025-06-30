@@ -1,8 +1,9 @@
 common/__pycache__/__init__.cpython-310.pyc
 common/__pycache__/common.cpython-310.pyc
-
-.pyc
+common/__pycache__
 common/__pycache__/__init__.cpython-313.pyc
 common/__pycache__/common.cpython-313.pyc
 common/__pycache__/__init__.cpython-312.pyc
 common/__pycache__/common.cpython-312.pyc
+__pycache__/markersquick.cpython-310.pyc
+common/data.json

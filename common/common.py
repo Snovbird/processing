@@ -313,7 +313,7 @@ def error(msg:str):
 
     wx.MessageBox(f"Error: {msg}", "Error", wx.OK | wx.ICON_ERROR | wx.STAY_ON_TOP)
 
-def find_folder(foldername:str):
+def find_folder_path(foldername:str):
     import os
     import json
 
@@ -368,6 +368,7 @@ def findval(valuename:str):
         return jsondata['values'][valuename]
     except KeyError:
         print(f"The value {valuename} doesn't exist in 'values'")
+        return ""
         # from common.common import askstring
         # jsondata['values'][valuename] = askstring(msg="Provide the value for this key:")
         # with open("common/data.json", 'w') as j:
@@ -383,4 +384,46 @@ def assignval(valuename:str,value):
         json.dump(jsondata,j,indent=4)
 
 
-        
+def dropdown(choices: list[str, ...],title=''): 
+    """Create a wxPython window with a dropdown menu and return the selected item on Enter."""
+    import wx
+    app = wx.App(False)  # Create the wx.App instance
+
+    # Create a frame (main window)
+    frame = wx.Frame(None, title=title, size=(300, 150))
+    
+    # Create a panel to hold the dropdown menu
+    panel = wx.Panel(frame)
+    
+    # Create a dropdown menu (wx.Choice) with some options
+    dropdown = wx.Choice(panel, choices=choices, pos=(50, 30), size=(200, -1))
+    dropdown.SetSelection(0)  # Set the default selection to the first item
+    
+    # Variable to store the selected item
+    selected_item = [None]  # Use a mutable object (list) to store the result
+    
+    # Event handler for pressing Enter
+    def on_enter(event):
+        selected_item[0] = dropdown.GetString(dropdown.GetSelection())  # Get the selected item
+        print(f"Selected item: {selected_item[0]}")  # Print the selected item
+        frame.Close()  # Close the window
+    
+    # Bind the Enter key to the event handler
+    frame.Bind(wx.EVT_CHAR_HOOK, on_enter)
+    
+    # Show the frame
+    frame.Show()
+    app.MainLoop()
+    
+    # Return the selected item after the window is closed
+    return selected_item[0]
+
+
+
+
+
+
+
+
+
+
