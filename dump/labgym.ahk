@@ -140,7 +140,7 @@ run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\fram
 return
 
 !a::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\addtocss.py"
+run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\addtopss.py"
 return
 
 #IfWinActive, ahk_exe Photoshop.exe
@@ -198,3 +198,4 @@ return
 !c::
 Run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\cagename.py"
 return
+#If

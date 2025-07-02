@@ -29,10 +29,15 @@ def name_cages(source_folder):
     if not files:
         raise Exception("The selected folder does not contain any files.")
     # Copy files with appended names
+    print(source_folder)
+    print(files)
     for filename in files:
         # Create new filename with appended string
         name, extension = os.path.splitext(filename)
-        if '_' not in name:
+        if name + extension == "desktop.ini":
+            continue # skips to next iteration. desktop.ini shows up when you change a folder's appearance
+        if '_' not in name :
+            print("exitted cuz no underscore",name)
             return
         a = name.split('_')[1].replace('ch','')
         c = 97
@@ -53,7 +58,6 @@ def main():
         source_folder = select_folder()
     if not source_folder:
         return
-        
     # Step 3: Process files
     try:
         name_cages(source_folder)

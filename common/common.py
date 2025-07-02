@@ -1,16 +1,25 @@
+import os
+
+# Get the absolute path to the directory containing this file (common.py)
+_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Define the path to data.json, assuming it's in the same directory as this script.
+# This makes file access independent of where the script is run from.
+JSON_PATH = os.path.join(_CURRENT_DIR, 'data.json')
+
 # no need to import modules present in __init__ (will be run first) # NOT SURE ABOUT THAT ACTUALLY
 # answer = CustomDialog(None, title="", message="", option1="", option2="")
 
-def windowpath():
+def windowpath() -> str:
     import win32gui
     window = win32gui.GetForegroundWindow()
     return str(win32gui.GetWindowText(window)).replace(' - File Explorer','').replace("\\\\","/")
 
-def custom_dialog(msg="",title='',op1="yes",op2="No"):
+def custom_dialog(msg="",title='',op1="yes",op2="No",dimensions:tuple|int = (300, 150)) -> str:
     import wx
+
     class custom_dialog(wx.Dialog):
         def __init__(self, parent, title, message, option1="Proceed", option2="Skip"):
-            super().__init__(parent, title=title, size=(300, 150), style=wx.DEFAULT_DIALOG_STYLE)
+            super().__init__(parent, title=title, size=dimensions, style=wx.DEFAULT_DIALOG_STYLE)
             
             # Create a vertical box sizer for layout
             vbox = wx.BoxSizer(wx.VERTICAL)
@@ -68,7 +77,7 @@ def custom_dialog(msg="",title='',op1="yes",op2="No"):
         dialog.Destroy()  # Clean up the dialog
         return dialog.result
 
-def select_folder(title="Choose a directory",path=''):
+def select_folder(title="Choose a directory",path='') -> str:
     """Show folder selection dialog and return selected path"""
     import wx
     app = wx.App(False)
@@ -93,7 +102,7 @@ def select_folder(title="Choose a directory",path=''):
     else:
         return pathDNE()
 
-def clear_gpu_memory():
+def clear_gpu_memory() -> bool:
     import subprocess
     try:
         # Reset GPU clocks temporarily to help clear memory
@@ -105,7 +114,7 @@ def clear_gpu_memory():
         print(f"GPU memory cleanup failed: {e}")
         return False
     
-def select_video(title="Select videos",path=''):
+def select_video(title="Select videos",path='') -> str:
     import wx
     app = wx.App(False)
 
@@ -156,7 +165,7 @@ def select_video(title="Select videos",path=''):
     else:
         return pathDNE()
 
-def select_anyfile(title="Select files",path=''):
+def select_anyfile(title="Select files",path='') -> str:
     import wx
     app = wx.App(False)
     wildcard = "Any files (*.*)|*.*"
@@ -198,7 +207,7 @@ def select_anyfile(title="Select files",path=''):
     else:
         return pathDNE()
 
-def askint(msg="Enter an integer:",title="Integer Input",fill=''):
+def askint(msg="Enter an integer:",title="Integer Input",fill='')  -> int:
     import wx
 
     """Open a dialog to ask for an integer, pre-filled with 10."""
@@ -216,7 +225,7 @@ def askint(msg="Enter an integer:",title="Integer Input",fill=''):
     dlg.Destroy()  # Clean up the dialog
     return None
 
-def askstring(msg="Enter a string:",title="String Input",fill=''):
+def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
     import wx
 
     app = wx.App(False)  # Create the wx.App instance
@@ -229,7 +238,7 @@ def askstring(msg="Enter a string:",title="String Input",fill=''):
     dlg.Destroy()  # Clean up the dialog
     return None
 
-def makefolder(file_path, foldername='',count=1):
+def makefolder(file_path, foldername='',count=1) -> str:
     import os
     # Get directory containing the file
     if os.path.isdir(file_path):
@@ -258,7 +267,7 @@ def makefolder(file_path, foldername='',count=1):
         print(f"Created folder: {resized_folder_path}")
     return resized_folder_path
 
-def get_duration(video_path):
+def get_duration(video_path) :
     import os
     import cv2
     import datetime
@@ -313,16 +322,15 @@ def error(msg:str):
 
     wx.MessageBox(f"Error: {msg}", "Error", wx.OK | wx.ICON_ERROR | wx.STAY_ON_TOP)
 
-def find_folder_path(foldername:str):
+def find_folder_path(foldername:str) -> str:
     import os
     import json
 
     # First, read the JSON data
     try:
-        with open("common/data.json", 'r') as j:
+        with open(JSON_PATH, 'r') as j:
             jsondata = json.load(j)
     except FileNotFoundError:
-        # Create default structure if file doesn't exist
         jsondata = {"folder_dirs": {},"values":{}}
     
     def longfind():
@@ -336,7 +344,7 @@ def find_folder_path(foldername:str):
                 jsondata['folder_dirs'][foldername] = output_path
                 
                 # Write the updated JSON data back to the file
-                with open("common/data.json", 'w') as j:
+                with open(JSON_PATH, 'w') as j:
                     json.dump(jsondata, j,indent=4)
                 return output_path
         print("No folder with the given name")
@@ -351,24 +359,25 @@ def find_folder_path(foldername:str):
     except KeyError:
         return longfind()
     
-def findval(valuename:str):
+def findval(valuename:str) -> str:
     import json
 
     # First, read the JSON data
     try:
-        with open("common/data.json", 'r') as j:
+        with open(JSON_PATH, 'r') as j:
             jsondata = json.load(j)
     except FileNotFoundError:
         # Create default structure if file doesn't exist
         jsondata = {"folder_dirs": {},"values":{}}
         print("No folder with the given name")
+        return "CANT FIND JSON"
 
     try:
         print(jsondata['values'][valuename])
         return jsondata['values'][valuename]
     except KeyError:
         print(f"The value {valuename} doesn't exist in 'values'")
-        return ""
+        return "DOES NOT EXIST"
         # from common.common import askstring
         # jsondata['values'][valuename] = askstring(msg="Provide the value for this key:")
         # with open("common/data.json", 'w') as j:
@@ -376,15 +385,19 @@ def findval(valuename:str):
 
 def assignval(valuename:str,value):
     import json
-    with open("common/data.json", 'r') as j:
-        jsondata = json.load(j)
-    jsondata['values'][valuename] = value
-    
-    with open("common/data.json", 'w') as j:
-        json.dump(jsondata,j,indent=4)
+    try:
+        with open(JSON_PATH, 'r') as j:
+            jsondata = json.load(j)
+        jsondata['values'][valuename] = value
+        
+        with open(JSON_PATH, 'w') as j:
+            json.dump(jsondata,j,indent=4)
+            print(f"Successfully assigned {value} to {valuename}!")
+    except Exception as e:
+        print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
 
-def dropdown(choices: list[str, ...],title=''): 
+def dropdown(choices: list[str],title='') -> str: 
     """Create a wxPython window with a dropdown menu and return the selected item on Enter."""
     import wx
     app = wx.App(False)  # Create the wx.App instance
@@ -417,13 +430,3 @@ def dropdown(choices: list[str, ...],title=''):
     
     # Return the selected item after the window is closed
     return selected_item[0]
-
-
-
-
-
-
-
-
-
-

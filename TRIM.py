@@ -1,7 +1,9 @@
 import os
 import subprocess
-from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,get_duration
+from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder
 import sys
+from addtopss import addtopss
+
 def format_time_input(time_input):
     """
     Format the time input to HH:MM:SS.
@@ -104,6 +106,7 @@ def trim_video_timestamps_accelerated(input_path, start_time, end_time, count=1,
             output_path
         ]
         print(" ".join(cmd))
+        print(f"START:{start_time:*>40}]\nEND:{end_time:*>40}")
         subprocess.run(cmd, check=True)    
         return output_path
     
@@ -152,35 +155,41 @@ def main():
         return
     
     start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")).split(".")
-    
+    print(start_times,"-"*500)
     if start_times is None:
-        print("Exiting...")
+        print("Exiting... since start_times is None")
         return
-    # for i in range(len(start_times)):
-    #     start_times[i] = format_time_input(start_times[i])
 
-    end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
-    if end_times is None:
-        print("Exiting...")
+    handling_end = custom_dialog(msg="Enter automatically a given number of seconds or FULL end times string?",title="Ending times",op1="Automatic",op2="FULL STRING")
+    if handling_end is None:
+        print("Exiting... since handling_end is None")
         return
     
-    unitoption = custom_dialog("Unit","What is your format?", op1="HHMMSS", op2="Frames")
+    unitoption = custom_dialog(msg="HHMSS or Frames?",title="Unit used",op1="HHMMSS",op2="Frames")
     if unitoption is None:
-        print("Exiting...")
+        print("Exiting... since unitoption is None")
         return
 
-    # for i in range(len(end_times)):
-    #     end_times[i] = format_time_input(end_times[i])
-
+    print(handling_end)
+    if handling_end == "Automatic":
+        end_times = addtopss(start_times,HHMMSS_or_frames=unitoption)
+    elif handling_end == "FULL STRING":
+        end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
+    
+    if end_times is None:
+        print("Exiting since end_times is None")
+        return
+    
+    
     if len(start_times) == 1: 
-        # output_answer = custom_dialog("File name","Include timestamps in file name?", op1="Yes", op2="no") # D
+        # output_answer = custom_dialog("File name","Include timestamps in file name?", op1="Yes", op2="no") 
         output_answer = True
         if output_answer == 'Yes':
             output_answer = True
     else:
         output_answer = False
-    if len(start_times) > 1 and len(file_paths) == 1:  # folder if multiple trims for one file
-        
+
+    if len(start_times) > 1 and len(file_paths) == 1:  # folder needed if multiple trims for one file
         foldername = makefolder(file_paths[0],foldername="trimmed-")
     elif len(file_paths) > 1:
         foldername = makefolder(file_paths[0],foldername="trimmed-")
@@ -188,30 +197,26 @@ def main():
         foldername = None
     all_processing_complete = False
     output_path = None
-    
     if len(end_times) == len(start_times):
-        for count, _ in enumerate(start_times):
-            start_time = start_times[count]
+        for count, start_time in enumerate(start_times):
             end_time = end_times[count]
             if unitoption == 'HHMMSS':
+                print(start_time,end_time)
+
+                print(type(start_time),type(end_time))
                 start_time = format_time_input(start_time)
                 end_time = format_time_input(end_time)
                 print("Start time:", start_time)
                 print("End time:", end_time)
-                for i, path in enumerate(file_paths):
+                for path in file_paths:
                     output_path = trim_video_timestamps_accelerated(path, start_time, end_time, count,output_times=output_answer, foldername=foldername)    
-                # Remove this line: os.startfile(os.path.dirname(output_path))
             elif unitoption == 'Frames':
-                for i, path in enumerate(file_paths):
-                    if i > 0:
-                        # Clear GPU memory between files
-                        pass
+                for path in file_paths:
                     output_path = trim_frames(path, start_time, end_time, count, output_times=output_answer,foldername=foldername)
                 
-        clear_gpu_memory()
-        all_processing_complete = True
+        all_processing_complete = clear_gpu_memory() # -> True
     else:
-        print("ERROR", "Must enter same # of start times as end times")
+        print("ERROR", f"Must enter same # of start times as end times.\nStart times = {start_times}\nEnd times = {end_times}")
     
     # Only open the directory once all processing is complete and multiple files were selected
     if all_processing_complete and len(file_paths) > 1 and foldername and output_path:

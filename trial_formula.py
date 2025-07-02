@@ -1,5 +1,5 @@
 import pyperclip
-from common.common import askstring,askint
+from common.common import askstring,askint,custom_dialog,findval,assignval
 a = askint(msg="Enter Start start time:",title="Start time")
 d = [a]
 e = 1
@@ -9,12 +9,20 @@ for i in range(10):
         d.append(a)
 del d[-1]
 
-dsplus = None
-dsplus = True
 
-Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS-.DS-.DS+".split(".")
+# which_first = custom_dialog(msg="Which trial goes first?",title="First trial",op1="DS+",op2="DS-")
 
-Cycle = askstring(msg="Enter Period-Separated DS values: ",title="DS Order").split(".")
+session_number = askint(msg="Enter session number:",title="Session number",fill=findval("session_number"))
+assignval("session_number",session_number)
+
+Cycle = None
+if session_number % 2 == 0: #"DS+":
+    Cycle = "DS+.DS-.DS+.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS+".split(".")
+
+elif session_number % 2 != 0: # "DS-":
+    Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS-.DS-.DS+".split(".")
+
+# Cycle = askstring(msg="Enter Period-Separated DS values: ",title="DS Order").split(".")
 if not Cycle:
     pass
 print(len([i for i in Cycle if i == "DS+"]),"DS+")
@@ -22,6 +30,10 @@ print(len([i for i in Cycle if i == "DS-"]),"DS-")
 dspluslist = [d[i] for i, ds in enumerate(Cycle) if ds == "DS+"]
 dsminuslist = [d[i] for i, ds in enumerate(Cycle) if ds == "DS-"]
 
+
+
+dsplus = None
+dsplus = True
 if dsplus is True:
     
     pyperclip.copy(".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dspluslist)])) # if number % 2 == 0

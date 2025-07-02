@@ -42,6 +42,7 @@ def renamefilesfolder(folderpath, newname):
         if os.path.isfile(file):
             ext = os.path.splitext(item)[1]
             os.rename(file,os.path.join(folderpath,newname + ext))
+            print(f'renamed {os.path.join(folderpath,newname + ext)}')
 
 
 if __name__ == "__main__":
