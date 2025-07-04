@@ -430,3 +430,35 @@ def dropdown(choices: list[str],title='') -> str:
     
     # Return the selected item after the window is closed
     return selected_item[0]
+
+def hhmmss_to_seconds(time_str:str) -> int:
+    """Convert HHMMSS string to total seconds"""
+    # Ensure the string is 6 characters long (pad with leading zeros if needed)
+    if type(time_str) != str:
+        try:
+            str(time_str)
+        except Exception as e:
+            error("Error wrong input:", str(e))
+            return
+    
+    # runs anyway 
+    time_str = time_str.zfill(6)
+    
+    # Extract hours, minutes, seconds
+    hours = int(time_str[0:2])
+    minutes = int(time_str[2:4])
+    seconds = int(time_str[4:6])
+    
+    # Convert to total seconds
+    total_seconds = hours * 3600 + minutes * 60 + seconds
+    return total_seconds
+    
+def seconds_to_hhmmss(seconds:int) -> str:
+    """Convert seconds to HHMMSS string format"""
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    remaining_seconds = seconds % 60
+    
+    hhmmss_string = f"{hours:02d}{minutes:02d}{remaining_seconds:02d}".zfill(6)
+
+    return hhmmss_string

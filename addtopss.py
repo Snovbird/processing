@@ -1,25 +1,27 @@
 #add to comma separated string
-from common.common import askstring, askint, custom_dialog
+from common.common import askstring, askint, custom_dialog,hhmmss_to_seconds,seconds_to_hhmmss
 
 
-def addtopss(given_range:list[str],toadd:int|None = None,HHMMSS_or_frames:str = None) -> list[str] : # add a given value to each period-separated value
+def addtopss(time_input:list[str]|str,toadd:int|None = None,HHMMSS_or_frames:str = None) -> list[str] : # add a given value to each period-separated value
     
-    # if setofpss.endswith("."):
-    #     setofpss = setofpss[:-1]
+    # Handling weird/missing inputs: can accept period-separated strings; preferable input = list[str]
+    if type(time_input) == str and "." in time_input:
+        list_of_values = [hhmmss_to_seconds(i) for i in time_input.split(".")]
+    elif type(time_input) == str and "." not in time_input:
+        list_of_values = [hhmmss_to_seconds(time_input)]
+    else: # preferable list input
+        list_of_values = [hhmmss_to_seconds(str(numberstring)) for numberstring in time_input.copy()] # LISTS ARE MUTABLE 
     
     if not toadd:
         toadd = askint(title="integer", msg="to add:")
 
-    setofpss = given_range.copy() # LISTS ARE MUTABLE 
 
-
-    for c in range(len(setofpss)):
-        setofpss[c] = int(setofpss[c]) + toadd
-        print(f"After adding {toadd} to value {c}: {setofpss[c]}")
-    
+    for c, value in enumerate(list_of_values):
+        list_of_values[c] += toadd
+    print(list_of_values)
     # Join with periods
-    print(f"Before formatright: {setofpss}") # all integers
-    tocopy = ".".join([str(i) for i in setofpss])
+    print(f"Before formatright: {list_of_values}") # all integers
+    tocopy = ".".join([str(i) for i in list_of_values])
     
     
     
