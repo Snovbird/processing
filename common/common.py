@@ -396,7 +396,6 @@ def assignval(valuename:str,value):
     except Exception as e:
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
-
 def dropdown(choices: list[str],title='') -> str: 
     """Create a wxPython window with a dropdown menu and return the selected item on Enter."""
     import wx
@@ -430,3 +429,11 @@ def dropdown(choices: list[str],title='') -> str:
     
     # Return the selected item after the window is closed
     return selected_item[0]
+
+def wrap(text_input:str,text_to_wrap:str) -> str:
+    '''
+    Append a given "text_to_wrap" string to another "text_input" string
+    '''
+    return f"{text_to_wrap}{text_input}{text_to_wrap}"
+
+
