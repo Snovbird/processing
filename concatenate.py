@@ -156,7 +156,9 @@ def main():
     # toconcat = [select_video(title="select videos to concatenate first",path=startpath) for c in range(number_of_concats)]
     files = [file for file in os.listdir(startpath) if os.path.isfile(os.path.join(startpath, file))]
     toconcat = group_files_by_digits(files)
-    check = custom_dialog(msg=f"Are these the expected groups: {toconcat}",title="Verification",dimensions=(500,600))
+    # Format the groups for display to fix the syntax and a potential type error.
+    display_string = "\n\n".join([", ".join(group) for group in toconcat])
+    check = custom_dialog(msg=f"Are these the expected groups: \n\n{display_string}",title="Verification",dimensions=(500,600))
     toconcat = [[os.path.join(startpath,file) for file in group] for group in toconcat]
 
     
@@ -209,5 +211,3 @@ def group_files_by_digits(file_paths: list[str]) -> list[list[str]]:
 # Example usage
 if __name__ == "__main__":
     main()
-
-
