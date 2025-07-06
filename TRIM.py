@@ -1,26 +1,10 @@
 import os
 import subprocess
-from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder
+from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,format_time_colons
 import sys
 from addtopss import addtopss
 
-def format_time_input(time_input):
-    """
-    Format the time input to HH:MM:SS.
-    
-    Args:
-        time_input (str): The input time as a string without colons.
-    
-    Returns:
-        str: Formatted time as HH:MM:SS.
-    """
-    time_input = time_input.strip()
-    
-    if time_input.isdigit():
-        time_input = time_input.zfill(6) # or f"{time_input:06d}" would've also worked
-        return f"{time_input[:-4]}:{time_input[-4:-2]}:{time_input[-2:]}"
-    else:
-        return time_input  # Return the original input if it's not valid
+
 
 def trim_frames(input_path, start_time, end_time,count,output_times=False,foldername=None):
     if not os.path.isfile(input_path):
@@ -55,7 +39,7 @@ def trim_frames(input_path, start_time, end_time,count,output_times=False,folder
             "-an",                   
             output_path
         ]
-        print(" ".join(cmd), "\n*****************************************************************************************************")
+        print(" ".join(cmd))
         subprocess.run(cmd, check=True)
         return output_path
     
@@ -66,7 +50,7 @@ def trim_frames(input_path, start_time, end_time,count,output_times=False,folder
         print("Error: FFmpeg not on PATH.")
         return None
 
-def trim_video_timestamps_accelerated(input_path, start_time, end_time, count=1, output_times=False,foldername=None):
+def trim_timestamps(input_path, start_time, end_time, count=1, output_times=False,foldername=None):
     startforname = start_time.replace(":", "")
     endforname = end_time.replace(":", "")
     file_name = os.path.splitext(os.path.basename(input_path))[0]
@@ -106,7 +90,7 @@ def trim_video_timestamps_accelerated(input_path, start_time, end_time, count=1,
             output_path
         ]
         print(" ".join(cmd))
-        print(f"START:{start_time:*>40}]\nEND:{end_time:*>40}")
+        # print(f"START:{start_time:*>40}]\nEND:{end_time:*>40}")
         subprocess.run(cmd, check=True)    
         return output_path
     
@@ -155,7 +139,6 @@ def main():
         return
     
     start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")).split(".")
-    print(start_times,"-"*500)
     if start_times is None:
         print("Exiting... since start_times is None")
         return
@@ -170,7 +153,6 @@ def main():
         print("Exiting... since unitoption is None")
         return
 
-    print(handling_end)
     if handling_end == "Automatic":
         end_times = addtopss(start_times,HHMMSS_or_frames=unitoption)
     elif handling_end == "FULL STRING":
@@ -201,15 +183,12 @@ def main():
         for count, start_time in enumerate(start_times):
             end_time = end_times[count]
             if unitoption == 'HHMMSS':
-                print(start_time,end_time)
-
-                print(type(start_time),type(end_time))
-                start_time = format_time_input(start_time)
-                end_time = format_time_input(end_time)
+                start_time = format_time_colons(start_time)
+                end_time = format_time_colons(end_time)
                 print("Start time:", start_time)
                 print("End time:", end_time)
                 for path in file_paths:
-                    output_path = trim_video_timestamps_accelerated(path, start_time, end_time, count,output_times=output_answer, foldername=foldername)    
+                    output_path = trim_timestamps(path, start_time, end_time, count,output_times=output_answer, foldername=foldername)    
             elif unitoption == 'Frames':
                 for path in file_paths:
                     output_path = trim_frames(path, start_time, end_time, count, output_times=output_answer,foldername=foldername)
