@@ -1,4 +1,4 @@
-from common.common import select_folder, windowpath,askstring,custom_dialog,select_anyfile,msgbox
+from common.common import select_folder, windowpath,askstring,custom_dialog,select_anyfile
 import os
 '''
     Args: folder directory or selected files (any type)
@@ -7,6 +7,7 @@ import os
 '''
 
 def main():
+    from common.common import msgbox
     startpath= windowpath()
     newname = askstring(title='New file name',msg='Enter the new file name')
     if not newname:
@@ -23,7 +24,7 @@ def main():
     os.startfile(outputfolder)
     msgbox(f"Successfully renamed files to: '{newname}'",'Success')
 
-def renamefiles(file, newname,count=1):
+def renamefiles(file:str, newname:str,count:int = 1) -> str:
         if os.path.isfile(file):
             
             ext = os.path.splitext(os.path.basename(file))[1]
@@ -34,7 +35,6 @@ def renamefiles(file, newname,count=1):
             os.rename(file,newfullpath)
             return os.path.dirname(newfullpath)
         
-
 
 def renamefilesfolder(folderpath, newname):
     for count, item in enumerate(os.listdir(folderpath)):

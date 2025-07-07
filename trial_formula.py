@@ -1,15 +1,15 @@
-import pyperclip
+
 from common.common import askstring,askint,custom_dialog,findval,assignval
 
 def trial_formula(plus_or_minus:str|None = None):
-    a = askint(msg="Enter Start start time:",title="Start time")
-    d = [a]
+    start_time = askint(msg="Enter Start start time:",title="Start time")
+    list_of_timestamps = [start_time]
     e = 1
     for i in range(10):
-        for b in [40,80,150]:
-            a+= b + 40
-            d.append(a)
-    del d[-1]
+        for ITI_len in [40,80,150]:
+            start_time += ITI_len + 40
+            list_of_timestamps.append(start_time)
+    del list_of_timestamps[-1]
 
 
     # which_first = custom_dialog(msg="Which trial goes first?",title="First trial",op1="DS+",op2="DS-")
@@ -26,10 +26,10 @@ def trial_formula(plus_or_minus:str|None = None):
         elif session_number % 2 != 0: # "DS-":
             Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS-.DS-.DS+".split(".")
 
-    if not plus_or_minus:
+    if plus_or_minus is None:
         plus_or_minus = custom_dialog(msg="Which is first cue?",title="First trial",op1="DS+",op2="DS-")
-    if not plus_or_minus:
-        return
+        if not plus_or_minus:
+            return
     if plus_or_minus == "DS+":
         Cycle = "DS+.DS-.DS+.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS+".split(".")
 
@@ -37,26 +37,22 @@ def trial_formula(plus_or_minus:str|None = None):
         Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS-.DS-.DS+".split(".")# Cycle = askstring(msg="Enter Period-Separated DS values: ",title="DS Order").split(".")
     if not Cycle:
         pass
-    print(len([i for i in Cycle if i == "DS+"]),"DS+")
-    print(len([i for i in Cycle if i == "DS-"]),"DS-")
-    dspluslist = [d[i] for i, ds in enumerate(Cycle) if ds == "DS+"]
-    dsminuslist = [d[i] for i, ds in enumerate(Cycle) if ds == "DS-"]
+    print(len([i for i in Cycle if i == "DS+"]),"DS+ len")
+    print(len([i for i in Cycle if i == "DS-"]),"DS- len")
+    dspluslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS+"]
+    dsminuslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS-"]
 
+    if plus_or_minus == "DS+":
 
+        return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dspluslist)]) # if number % 2 == 0 # Used for predictable trials
 
-    dsplus = None
-    dsplus = True
-    if dsplus is True:
+    elif plus_or_minus == "DS-":
         
-        pyperclip.copy(".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dspluslist)])) # if number % 2 == 0
-
-    if not dsplus:
-        
-        pyperclip.copy(".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dsminuslist)])) # if number % 2 != 0
+        return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dsminuslist)]) # if number % 2 != 0
 
 def main():
-    
-    trial_formula()
+    import pyperclip
+    pyperclip.copy(trial_formula())
 
 if __name__ == "__main__":
     main()
