@@ -1,12 +1,12 @@
 import os
 import subprocess
-from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,error,format_time_colons
+from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,error,format_time_colons,remove_other
 import sys
 from addtopss import addtopss
 
 
 
-def trim_frames(input_path, start_time, end_time,count,output_times=False,foldername=None):
+def trim_frames(input_path: str, start_time:str, end_time:str,count,output_times=False,foldername=None):
     if not os.path.isfile(input_path):
         print(f"Error: The file '{input_path}' does not exist.")
         return None
@@ -99,13 +99,6 @@ def trim_timestamps(input_path, start_time, end_time, count=1, output_times=Fals
         print(f"Error during conversion: {e}")
         return None
     
-def remove_other(stringinput):
-    a = ""
-    for i in stringinput:
-        if i in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.']:
-            a += i
-    return a
-
 def main():
     try:
         # Get argument

@@ -487,4 +487,10 @@ def wrap(text_input:str,text_to_wrap:str) -> str:
     '''
     return f"{text_to_wrap}{text_input}{text_to_wrap}"
 
+def remove_other(stringinput:str) -> str:
+    clean_string = ""
+    for char in stringinput:
+        if char in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.']:
+            clean_string += char
+    return clean_string
 

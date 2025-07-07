@@ -1,5 +1,6 @@
-list_of_values = [ 1,2,3]
+from common.common import format_time_colons
+a = ["10000","50","7302"]
+for c,i in enumerate(a):
+    a[c] = format_time_colons(i)
 
-for toadd,v in enumerate(list_of_values):
-    list_of_values(toadd) += toadd
-print(list_of_values)
+print(a)
