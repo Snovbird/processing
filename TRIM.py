@@ -1,6 +1,6 @@
 import os
 import subprocess
-from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder
+from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,error
 import sys
 from addtopss import addtopss
 
@@ -67,6 +67,7 @@ def trim_frames(input_path, start_time, end_time,count,output_times=False,folder
         return None
 
 def trim_video_timestamps_accelerated(input_path, start_time, end_time, count=1, output_times=False,foldername=None):
+    print(f"trim_video_timestamps_accelerated(input_path={input_path}, start_time={start_time}, end_time={end_time}, count=1=, output_times={output_times},foldername={foldername})")
     startforname = start_time.replace(":", "")
     endforname = end_time.replace(":", "")
     file_name = os.path.splitext(os.path.basename(input_path))[0]
@@ -141,21 +142,21 @@ def main():
                     break
 
     except Exception as e:
+        
         startpath = ''
-        user_profile = os.environ['USERPROFILE']
-        downloads_folder = os.path.join(user_profile, 'Downloads')
+        # user_profile = os.environ['USERPROFILE']
+        # downloads_folder = os.path.join(user_profile, 'Downloads')
 
-        with open(os.path.join(downloads_folder, f"error.txt"),'a') as f:
-            f.write(str(e) + '\n')
-            f.write('-'*35 + '\n')
-            print(str(e))
+        # with open(os.path.join(downloads_folder, f"error.txt"),'a') as f:
+        #     f.write(str(e) + '\n')
+        #     f.write('-'*35 + '\n')
+        #     print(str(e))
     file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
     if not file_paths:
         print("No file selected. Exiting...")
         return
     
     start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")).split(".")
-    print(start_times,"-"*500)
     if start_times is None:
         print("Exiting... since start_times is None")
         return
@@ -173,6 +174,7 @@ def main():
     print(handling_end)
     if handling_end == "Automatic":
         end_times = addtopss(start_times,HHMMSS_or_frames=unitoption)
+        print(end_times)
     elif handling_end == "FULL STRING":
         end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
     
@@ -189,10 +191,10 @@ def main():
     else:
         output_answer = False
 
-    if len(start_times) > 1 and len(file_paths) == 1:  # folder needed if multiple trims for one file
+    if len(start_times) > 1 and len(file_paths) == 1 or len(file_paths) > 1:  # folder needed if multiple trims for one file
         foldername = makefolder(file_paths[0],foldername="trimmed-")
-    elif len(file_paths) > 1:
-        foldername = makefolder(file_paths[0],foldername="trimmed-")
+    # elif len(file_paths) > 1:
+    #     foldername = makefolder(file_paths[0],foldername="trimmed-")
     else:
         foldername = None
     all_processing_complete = False
@@ -223,6 +225,8 @@ def main():
         os.startfile(foldername)
     elif all_processing_complete and output_path:
         os.startfile(os.path.dirname(output_path))
+    else:
+        error("processing failed")
 
 if __name__ == "__main__":
     main()

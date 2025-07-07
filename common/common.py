@@ -430,7 +430,6 @@ def dropdown(choices: list[str],title='') -> str:
     # Return the selected item after the window is closed
     return selected_item[0]
 
-<<<<<<< HEAD
 def hhmmss_to_seconds(time_str:str) -> int:
     """Convert HHMMSS string to total seconds"""
     # Ensure the string is 6 characters long (pad with leading zeros if needed)
@@ -462,12 +461,10 @@ def seconds_to_hhmmss(seconds:int) -> str:
     hhmmss_string = f"{hours:02d}{minutes:02d}{remaining_seconds:02d}".zfill(6)
 
     return hhmmss_string
-=======
+
+
 def wrap(text_input:str,text_to_wrap:str) -> str:
     '''
     Append a given "text_to_wrap" string to another "text_input" string
     '''
     return f"{text_to_wrap}{text_input}{text_to_wrap}"
-
-
->>>>>>> 62e9dfd193587bb6add174e6eb1b5b91e3f7d162

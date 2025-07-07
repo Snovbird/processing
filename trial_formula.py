@@ -1,7 +1,7 @@
 import pyperclip
 from common.common import askstring,askint,custom_dialog,findval,assignval
 
-def trial_formula(plus_or_minus:str|None = None)
+def trial_formula(plus_or_minus:str|None = None):
     a = askint(msg="Enter Start start time:",title="Start time")
     d = [a]
     e = 1
@@ -33,7 +33,7 @@ def trial_formula(plus_or_minus:str|None = None)
     if plus_or_minus == "DS+":
         Cycle = "DS+.DS-.DS+.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS+".split(".")
 
-    elif plus_or_minus == "DS-" # "DS-":
+    elif plus_or_minus == "DS-": # "DS-":
         Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS-.DS-.DS+".split(".")# Cycle = askstring(msg="Enter Period-Separated DS values: ",title="DS Order").split(".")
     if not Cycle:
         pass
