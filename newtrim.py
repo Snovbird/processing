@@ -99,12 +99,12 @@ def main():
     assignval("batch_size",batch_size)
     
     start_times_list = group_from_end(start_times, batch_size)
-    print("start_times_list = ",start_times_list)
+    print(f"{start_times_list=}",)
     end_times = list(
         map(format_time_colons,end_times)
     )
     end_times_list = group_from_end(end_times, batch_size)
-    print("end_times_list = ",end_times_list)
+    print(f"{end_times_list=}")
 
     if len(start_times) > 1 and len(file_paths) == 1 or len(file_paths) > 1:  # folder needed if multiple trims for one file
         output_folder = makefolder(file_paths[0],foldername="trimmed-")
@@ -123,7 +123,7 @@ def main():
                 return
         all_processing_complete = clear_gpu_memory() # -> True
     else:
-        error(f"Must enter same # of start times as end times.\nStart times = {start_times}\nEnd times = {end_times}")
+        error(f"Must enter same # of start times as end times.\{start_times=}\nEnd times = {end_times=}")
     
     # Only open the directory once all processing is complete and multiple files were selected
     if all_processing_complete and output_folder:
