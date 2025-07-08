@@ -1,10 +1,10 @@
 import os
 
 # Get the absolute path to the directory containing this file (common.py)
-_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+COMMON_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Define the path to data.json, assuming it's in the same directory as this script.
 # This makes file access independent of where the script is run from.
-JSON_PATH = os.path.join(_CURRENT_DIR, 'data.json')
+JSON_PATH = os.path.join(COMMON_CURRENT_DIR, 'data.json')
 
 # no need to import modules present in __init__ (will be run first) # NOT SURE ABOUT THAT ACTUALLY
 # answer = CustomDialog(None, title="", message="", option1="", option2="")
@@ -222,7 +222,9 @@ def askint(msg="Enter an integer:",title="Integer Input",fill='')  -> int:
             return result
         except ValueError:
             wx.MessageBox("Invalid input. Please enter a valid integer.", "Error", wx.ICON_ERROR)
-    dlg.Destroy()  # Clean up the dialog
+            dlg.Destroy()
+            return askint(msg=msg,title=title,fill=fill)
+      # Clean up the dialog
     return None
 
 def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
@@ -268,9 +270,6 @@ def makefolder(file_path, foldername='',count=1) -> str:
     return resized_folder_path
 
 def get_duration(video_path) :
-    import os
-    import cv2
-    import datetime
     """
     Get the duration of a video file
     
@@ -280,6 +279,10 @@ def get_duration(video_path) :
     Returns:
         A tuple containing (seconds, formatted_time)
     """
+    import os
+    import cv2
+    import datetime
+
     # Check if file exists
     if not os.path.isfile(video_path):
         print(f"Error: File '{video_path}' does not exist")

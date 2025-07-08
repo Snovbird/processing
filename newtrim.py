@@ -7,6 +7,17 @@ import os, sys
 
 
 def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  output_folder: str,count:int = 1,) -> bool:
+    """
+    Args:
+        input_path: formatted with forward slashes (/) or double backslashes (\\\\\\\\\)
+        start_times: list of timestamps marking the start of a clip
+        end_times: list of timestamps marking the end of a clip
+        output_folder: path (C:\\\\\\\\\) where the trimmed clips will be kept
+
+    ## Process:
+        For a given length of start_times, this amount of clips will be produced in one process.
+    """
+
     base_name = os.path.splitext(os.path.basename(input_path))[0]
 
     cmd = [
@@ -17,7 +28,7 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
         "-i", input_path,
     ]
     for i, starttime in enumerate(start_times):
-        output_title = f"{base_name}_{count:03d}.mp4"
+        output_title = f"{base_name}_{count+1:03d}.mp4"
         output_path = os.path.join(output_folder, output_title)
         
         cmd.extend([
@@ -85,6 +96,7 @@ def main():
     )
 
     batch_size:int = askint(msg="How many clips at once?",title="Batch size",fill=findval("batch_size"))
+    assignval("batch_size",batch_size)
     
     start_times_list = group_from_end(start_times, batch_size)
     print("start_times_list = ",start_times_list)
