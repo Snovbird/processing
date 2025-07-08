@@ -1,52 +1,12 @@
 from pathlib import Path
-from common.common import select_video,format_time_colons,remove_other,makefolder,clear_gpu_memory,error,askstring,custom_dialog
+from common.common import select_video,format_time_colons,remove_other,makefolder,clear_gpu_memory,error,askstring,custom_dialog,group_from_end,findval,assignval,askint
 from addtopss import addtopss
 import subprocess
 import os, sys
 
-def get_unique_filename(base_path, format_template="{stem}_{counter:03d}{suffix}"): # no idea what any of this does
-    """
-    Advanced version with customizable counter format
-    
-    Args:
-        base_path: Original file path
-        format_template: Template for new name. Available variables:
-                        {stem}, {suffix}, {counter}, {parent}
-    """
-    
-    path = Path(base_path)
-    
-    if not path.exists():
-        return str(path)
-    
-    stem = path.stem
-    suffix = path.suffix
-    parent = path.parent
-    
-    counter = 1
-    while True:
-        new_name = format_template.format(
-            stem=stem,
-            suffix=suffix,
-            counter=counter,
-            parent=parent
-        )
-        new_path = parent / new_name
-        if not new_path.exists():
-            return str(new_path)
-        counter += 1
 
-def batch_trim(input_path:str, start_times:list[str], end_times:list[str],output_path:str) -> bool:
-    """
-    Create multiple clips with automatic naming to avoid overwrites
-    """
-    if ":" not in start_times[0]:
-        error("Improper start_times formatting")
-        return
-    if ":" not in end_times[0]:
-        error("Improper end_times formatting")
-        return
-    
+
+def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  output_folder: str,count:int = 1,) -> bool:
     base_name = os.path.splitext(os.path.basename(input_path))[0]
 
     cmd = [
@@ -56,30 +16,29 @@ def batch_trim(input_path:str, start_times:list[str], end_times:list[str],output
         "-c:v", "h264_cuvid",
         "-i", input_path,
     ]
-    
     for i, starttime in enumerate(start_times):
-        # Generate unique filename for each clip
-        output_path = f"{base_name}_{i+1:03d}.mp4"
-        unique_output = get_unique_filename(output_path)
+        output_title = f"{base_name}_{count:03d}.mp4"
+        output_path = os.path.join(output_folder, output_title)
         
         cmd.extend([
             "-ss", starttime,
             "-to", end_times[i],
             "-c:v", "h264_nvenc",
-            "-preset", "p1", 
+            "-preset", "p1",
+            "-gpu", "0",  # Specify GPU index
             "-an",
-            unique_output
+            "-y",
+            output_path
         ])
-    
-    cmd.append("-y")
-    subprocess.run(cmd,check=True)
-
+        count += 1
+    print(cmd)
+    subprocess.run(cmd, check=True)
     return True
     
 def main():
     try:
         # Get argument
-        startpath = sys.argv[1]
+        startpath:str = sys.argv[1]
         
         # If the path doesn't exist as-is, try to construct a proper path
         if not os.path.isdir(startpath):
@@ -97,7 +56,7 @@ def main():
 
     except Exception as e:
         
-        startpath = ''
+        startpath:str = ''
  
     file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
     if not file_paths:
@@ -124,9 +83,17 @@ def main():
     start_times = list(
         map(format_time_colons,start_times)
     )
+
+    batch_size:int = askint(msg="How many clips at once?",title="Batch size",fill=findval("batch_size"))
+    
+    start_times_list = group_from_end(start_times, batch_size)
+    print("start_times_list = ",start_times_list)
     end_times = list(
         map(format_time_colons,end_times)
     )
+    end_times_list = group_from_end(end_times, batch_size)
+    print("end_times_list = ",end_times_list)
+
     if len(start_times) > 1 and len(file_paths) == 1 or len(file_paths) > 1:  # folder needed if multiple trims for one file
         output_folder = makefolder(file_paths[0],foldername="trimmed-")
     else: # same folder
@@ -135,12 +102,16 @@ def main():
     
     if len(end_times) == len(start_times):
         for vid in file_paths:
-            complete = batch_trim(vid,start_times,end_times,output_folder)
-            if not complete:
+            for count, start_list in enumerate(start_times_list):
+                complete = batch_trim(vid,start_list,end_times_list[count],output_folder,count=count*7)
+            if complete:
+                clear_gpu_memory()
+            else:
                 error(f"Error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(start_times)}\n\noutput:{output_folder}")
+                return
         all_processing_complete = clear_gpu_memory() # -> True
     else:
-        print("ERROR", f"Must enter same # of start times as end times.\nStart times = {start_times}\nEnd times = {end_times}")
+        error(f"Must enter same # of start times as end times.\nStart times = {start_times}\nEnd times = {end_times}")
     
     # Only open the directory once all processing is complete and multiple files were selected
     if all_processing_complete and output_folder:

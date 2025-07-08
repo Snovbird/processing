@@ -1,7 +1,7 @@
 
 from common.common import askstring,askint,custom_dialog,findval,assignval
 
-def trial_formula(plus_or_minus:str|None = None):
+def trial_formula(plus_or_minus_first:str|None = None):
     start_time = askint(msg="Enter Start start time:",title="Start time")
     list_of_timestamps = [start_time]
     e = 1
@@ -26,29 +26,30 @@ def trial_formula(plus_or_minus:str|None = None):
         elif session_number % 2 != 0: # "DS-":
             Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS-.DS-.DS+".split(".")
 
-    if plus_or_minus is None:
-        plus_or_minus = custom_dialog(msg="Which is first cue?",title="First trial",op1="DS+",op2="DS-")
-        if not plus_or_minus:
+    if plus_or_minus_first is None:
+        plus_or_minus_first = custom_dialog(msg="Which is first cue?",title="First trial",op1="DS+",op2="DS-")
+        print("plus or minus = ",plus_or_minus_first)
+        if not plus_or_minus_first:
             return
-    if plus_or_minus == "DS+":
+    if plus_or_minus_first == "DS+":
         Cycle = "DS+.DS-.DS+.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS+".split(".")
-
-    elif plus_or_minus == "DS-": # "DS-":
-        Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS-.DS-.DS+".split(".")# Cycle = askstring(msg="Enter Period-Separated DS values: ",title="DS Order").split(".")
+    elif plus_or_minus_first == "DS-": # "DS-":
+        Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS-".split(".")# Cycle = askstring(msg="Enter Period-Separated DS values: ",title="DS Order").split(".")
     if not Cycle:
         pass
     print(len([i for i in Cycle if i == "DS+"]),"DS+ len")
     print(len([i for i in Cycle if i == "DS-"]),"DS- len")
     dspluslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS+"]
-    dsminuslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS-"]
+    # dsminuslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS-"]
 
-    if plus_or_minus == "DS+":
+    extract_which = "DS+" # Timestamps for which of the two cue lights (plus or minus) will be copied
 
+    if extract_which == "DS+":
+        print("dsplus")
         return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dspluslist)]) # if number % 2 == 0 # Used for predictable trials
-
-    elif plus_or_minus == "DS-":
-        
-        return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dsminuslist)]) # if number % 2 != 0
+    elif extract_which == "DS-":
+        print("dsminus")
+        # return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dsminuslist)]) # if number % 2 != 0
 
 def main():
     import pyperclip

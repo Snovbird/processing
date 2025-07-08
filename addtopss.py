@@ -5,7 +5,7 @@ from common.common import askstring, askint, custom_dialog,hhmmss_to_seconds,sec
 def addtopss(time_input:list[str]|str,toadd:int|None = None,HHMMSS_or_frames:str = None) -> list[str] : # add a given value to each period-separated value
     
     if not toadd:
-        toadd = askint(title="integer", msg="to add:")
+        toadd = askint(title="Enter integer", msg="Number of SECONDS to add:")
     if not toadd:
         return
 
@@ -22,14 +22,11 @@ def addtopss(time_input:list[str]|str,toadd:int|None = None,HHMMSS_or_frames:str
             return
         for c, value in enumerate(time_input):
             time_input[c] += toadd
-            print(list_of_values)
             # Join with periods
-            print(f"Before formatright: {list_of_values}") # all integers
             tocopy = [str(i) for i in list_of_values]
         return tocopy
     
     # **************************************            HHMMSS          **************************************
-
     elif HHMMSS_or_frames == "HHMMSS":
 
         # Handling weird/missing inputs: can accept period-separated strings; preferable input = list[str]
@@ -43,14 +40,11 @@ def addtopss(time_input:list[str]|str,toadd:int|None = None,HHMMSS_or_frames:str
 
         for c, value in enumerate(list_of_values):
             list_of_values[c] += toadd
-            print(list_of_values)
             # Join with periods
-            print(f"Before formatright: {list_of_values}") # all integers
             # tocopy = [str(i) for i in list_of_values]
 
         
         formatted = [seconds_to_hhmmss(number) for number in list_of_values.copy()]
-        print(f"After formatright: {formatted}")
 
         return formatted
 

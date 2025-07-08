@@ -1,14 +1,27 @@
 ﻿#SingleInstance, force
 place := "FF"
 
-::++::00020.00340.00810.01320.01640.02110.02620.02940.03410.03920.04240.04710.05220.05540.10010
-return
-::--::
+!+T::
+; eck if the active window is File Explorer
+    WinGetClass, activeClass, A
+    if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
+        MsgBox, This hotkey only works in File Explorer
+        return
+    }
+
+    ; Use the Explorer COM object to get the actual path
+    for window in ComObjCreate("Shell.Application").Windows {
+        try {
+            if (window.HWND == WinExist("A")) {
+                fullPath := window.Document.Folder.Self.Path
+                Run, % "py -3.10 ""C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\newtrim.py"" """ fullPath """"
+                return
+            }
+        }
+    }
+    MsgBox, Could not retrieve folder path
 return
 
-!+T::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\dump\vid_trim.py"
-return
 ^+A::
 run, "C:\Users\samahalabo\Desktop\.LabGym"
 return

@@ -494,3 +494,21 @@ def remove_other(stringinput:str) -> str:
             clean_string += char
     return clean_string
 
+def group_from_end(data: list, chunk_size: int) -> list[list[str]]:
+    """
+    Groups a list into sublists of a given size, starting from the end.
+    The first sublist may be smaller if the total number of items is not
+    a multiple of chunk_size.
+
+    Example:
+    group_from_end(list(range(16)), 7)
+    >> [[0, 1], [2, 3, 4, 5, 6, 7, 8], [9, 10, 11, 12, 13, 14, 15]]
+    """
+    if not data:
+        return []
+    
+    # Reverse the list to group from the "start" (which is the original end)
+    reversed_list = data[::-1]
+    # Create chunks from the reversed list, then reverse the chunks and their contents
+    temp_chunks = [reversed_list[i:i + chunk_size] for i in range(0, len(reversed_list), chunk_size)]
+    return [chunk[::-1] for chunk in temp_chunks[::-1]]
