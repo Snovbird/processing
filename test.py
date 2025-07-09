@@ -5,10 +5,10 @@
 
 # print(len(string.split(".")))
 
-from common.common import group_from_end
+from common.common import findval,askint
 
+fill = findval("batch_size")
+print(fill)
+batch_size:int = askint(msg="How many clips at once?",title="Batch size",fill=7)
+print(batch_size)
 
-start_times = [i for i in range(16)]
-print(start_times)
-start_times_list = group_from_end(start_times, 7)
-print(start_times_list)

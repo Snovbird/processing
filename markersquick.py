@@ -64,6 +64,8 @@ def main():
         print("No video file selected. Exiting...")
         return
     thedate = askstring(msg= "Enter the date formatted as MM-DD:", title="Enter Date",fill=findval("last_used_date"))
+    assignval("last_used_date",thedate)
+
     # AL_position = custom_dialog(title="Active lever position", msg="Is the active lever near the door (FN) or away (FF)", op1="FN", op2="FF")
     
     width = 2048

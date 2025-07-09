@@ -4,18 +4,30 @@ from addtopss import addtopss
 import subprocess
 import os, sys
 
-
+I want to use the maximum dedicated gpu memory which is 12 GB in my batch_trim function. This limit can be exceded by having too many values inside of start_times. Is there a way to use os.path.getsize to prevent memory overflow
 
 def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  output_folder: str,count:int = 1,) -> bool:
-    """
-    Args:
-        input_path: formatted with forward slashes (/) or double backslashes (\\\\\\\\\)
-        start_times: list of timestamps marking the start of a clip
-        end_times: list of timestamps marking the end of a clip
-        output_folder: path (C:\\\\\\\\\) where the trimmed clips will be kept
+    """Trims a video into multiple clips in a single FFmpeg process for efficiency.
 
-    ## Process:
-        For a given length of start_times, this amount of clips will be produced in one process.
+    This function constructs and executes a single FFmpeg command to extract
+    multiple segments from a video file. This is significantly faster than
+    calling FFmpeg repeatedly in a loop, as the input video is only read
+    and decoded once. It leverages NVIDIA's CUDA for hardware acceleration.
+
+    Args:
+        input_path (str): Path to the input video file.
+        start_times (list[str]): A list of start timestamps for the clips,
+            formatted as "HH:MM:SS".
+        end_times (list[str]): A list of end timestamps for the clips,
+            formatted as "HH:MM:SS". Must be the same length as start_times.
+        output_folder (str): The directory where the output video clips
+            will be saved.
+        count (int, optional): The starting number for the output file naming
+            sequence (e.g., `basename_001.mp4`). Defaults to 1.
+
+    Returns:
+        bool: True if the FFmpeg command executes successfully. Raises a
+              `subprocess.CalledProcessError` on failure.
     """
 
     base_name = os.path.splitext(os.path.basename(input_path))[0]
@@ -28,7 +40,7 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
         "-i", input_path,
     ]
     for i, starttime in enumerate(start_times):
-        output_title = f"{base_name}_{count+1:03d}.mp4"
+        output_title = f"{base_name}_{count:03d}.mp4"
         output_path = os.path.join(output_folder, output_title)
         
         cmd.extend([
@@ -114,8 +126,10 @@ def main():
     
     if len(end_times) == len(start_times):
         for vid in file_paths:
+            new_count = 1
             for count, start_list in enumerate(start_times_list):
-                complete = batch_trim(vid,start_list,end_times_list[count],output_folder,count=count*7)
+                complete = batch_trim(vid,start_list,end_times_list[count],output_folder,count=new_count)
+                new_count += len(start_list)
             if complete:
                 clear_gpu_memory()
             else:

@@ -5,7 +5,8 @@ place := "FF"
 ; eck if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, This hotkey only works in File Explorer
+        MsgBox, No startpath since not in File Explorer
+        Run, py "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\newtrim.py"
         return
     }
 
@@ -29,7 +30,25 @@ return
 run, "C:\Users\samahalabo\Videos"
 return
 !p::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\extractpng.py"
+; check if the active window is File Explorer
+    WinGetClass, activeClass, A
+    if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
+        MsgBox, No startpath since not in File Explorer
+        Run, py "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\extractpng.py"
+        return
+    }
+
+    ; Use the Explorer COM object to get the actual path
+    for window in ComObjCreate("Shell.Application").Windows {
+        try {
+            if (window.HWND == WinExist("A")) {
+                fullPath := window.Document.Folder.Self.Path
+                Run, % "py -3.10 ""C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\extractpng.py"" """ fullPath """"
+                return
+            }
+        }
+    }
+    MsgBox, Could not retrieve folder path
 return
 ^!+l::
     Run "C:\Users\%Username%\AppData\Local\Programs\Microsoft VS Code\Code.exe" "%A_ScriptDir%\labgym.ahk"
@@ -48,7 +67,8 @@ return
 ; eck if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, This hotkey only works in File Explorer
+        MsgBox, No startpath since not in File Explorer
+        Run, py "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\concatenate.py"
         return
     }
 
@@ -76,7 +96,8 @@ return
 ; eck if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, This hotkey only works in File Explorer
+        MsgBox, No startpath since not in File Explorer
+        Run, py "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\TRIM.py"
         return
     }
 

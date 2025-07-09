@@ -32,11 +32,15 @@ def trial_formula(plus_or_minus_first:str|None = None):
         if not plus_or_minus_first:
             return
     if plus_or_minus_first == "DS+":
-        Cycle = "DS+.DS-.DS+.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS+".split(".")
+        Cycle = "DS+.DS-.DS+.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS+"
     elif plus_or_minus_first == "DS-": # "DS-":
-        Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS-".split(".")# Cycle = askstring(msg="Enter Period-Separated DS values: ",title="DS Order").split(".")
+        Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS-"# Cycle = askstring(msg="Enter Period-Separated DS values: ",title="DS Order").split(".")
     if not Cycle:
         pass
+
+    Cycle = askstring(msg="Is this the right order:",title="Verification",fill=Cycle).split(".")
+    if not Cycle:
+        return
     print(len([i for i in Cycle if i == "DS+"]),"DS+ len")
     print(len([i for i in Cycle if i == "DS-"]),"DS- len")
     dspluslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS+"]

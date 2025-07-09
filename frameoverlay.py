@@ -1,7 +1,7 @@
 import os
 import subprocess
 import platform
-from common.common import clear_gpu_memory,select_video,makefolder,custom_dialog,windowpath
+from common.common import clear_gpu_memory,select_video,makefolder,custom_dialog,windowpath,select_anyfile
 
 def overlay_FRAMES(input_path,folder_path = None):
     """
@@ -53,10 +53,12 @@ def overlay_FRAMES(input_path,folder_path = None):
         return None
 
 def main():
+    startpath:str = windowpath()
+
     # Ask the user to select a video file
-    file_paths = select_video(
+    file_paths = select_anyfile(
         title="Select one Video File",
-        path=windowpath()
+        path=startpath
     )
     if not file_paths:
         print("No file selected. Exiting...")
