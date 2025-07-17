@@ -1,12 +1,19 @@
 ﻿#SingleInstance, force
 place := "FF"
 
+; The Haystack is A_ScriptDir, the Needle is "\dump".
+; Since we want to remove it, the ReplaceText is an empty string "".
+pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
+
+; Now, pythonScriptsDir will hold "c:\Users\%Username%\Desktop\.LabGym\misc\pythonfiles"
+
+
 !+T::
-; eck if the active window is File Explorer
+; Check if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, No startpath since not in File Explorer
-        Run, py "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\newtrim.py"
+        MsgBox, 48, Info, Not in File Explorer. Running script without a start path.
+        Run, py "%pythonScriptsDir%\newtrim.py" 
         return
     }
 
@@ -15,26 +22,28 @@ place := "FF"
         try {
             if (window.HWND == WinExist("A")) {
                 fullPath := window.Document.Folder.Self.Path
-                Run, % "py -3.10 ""C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\newtrim.py"" """ fullPath """"
+                command := "py -3.10 """ pythonScriptsDir "\newtrim.py"" """ fullPath """"
+                ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
+                Run, % command
                 return
             }
         }
     }
-    MsgBox, Could not retrieve folder path
+    MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
 
 ^+A::
-run, "C:\Users\samahalabo\Desktop\.LabGym"
+run, "C:\Users\%Username%\Desktop\.LabGym"
 return
 ^+z::
-run, "C:\Users\samahalabo\Videos"
+run, "C:\Users\%Username%\Videos"
 return
 !p::
-; check if the active window is File Explorer
+; Check if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, No startpath since not in File Explorer
-        Run, py "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\extractpng.py"
+        MsgBox, 48, Info, Not in File Explorer. Running script without a start path.
+        Run, py "%pythonScriptsDir%\extractpng.py" 
         return
     }
 
@@ -43,32 +52,35 @@ return
         try {
             if (window.HWND == WinExist("A")) {
                 fullPath := window.Document.Folder.Self.Path
-                Run, % "py -3.10 ""C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\extractpng.py"" """ fullPath """"
+                command := "py -3.10 """ pythonScriptsDir "\extractpng.py"" """ fullPath """"
+                ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
+                Run, % command
                 return
             }
         }
     }
-    MsgBox, Could not retrieve folder path
+    MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
+
 ^!+l::
     Run "C:\Users\%Username%\AppData\Local\Programs\Microsoft VS Code\Code.exe" "%A_ScriptDir%\labgym.ahk"
 return
 !+F::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\trial_formula.py"
+run, pyw "%pythonScriptsDir%\trial_formula.py"
 return
 !r::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\resize.py"
+run, pyw "%pythonScriptsDir%\resize.py"
 return
 
 !+R::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\filenamereplaceappend.py"
+run, pyw "%pythonScriptsDir%\filenamereplaceappend.py"
 return
 !+C::
-; eck if the active window is File Explorer
+; Check if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, No startpath since not in File Explorer
-        Run, py "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\concatenate.py"
+        MsgBox, 48, Info, Not in File Explorer. Running script without a start path.
+        Run, py "%pythonScriptsDir%\concatenate.py" 
         return
     }
 
@@ -77,27 +89,29 @@ return
         try {
             if (window.HWND == WinExist("A")) {
                 fullPath := window.Document.Folder.Self.Path
-                Run, % "py -3.10 ""C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\concatenate.py"" """ fullPath """"
+                command := "py -3.10 """ pythonScriptsDir "\concatenate.py"" """ fullPath """"
+                ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
+                Run, % command
                 return
             }
         }
     }
-    MsgBox, Could not retrieve folder path
+    MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
 
 !n::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\replacefilenames.py"
+run, pyw "%pythonScriptsDir%\replacefilenames.py"
 return
 !m::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markersquick.py"
+run, pyw "%pythonScriptsDir%\markersquick.py"
 return
 
 !T::
-; eck if the active window is File Explorer
+; Check if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, No startpath since not in File Explorer
-        Run, py "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\TRIM.py"
+        MsgBox, 48, Info, Not in File Explorer. Running script without a start path.
+        Run, py "%pythonScriptsDir%\trim.py" 
         return
     }
 
@@ -106,25 +120,26 @@ return
         try {
             if (window.HWND == WinExist("A")) {
                 fullPath := window.Document.Folder.Self.Path
-                Run, % "py -3.10 ""C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\TRIM.py"" """ fullPath """"
+                command := "py -3.10 """ pythonScriptsDir "\trim.py"" """ fullPath """"
+                ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
+                Run, % command
                 return
             }
         }
     }
-    MsgBox, Could not retrieve folder path
+    MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
-
 
 ^!+A::
     Run "C:\Users\%Username%\AppData\Local\Programs\Microsoft VS Code\Code.exe" "%A_ScriptDir%\labgym.ahk"
 return
 
 !g::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\convGIF.py"
+run, pyw "%pythonScriptsDir%\convGIF.py"
 return
 
 !+M::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\markers.py"
+run, pyw "%pythonScriptsDir%\markers.py"
 return
 
 #a::
@@ -133,34 +148,34 @@ return
 
 #IfWinActive, ahk_exe vlc.exe
 ; Initialize variables
-actionQueue := 0
+; actionQueue := 0
 
-r::
-    actionQueue += 3  ; Add 15 actions to the queue
+; r::
+;     actionQueue += 3  ; Add 15 actions to the queue
     
-    ; Start the queue processor if it's not already running
-    if !IsProcessorRunning {
-        SetTimer, ProcessQueue, 50  ; Run every 50ms
-        IsProcessorRunning := true
-    }
-    return
+;     ; Start the queue processor if it's not already running
+;     if !IsProcessorRunning {
+;         SetTimer, ProcessQueue, 50  ; Run every 50ms
+;         IsProcessorRunning := true
+;     }
+;     return
 
-ProcessQueue:
-    if (actionQueue <= 0) {
-        SetTimer, ProcessQueue, Off  ; Stop the timer when queue is empty
-        actionQueue := 0
-        IsProcessorRunning := false
-        return
-    }
+; ProcessQueue:
+;     if (actionQueue <= 0) {
+;         SetTimer, ProcessQueue, Off  ; Stop the timer when queue is empty
+;         actionQueue := 0
+;         IsProcessorRunning := false
+;         return
+;     }
     
-    ; Your action here
-    Send, e
-    actionQueue -= 1
-    return
+;     ; Your action here
+;     Send, e
+;     actionQueue -= 1
+;     return
 
-; Initialize a global variable to track if the processor is running
-IsProcessorRunning := false
-#If, 
+; ; Initialize a global variable to track if the processor is running
+; IsProcessorRunning := false
+; #If, 
 
 ^!+r::
 SplashTextOn,,, rebooting...
@@ -170,11 +185,11 @@ run,"%A_ScriptDir%\labgym.ahk"
 return
 
 !f::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\frameoverlay.py"
+run, pyw "%pythonScriptsDir%\frameoverlay.py"
 return
 
 !a::
-run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\addtopss.py"
+run, pyw "%pythonScriptsDir%\addtopss.py"
 return
 
 #IfWinActive, ahk_exe Photoshop.exe
@@ -230,6 +245,9 @@ return
 #If, 
 #IfWinActive, ahk_exe explorer.exe
 !c::
-Run, pyw "C:\Users\samahalabo\Desktop\.LabGym\z_misc_DONOTTOUCH\pythonfiles\cagename.py"
+Run, pyw "%pythonScriptsDir%\cagename.py"
+return
+^!+c::
+Run, "%A_ScriptDir%\collection.ahk"
 return
 #If

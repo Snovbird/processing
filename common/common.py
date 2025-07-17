@@ -255,18 +255,15 @@ def makefolder(file_path, foldername='',count=1) -> str:
     # Create full path to new folder
     resized_folder_path = os.path.join(folder_path, resized_folder_name)
     # Check if folder exists and print debug info
-    print(f"Checking if folder exists: {resized_folder_path}")
-    print(f"Folder exists: {os.path.exists(resized_folder_path)}")
+    # print(f"Checking if folder exists: {resized_folder_path}")
+    # print(f"Folder exists: {os.path.exists(resized_folder_path)}")
     
     # Create the folder if it doesn't exist
     if os.path.exists(resized_folder_path):
-        # messagebox.showerror("ERROR", f"DELETE the folder {resized_folder_name}")
-        # os.startfile(os.path.dirname(resized_folder_path))
-        # return None
         return makefolder(file_path,foldername,count+1)
     else:
         os.makedirs(resized_folder_path)
-        print(f"Created folder: {resized_folder_path}")
+        # print(f"Created folder: {resized_folder_path}")
     return resized_folder_path
 
 def get_duration(video_path) :

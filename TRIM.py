@@ -100,34 +100,25 @@ def trim_timestamps(input_path, start_time, end_time, count=1, output_times=Fals
         return None
     
 def main():
-    try:
-        # Get argument
-        startpath = sys.argv[1]
-        
-        # If the path doesn't exist as-is, try to construct a proper path
-        if not os.path.isdir(startpath):
-            # Try to match with common Windows folders
+    startpath = ''
+    # Check if a command-line argument was provided (e.g., from the AHK script)
+    if len(sys.argv) > 1:
+        path_arg = sys.argv[1]
+        # Check if the argument is a valid directory path
+        if os.path.isdir(path_arg):
+            startpath = path_arg
+        else:
+            # If not a full path, try to construct one from common locations
             possible_paths = [
-                os.path.join(os.path.expanduser("~"), startpath),  # User folder
-                os.path.join(os.path.expanduser("~"), "Desktop", startpath),    # Desktop
-                os.path.join("C:\\", startpath)  # Root drive
+                os.path.join(os.path.expanduser("~"), path_arg),      # User folder
+                os.path.join(os.path.expanduser("~"), "Desktop", path_arg), # Desktop
+                os.path.join("C:\\", path_arg)                       # Root drive
             ]
-            
             for path in possible_paths:
                 if os.path.isdir(path):
-                    startpath =  path
+                    startpath = path
                     break
-
-    except Exception as e:
-        
-        startpath = ''
-        # user_profile = os.environ['USERPROFILE']
-        # downloads_folder = os.path.join(user_profile, 'Downloads')
-
-        # with open(os.path.join(downloads_folder, f"error.txt"),'a') as f:
-        #     f.write(str(e) + '\n')
-        #     f.write('-'*35 + '\n')
-        #     print(str(e))
+    
     file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
     if not file_paths:
         print("No file selected. Exiting...")

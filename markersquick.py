@@ -2,7 +2,7 @@ import os
 import subprocess
 from common.common import clear_gpu_memory,askstring,select_video,windowpath,find_folder_path,findval,error,assignval,makefolder
 
-def apply_png_overlay(video_path, cage_number,width,thedate,overlays_path, output_path):
+def apply_png_overlay(video_path, output_path,cage_number,width,thedate,overlays_path, ):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
     
@@ -90,7 +90,7 @@ def main():
     overlays_path = find_folder_path("MARKERS_overlays") # Contains images
     for vid in video_paths:
         cage_number = ''.join(char for char in os.path.splitext(os.path.basename(vid))[0][0:2] if char.isdigit()) # [0:2] since only the first 2 numbers interest us
-        output_vid_path = apply_png_overlay(vid, cage_number, width,thedate,overlays_path,output_path=output_path) 
+        output_vid_path = apply_png_overlay(vid, cage_number,output_path=output_path,width=width,thedate=thedate,overlays_path=overlays_path,) 
 
     if output_vid_path:
         print(output_vid_path)

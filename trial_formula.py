@@ -1,7 +1,7 @@
 
 from common.common import askstring,askint,custom_dialog,findval,assignval
 
-def trial_formula(plus_or_minus_first:str|None = None):
+def trial_formula(plus_or_minus_first:str|None = None,extract_which:str|None=None):
     start_time = askint(msg="Enter Start start time:",title="Start time")
     list_of_timestamps = [start_time]
     e = 1
@@ -27,7 +27,7 @@ def trial_formula(plus_or_minus_first:str|None = None):
             Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS-.DS-.DS+".split(".")
 
     if plus_or_minus_first is None:
-        plus_or_minus_first = custom_dialog(msg="Which is first cue?",title="First trial",op1="DS+",op2="DS-")
+        plus_or_minus_first = custom_dialog(msg="Which is FIRST cue?",title="First trial",op1="DS+",op2="DS-")
         print("plus or minus = ",plus_or_minus_first)
         if not plus_or_minus_first:
             return
@@ -37,23 +37,24 @@ def trial_formula(plus_or_minus_first:str|None = None):
         Cycle = "DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS+.DS-.DS-.DS+.DS-.DS+.DS-.DS-.DS+.DS+.DS-.DS+.DS-.DS+.DS-.DS+.DS+.DS-.DS-"# Cycle = askstring(msg="Enter Period-Separated DS values: ",title="DS Order").split(".")
     if not Cycle:
         pass
-
-    Cycle = askstring(msg="Is this the right order:",title="Verification",fill=Cycle).split(".")
+    
+    Cycle = Cycle.split(".")
+    # Cycle = askstring(msg="Is this the right order:",title="Verification",fill=Cycle).split(".")
     if not Cycle:
         return
     print(len([i for i in Cycle if i == "DS+"]),"DS+ len")
     print(len([i for i in Cycle if i == "DS-"]),"DS- len")
     dspluslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS+"]
-    # dsminuslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS-"]
-
-    extract_which = "DS+" # Timestamps for which of the two cue lights (plus or minus) will be copied
+    dsminuslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS-"]
+    if not extract_which:
+        extract_which = custom_dialog(msg="GET VALUES FOR WHICH CUE?\n This will give timestamps either exclusively for the DS+ or for the DS-",title="First trial",op1="DS+",op2="DS-") # = "DS+" # Timestamps for which of the two cue lights (plus or minus) will be copied
 
     if extract_which == "DS+":
         print("dsplus")
         return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dspluslist)]) # if number % 2 == 0 # Used for predictable trials
     elif extract_which == "DS-":
         print("dsminus")
-        # return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dsminuslist)]) # if number % 2 != 0
+        return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(dsminuslist)]) # if number % 2 != 0
 
 def main():
     import pyperclip

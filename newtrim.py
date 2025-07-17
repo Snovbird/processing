@@ -4,7 +4,6 @@ from addtopss import addtopss
 import subprocess
 import os, sys
 
-I want to use the maximum dedicated gpu memory which is 12 GB in my batch_trim function. This limit can be exceded by having too many values inside of start_times. Is there a way to use os.path.getsize to prevent memory overflow
 
 def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  output_folder: str,count:int = 1,) -> bool:
     """Trims a video into multiple clips in a single FFmpeg process for efficiency.
