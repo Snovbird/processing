@@ -1,3 +1,1 @@
-from common.common import clear_gpu_memory,assignval
-
-print(len("00010.00330.00640.01310.01630.02100.02300.02730.03400.03910.04540.04700.05210.05530.10000.10200".split('.')))
+print(__file__)

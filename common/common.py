@@ -207,24 +207,29 @@ def select_anyfile(title="Select files",path='') -> str:
     else:
         return pathDNE()
 
-def askint(msg="Enter an integer:",title="Integer Input",fill='0')  -> int:
+def askint(msg="Enter an integer:", title="Integer Input", fill='0') -> int:
     import wx
-
-    """Open a dialog to ask for an integer, pre-filled with 10."""
+    
+    """Open a dialog to ask for an integer, always on top."""
     app = wx.App(False)  # Create the wx.App instance
-    dlg = wx.TextEntryDialog(None, msg, title, value=str(fill), style=wx.OK | wx.STAY_ON_TOP)
+    dlg = wx.TextEntryDialog(None, msg, title, value=str(fill), style=wx.OK | wx.CANCEL | wx.STAY_ON_TOP)
     dlg.Centre()
-
+    
     if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
         try:
             result = int(dlg.GetValue())  # Convert the input to an integer
-            print(f"Entered integer: {result}")
+            dlg.Destroy()
+            app.Destroy()
             return result
         except ValueError:
-            wx.MessageBox("Invalid input. Please enter a valid integer.", "Error", wx.ICON_ERROR)
             dlg.Destroy()
-            return askint(msg=msg,title=title,fill=fill)
-      # Clean up the dialog
+            wx.MessageBox("Invalid input. Please enter a valid integer.", "Error", 
+                         wx.ICON_ERROR | wx.STAY_ON_TOP)
+            app.Destroy()
+            return askint(msg=msg, title=title, fill=fill)
+    
+    dlg.Destroy()
+    app.Destroy()
     return None
 
 def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
@@ -483,11 +488,14 @@ def format_time_colons(time_input:str) -> str:
 
 def wrap(text_input:str,text_to_wrap:str) -> str:
     '''
-    Append a given "text_to_wrap" string to another "text_input" string
+    To a *`string`*: appends on both sides of a 'text_input' another string 'text_to_wrap'
     '''
     return f"{text_to_wrap}{text_input}{text_to_wrap}"
 
 def remove_other(stringinput:str) -> str:
+    """
+    Cleans a *`string`* to remove characters that arent **PERIODS** or **NUMBERS**
+    """
     clean_string = ""
     for char in stringinput:
         if char in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.']:

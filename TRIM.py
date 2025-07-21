@@ -1,31 +1,31 @@
 import os
 import subprocess
-from common.common import clear_gpu_memory,custom_dialog,select_video,askstring,makefolder,error,format_time_colons,remove_other
+from common.common import custom_dialog,select_video,askstring,makefolder,error,format_time_colons,remove_other
 import sys
 from addtopss import addtopss
 
+from common.common import clear_gpu_memory
 
-
-def trim_frames(input_path: str, start_time:str, end_time:str,count,output_times=False,foldername=None):
+def trim_frames(input_path: str, start_time:str, end_time:str,output_folder:str = None,show_terminal:bool = True):
     if not os.path.isfile(input_path):
         print(f"Error: The file '{input_path}' does not exist.")
         return None
-    
     file_name = os.path.splitext(os.path.basename(input_path))[0]
-    if output_times == True:
-        output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"
-    else:
-        output_name = f"{file_name}.mp4"
-    
-    if foldername:
-        output_path = os.path.join(foldername, output_name)
+    output_name = f"{file_name}.mp4"
+
+    if output_folder:
+        output_path = os.path.join(output_folder, output_name)
     else:
         file_dir = os.path.dirname(input_path)
         output_path = os.path.join(file_dir, output_name)
 
+    if os.path.exists(output_path): # if file already exists, do I want ugly name with timestamps? 
+        output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"
+        if custom_dialog(msg=f"{file_name} already exists in {output_folder}. \nProceed with new name {output_name}?",title="Continue") == 'no':
+            return
+
     try:
         cmd = [
-
             "ffmpeg", 
             "-hwaccel", "cuda",
             "-hwaccel_output_format", "cuda",
@@ -39,8 +39,11 @@ def trim_frames(input_path: str, start_time:str, end_time:str,count,output_times
             "-an",                   
             output_path
         ]
-        print(" ".join(cmd))
-        subprocess.run(cmd, check=True)
+        print(" ".join(cmd),'\n'*4)
+        if show_terminal:
+            subprocess.run(cmd, check=True)
+        else:
+            subprocess.run(cmd, check=True,creationflags=subprocess.CREATE_NO_WINDOW)
         return output_path
     
     except subprocess.CalledProcessError as e:
@@ -50,24 +53,22 @@ def trim_frames(input_path: str, start_time:str, end_time:str,count,output_times
         print("Error: FFmpeg not on PATH.")
         return None
 
-def trim_timestamps(input_path, start_time, end_time, count=1, output_times=False,foldername=None):
-    print(f"trim_video_timestamps_accelerated(input_path={input_path}, start_time={start_time}, end_time={end_time}, count=1=, output_times={output_times},foldername={foldername})")
+def trim_timestamps(input_path:str, start_time:str, end_time,output_folder:str = None, count:int = 1, ):
     startforname = start_time.replace(":", "")
     endforname = end_time.replace(":", "")
     file_name = os.path.splitext(os.path.basename(input_path))[0]
-    if output_times == True:
-        output_name = f"{file_name}-trim({startforname}-{endforname}).mp4"
-    else:
-        output_name = f"{file_name}.mp4"
-        
+    output_name = f"{file_name}.mp4"
     # Create unique output path for each segment
-    if foldername:
+    if output_folder:
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(foldername, output_name)
-        while os.path.exists(output_path):
-            count +=1
-            output_name = f"{file_name}{count}.mp4"
-            output_path = os.path.join(foldername, output_name)
+        output_path = os.path.join(output_folder, output_name)
+    else:
+        output_folder = os.path.dirname(input_path)
+    
+    while os.path.exists(output_path):
+        count +=1
+        output_name = f"{file_name}{count}.mp4"
+        output_path = os.path.join(output_folder, output_name)        
 
     else:
         file_dir = os.path.dirname(input_path)
@@ -100,8 +101,8 @@ def trim_timestamps(input_path, start_time, end_time, count=1, output_times=Fals
         return None
     
 def main():
-    startpath = ''
-    # Check if a command-line argument was provided (e.g., from the AHK script)
+    
+    # Check if a startpath was provided
     if len(sys.argv) > 1:
         path_arg = sys.argv[1]
         # Check if the argument is a valid directory path
@@ -118,50 +119,42 @@ def main():
                 if os.path.isdir(path):
                     startpath = path
                     break
-    
-    file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
-    if not file_paths:
-        print("No file selected. Exiting...")
-        return
-    
-    start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")).split(".")
-    if start_times is None:
-        print("Exiting... since start_times is None")
-        return
-
-    handling_end = custom_dialog(msg="Enter automatically a given number of seconds or FULL end times string?",title="Ending times",op1="Automatic",op2="FULL STRING")
-    if handling_end is None:
-        print("Exiting... since handling_end is None")
-        return
-    
-    unitoption = custom_dialog(msg="HHMSS or Frames?",title="Unit used",op1="HHMMSS",op2="Frames")
-    if unitoption is None:
-        print("Exiting... since unitoption is None")
-        return
-
-    if handling_end == "Automatic":
-        end_times = addtopss(start_times,HHMMSS_or_frames=unitoption)
-        print(end_times)
-    elif handling_end == "FULL STRING":
-        end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
-    
-    if end_times is None:
-        print("Exiting since end_times is None")
-        return
-    
-    
-    if len(start_times) == 1: 
-        # output_answer = custom_dialog("File name","Include timestamps in file name?", op1="Yes", op2="no") 
-        output_answer = True
-        if output_answer == 'Yes':
-            output_answer = True
     else:
-        output_answer = False
+        startpath = ''
+
+    file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
+    if True: # variable verifications - collapse for readability 
+        if not file_paths:
+            print("No file selected. Exiting...")
+            return
+        
+        start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")).split(".")
+        if start_times is None:
+            print("Exiting... since start_times is None")
+            return
+
+        handling_end = custom_dialog(msg="Enter automatically a given number of seconds or FULL end times string?",title="Ending times",op1="Automatic",op2="FULL STRING")
+        if handling_end is None:
+            print("Exiting... since handling_end is None")
+            return
+        
+        unitoption = custom_dialog(msg="HHMSS or Frames?",title="Unit used",op1="HHMMSS",op2="Frames")
+        if unitoption is None:
+            print("Exiting... since unitoption is None")
+            return
+
+        if handling_end == "Automatic":
+            end_times = addtopss(start_times,HHMMSS_or_frames=unitoption)
+            print(end_times)
+        elif handling_end == "FULL STRING":
+            end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
+        
+        if end_times is None:
+            print("Exiting since end_times is None")
+            return
 
     if len(start_times) > 1 and len(file_paths) == 1 or len(file_paths) > 1:  # folder needed if multiple trims for one file
         foldername = makefolder(file_paths[0],foldername="trimmed-")
-    # elif len(file_paths) > 1:
-    #     foldername = makefolder(file_paths[0],foldername="trimmed-")
     else:
         foldername = None
     all_processing_complete = False
@@ -175,10 +168,10 @@ def main():
                 print("Start time:", start_time)
                 print("End time:", end_time)
                 for path in file_paths:
-                    output_path = trim_timestamps(path, start_time, end_time, count,output_times=output_answer, foldername=foldername)    
+                    output_path = trim_timestamps(path, start_time, end_time, output_folder=foldername, count=count)    
             elif unitoption == 'Frames':
                 for path in file_paths:
-                    output_path = trim_frames(path, start_time, end_time, count, output_times=output_answer,foldername=foldername)
+                    output_path = trim_frames(path, start_time, end_time, output_folder=foldername, count=count)
                 
         all_processing_complete = clear_gpu_memory() # -> True
     else:
