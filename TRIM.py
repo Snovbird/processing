@@ -186,7 +186,7 @@ def main():
         print("check 2 true")
         output_folder = os.path.dirname(output_path)
         print("extracted ")
-        os.startfile(new_var)
+        os.startfile(output_folder)
     else:
         error("processing failed")
 
