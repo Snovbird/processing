@@ -64,9 +64,10 @@ def trim_timestamps(input_path:str, start_time:str, end_time,output_folder:str =
         output_path = os.path.join(output_folder, output_name)
     else:
         output_folder = os.path.dirname(input_path)
+        output_path = os.path.join(output_folder, output_name)
     
     while os.path.exists(output_path):
-        count +=1
+        count += 1
         output_name = f"{file_name}{count}.mp4"
         output_path = os.path.join(output_folder, output_name)        
 
@@ -154,9 +155,9 @@ def main():
             return
 
     if len(start_times) > 1 and len(file_paths) == 1 or len(file_paths) > 1:  # folder needed if multiple trims for one file
-        foldername = makefolder(file_paths[0],foldername="trimmed-")
+        output_folder = makefolder(file_paths[0],output_folder="trimmed-")
     else:
-        foldername = None
+        output_folder = None
     all_processing_complete = False
     output_path = None
     if len(end_times) == len(start_times):
@@ -168,22 +169,27 @@ def main():
                 print("Start time:", start_time)
                 print("End time:", end_time)
                 for path in file_paths:
-                    output_path = trim_timestamps(path, start_time, end_time, output_folder=foldername, count=count)    
+                    output_path = trim_timestamps(path, start_time, end_time, output_folder=output_folder, count=count)    
             elif unitoption == 'Frames':
                 for path in file_paths:
-                    output_path = trim_frames(path, start_time, end_time, output_folder=foldername, count=count)
+                    output_path = trim_frames(path, start_time, end_time, output_folder=output_folder, count=count)
                 
         all_processing_complete = clear_gpu_memory() # -> True
     else:
         print("ERROR", f"Must enter same # of start times as end times.\nStart times = {start_times}\nEnd times = {end_times}")
     
     # Only open the directory once all processing is complete and multiple files were selected
-    if all_processing_complete and len(file_paths) > 1 and foldername and output_path:
-        os.startfile(foldername)
+    if all_processing_complete and len(file_paths) > 1 and output_folder and output_path:
+        print("check 1 true")
+        os.startfile(output_folder)
     elif all_processing_complete and output_path:
-        os.startfile(os.path.dirname(output_path))
+        print("check 2 true")
+        output_folder = os.path.dirname(output_path)
+        print("extracted ")
+        os.startfile(new_var)
     else:
         error("processing failed")
 
+    print("DONE")
 if __name__ == "__main__":
     main()
