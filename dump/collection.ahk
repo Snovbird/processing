@@ -12,4 +12,13 @@ $c::
     return
 #IfWinActive
 
+$t::
+    send, ^+{c} ; Send "Copy as path" command
+    send, {Rightq}
+    pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
+    Run, pyw "%pythonScriptsDir%\trim_collect.py"
+    return
+
+
+
 $q::ExitApp

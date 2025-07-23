@@ -378,7 +378,6 @@ def findval(valuename:str) -> str:
         return "CANT FIND JSON"
 
     try:
-        print(jsondata['values'][valuename])
         return jsondata['values'][valuename]
     except KeyError:
         print(f"The value {valuename} doesn't exist in 'values'")
@@ -397,7 +396,6 @@ def assignval(valuename:str,value):
         
         with open(JSON_PATH, 'w') as j:
             json.dump(jsondata,j,indent=4)
-            print(f"Successfully assigned {value} to {valuename}!")
     except Exception as e:
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
@@ -485,7 +483,6 @@ def format_time_colons(time_input:str) -> str:
     else:
         return time_input  # Return the original input if it's not valid
     
-
 def wrap(text_input:str,text_to_wrap:str) -> str:
     '''
     To a *`string`*: appends on both sides of a 'text_input' another string 'text_to_wrap'

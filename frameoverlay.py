@@ -25,14 +25,21 @@ def overlay_FRAMES(input_path,folder_path = None):
         file_dir = os.path.dirname(input_path)
         file_name = os.path.splitext(os.path.basename(input_path))[0]
         output_path = os.path.join(file_dir, f"{file_name}-overlaid.mp4")
+
+    center = True
+    center = False
     
+    if center:
+        drawtext = "drawtext=fontfile=Arial.ttf:text=%{n}:x=(w-tw)/2:y=(h-th)/2:fontcolor=white:box=1:boxcolor=0x00000000:fontsize=h*16/768"
+    else: # top left corner
+        drawtext ="drawtext=fontfile=Arial.ttf:text=%{n}:x=(0)/2:y=(0)/2:fontcolor=white:box=1:boxcolor=0x00000000:fontsize=h*16/768"
     try:
         # FFmpeg command to OVERLAY frames
         cmd = [
             "ffmpeg",
             "-hwaccel", "cuda",  # Use NVIDIA GPU acceleration
             "-i", input_path,  # Input file
-            "-vf", "drawtext=fontfile=Arial.ttf:text=%{n}:x=(w-tw)/2:y=(h-th)/2:fontcolor=white:box=1:boxcolor=0x00000000:fontsize=h*16/768",  # overlay
+            "-vf", drawtext,  # overlay
             "-c:v", "h264_nvenc",  # Use NVIDIA H.264 encoder
             "-y",  # Overwrite output file if it exists
             "-an", #no audio stream output

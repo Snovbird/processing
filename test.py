@@ -1,1 +1,2 @@
-print(__file__)
+if []:
+    print('hi')

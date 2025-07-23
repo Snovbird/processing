@@ -1,17 +1,18 @@
-import pyperclip
-from common.common import askstring,remove_other
-from TRIM import trim_frames
+import pyperclip,os
+from common.common import askstring,remove_other,assignval,findval
 import subprocess
 vid = pyperclip.paste().strip("\"")
-output_folder = r"C:\Users\samahalabo\Desktop\behavior clips"
 
+file,ext = os.path.splitext(os.path.basename(vid))
+os.startfile(os.path.join(
+    os.path.dirname(vid),
+    'overlaid1',
+    f'{file}-overlaid{ext}'
+    ))
+both_times:list = remove_other(askstring("start_times and end_times separated by a period:")).split(".")
+start_times:list = [both_times[i] for i in range(0,len(both_times),2)]
+end_times:list = [both_times[i] for i in range(1,len(both_times),2)]
 
-start_times = remove_other(askstring("start_times and end_times:")).split(".")
-end_times = start_times.copy()[1:]
-
-start_times = start_times.copy()[0:-1]
-
-trim_frames(vid, start_times, end_times, output_folder=output_folder,show_terminal=False)
-
-subprocess.run(["pythonw",__file__])
+assignval("trim_queue",[{"input_path":vid,"start_time":start_times[i],"end_time":end_times[i]} for i in range(len(start_times))])
+# subprocess.run(["pythonw",__file__])
 

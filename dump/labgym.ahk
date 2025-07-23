@@ -72,9 +72,6 @@ return
 run, pyw "%pythonScriptsDir%\resize.py"
 return
 
-!+R::
-run, pyw "%pythonScriptsDir%\filenamereplaceappend.py"
-return
 !+C::
 ; Check if the active window is File Explorer
     WinGetClass, activeClass, A
@@ -146,7 +143,7 @@ return
 run, cmd.exe /k LabGym
 return
 
-#IfWinActive, ahk_exe vlc.exe
+; #IfWinActive, ahk_exe vlc.exe
 ; Initialize variables
 ; actionQueue := 0
 
@@ -184,7 +181,7 @@ SplashTextOff
 run,"%A_ScriptDir%\labgym.ahk"
 return
 
-!f::
+$!f::
 run, pyw "%pythonScriptsDir%\frameoverlay.py"
 return
 
@@ -247,6 +244,10 @@ return
 !c::
 Run, pyw "%pythonScriptsDir%\cagename.py"
 return
+!+R::
+run, pyw "%pythonScriptsDir%\filenamereplaceappend.py"
+return
+
 ^!+c::
 Run, "%A_ScriptDir%\collection.ahk"
 return
