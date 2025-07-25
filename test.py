@@ -1,2 +1,1 @@
-if []:
-    print('hi')
+from common.common import assignval

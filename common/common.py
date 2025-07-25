@@ -212,7 +212,7 @@ def askint(msg="Enter an integer:", title="Integer Input", fill='0') -> int:
     
     """Open a dialog to ask for an integer, always on top."""
     app = wx.App(False)  # Create the wx.App instance
-    dlg = wx.TextEntryDialog(None, msg, title, value=str(fill), style=wx.OK | wx.CANCEL | wx.STAY_ON_TOP)
+    dlg = wx.TextEntryDialog(None, msg, title, value=str(fill), style=wx.OK | wx.CANCEL)
     dlg.Centre()
     
     if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
@@ -224,7 +224,7 @@ def askint(msg="Enter an integer:", title="Integer Input", fill='0') -> int:
         except ValueError:
             dlg.Destroy()
             wx.MessageBox("Invalid input. Please enter a valid integer.", "Error", 
-                         wx.ICON_ERROR | wx.STAY_ON_TOP)
+                         wx.ICON_ERROR)
             app.Destroy()
             return askint(msg=msg, title=title, fill=fill)
     
@@ -236,7 +236,7 @@ def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
     import wx
 
     app = wx.App(False)  # Create the wx.App instance
-    dlg = wx.TextEntryDialog(None, msg, title, value=f'{fill}',style= wx.OK | wx.STAY_ON_TOP)
+    dlg = wx.TextEntryDialog(None, msg, title, value=f'{fill}',style= wx.OK)
     dlg.Centre()
     if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
         result = dlg.GetValue()  # Get the entered string
@@ -271,7 +271,7 @@ def makefolder(file_path, foldername='',count=1) -> str:
         # print(f"Created folder: {resized_folder_path}")
     return resized_folder_path
 
-def get_duration(video_path) :
+def get_duration(video_path:str) -> tuple[float,int,str]:
     """
     Get the duration of a video file
     
@@ -313,19 +313,19 @@ def get_duration(video_path) :
     
     return frames, seconds, HHMMSS
 
-def msgbox(msg:str,title=''):
+def msgbox(msg:str,title=' '):
     import wx
 
     app = wx.App(False)  # Create the wx.App instance
 
-    wx.MessageBox(msg, title, wx.OK | wx.ICON_INFORMATION | wx.STAY_ON_TOP)
+    wx.MessageBox(msg, title, wx.OK | wx.ICON_INFORMATION)
 
 def error(msg:str):
     import wx
 
     app = wx.App(False)  # Create the wx.App instance
 
-    wx.MessageBox(f"Error: {msg}", "Error", wx.OK | wx.ICON_ERROR | wx.STAY_ON_TOP)
+    wx.MessageBox(f"Error: {msg}", "Error", wx.OK | wx.ICON_ERROR)
 
 def find_folder_path(foldername:str) -> str:
     import os
@@ -363,29 +363,49 @@ def find_folder_path(foldername:str) -> str:
             return longfind()
     except KeyError:
         return longfind()
+    except KeyError:
+        return longfind()
     
-def findval(valuename:str) -> str:
+def findval(valuename:str):
     import json
 
     # First, read the JSON data
     try:
         with open(JSON_PATH, 'r') as j:
             jsondata = json.load(j)
-    except FileNotFoundError:
-        # Create default structure if file doesn't exist
-        jsondata = {"folder_dirs": {},"values":{}}
-        print("No folder with the given name")
-        return "CANT FIND JSON"
+    except (FileNotFoundError, json.JSONDecodeError):
+        # If file doesn't exist or is empty/invalid, there's no value to find.
+        return 
 
-    try:
-        return jsondata['values'][valuename]
-    except KeyError:
-        print(f"The value {valuename} doesn't exist in 'values'")
-        return "DOES NOT EXIST"
-        # from common.common import askstring
-        # jsondata['values'][valuename] = askstring(msg="Provide the value for this key:")
-        # with open("common/data.json", 'w') as j:
-        #     json.dump(jsondata,j)
+    if not isinstance(jsondata, dict):
+        return None
+
+    # Use .get() for safer access. Return None if 'values' or valuename doesn't exist.
+    return jsondata.get('values', {}).get(valuename, "DOES NOT EXIST")
+    # return jsondata.get('values', {}).get(valuename, None)
+
+# def findval(valuename:str) -> str:
+#     import json
+
+#     # First, read the JSON data
+#     try:
+#         with open(JSON_PATH, 'r') as j:
+#             jsondata = json.load(j)
+#     except FileNotFoundError:
+#         # Create default structure if file doesn't exist
+#         jsondata = {"folder_dirs": {},"values":{}}
+#         print("No folder with the given name")
+#         return "CANT FIND JSON"
+
+#     try:
+#         return jsondata['values'][valuename]
+#     except KeyError:
+#         print(f"The value {valuename} doesn't exist in 'values'")
+#         return "DOES NOT EXIST"
+#         # from common.common import askstring
+#         # jsondata['values'][valuename] = askstring(msg="Provide the value for this key:")
+#         # with open("common/data.json", 'w') as j:
+#         #     json.dump(jsondata,j)
 
 def assignval(valuename:str,value):
     import json
