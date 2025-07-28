@@ -55,7 +55,7 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
         count += 1
     print(cmd)
     subprocess.run(cmd, check=True)
-    return True
+    return output_path
     
 def main():
     try:
@@ -79,31 +79,35 @@ def main():
     except Exception as e:
         
         startpath:str = ''
- 
-    file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
-    if not file_paths:
-        print("No file selected. Exiting...")
-        return
-    start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")).split(".")
-    if start_times is None:
-        print("Exiting... since start_times is None")
-        return
-    handling_end_times = custom_dialog(msg="Enter automatically a given number of seconds or FULL end times string?",title="Ending times",op1="Automatic",op2="FULL STRING")
-    if handling_end_times is None:
-        print("Exiting... since handling_end_times is None")
-        return
-
-    if handling_end_times == "Automatic":
-        end_times = addtopss(start_times,HHMMSS_or_frames="HHMMSS")
-        print(end_times)
-    elif handling_end_times == "FULL STRING":
-        end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
-    if end_times is None:
-        print("Exiting since end_times is None")
-        return
     
+
+    # COLLAPSE FOR VISIBILITY
+    if True:
+        file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
+        if not file_paths:
+            print("No file selected. Exiting...")
+            return
+        start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")).split(".")
+        if start_times is None:
+            print("Exiting... since start_times is None")
+            return
+        handling_end_times = custom_dialog(msg="Enter automatically a given number of seconds or FULL end times string?",title="Ending times",op1="Automatic",op2="FULL STRING")
+        if handling_end_times is None:
+            print("Exiting... since handling_end_times is None")
+            return
+
+        if handling_end_times == "Automatic":
+            end_times = addtopss(start_times,HHMMSS_or_frames="HHMMSS")
+            print(end_times)
+        elif handling_end_times == "FULL STRING":
+            end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
+        if end_times is None:
+            print("Exiting since end_times is None")
+            return
+    
+
     start_times = list(
-        map(format_time_colons,start_times)
+        map(format_time_colons,start_times) # format as HH:MM:SS
     )
 
     batch_size:int = askint(msg="How many clips at once?",title="Batch size",fill=findval("batch_size"))
@@ -111,19 +115,23 @@ def main():
     
     start_times_list = group_from_end(start_times, batch_size)
     print(f"{start_times_list=}",)
+
+
     end_times = list(
-        map(format_time_colons,end_times)
+        map(format_time_colons,end_times) # format as HH:MM:SS
     )
     end_times_list = group_from_end(end_times, batch_size)
     print(f"{end_times_list=}")
 
+
     if len(start_times) > 1 and len(file_paths) == 1 or len(file_paths) > 1:  # folder needed if multiple trims for one file
         output_folder = makefolder(file_paths[0],foldername="trimmed-")
-    else: # same folder
+    else: # same folder if only one single trim output
         output_folder = os.path.dirname(file_paths[0])
     all_processing_complete = False
+    complete = None
     
-    if len(end_times) == len(start_times):
+    if len(end_times) == len(start_times): # making sure no timestamps are missing in start/end inputs
         for vid in file_paths:
             new_count = 1
             for count, start_list in enumerate(start_times_list):

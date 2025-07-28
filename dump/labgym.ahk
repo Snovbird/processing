@@ -97,7 +97,7 @@ return
 return
 
 !n::
-run, pyw "%pythonScriptsDir%\replacefilenames.py"
+run, pyw "%pythonScriptsDir%\rename_files.py"
 return
 !m::
 run, pyw "%pythonScriptsDir%\markersquick.py"

@@ -10,7 +10,7 @@ while True:
         pyperclip.copy(f"""path = {first_item["input_path"]}\nstart_time = {first_item["start_time"]}\nend_time = {first_item["end_time"]}""")
         assignval("trim_queue",queue)
 
-        trim_frames(first_item["input_path"],first_item["start_time"],first_item["end_time"],find_folder_path("behavior clips"),show_terminal=False)
+        trim_frames(first_item["input_path"],first_item["start_time"],int(first_item["end_time"])+1,find_folder_path("behavior clips"),show_terminal=False)
         clear_gpu_memory()
         
         # 1. Get the current 'trim_done' data.

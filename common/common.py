@@ -1,5 +1,5 @@
 import os
-
+import wx
 # Get the absolute path to the directory containing this file (common.py)
 COMMON_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Define the path to data.json, assuming it's in the same directory as this script.
@@ -15,7 +15,7 @@ def windowpath() -> str:
     return str(win32gui.GetWindowText(window)).replace(' - File Explorer','').replace("\\\\","/")
 
 def custom_dialog(msg="",title='',op1="yes",op2="No",dimensions:tuple|int = (300, 150)) -> str:
-    import wx
+    
 
     class custom_dialog(wx.Dialog):
         def __init__(self, parent, title, message, option1="Proceed", option2="Skip"):
@@ -79,7 +79,7 @@ def custom_dialog(msg="",title='',op1="yes",op2="No",dimensions:tuple|int = (300
 
 def select_folder(title="Choose a directory",path='') -> str:
     """Show folder selection dialog and return selected path"""
-    import wx
+    
     app = wx.App(False)
 
     def pathDNE():
@@ -115,7 +115,7 @@ def clear_gpu_memory() -> bool:
         return False
     
 def select_video(title="Select videos",path='') -> str:
-    import wx
+    
     app = wx.App(False)
 
     def pathDNE():
@@ -166,7 +166,7 @@ def select_video(title="Select videos",path='') -> str:
         return pathDNE()
 
 def select_anyfile(title="Select files",path='') -> str:
-    import wx
+    
     app = wx.App(False)
     wildcard = "Any files (*.*)|*.*"
     def pathDNE():
@@ -208,7 +208,7 @@ def select_anyfile(title="Select files",path='') -> str:
         return pathDNE()
 
 def askint(msg="Enter an integer:", title="Integer Input", fill='0') -> int:
-    import wx
+    
     
     """Open a dialog to ask for an integer, always on top."""
     app = wx.App(False)  # Create the wx.App instance
@@ -233,7 +233,7 @@ def askint(msg="Enter an integer:", title="Integer Input", fill='0') -> int:
     return None
 
 def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
-    import wx
+    
 
     app = wx.App(False)  # Create the wx.App instance
     dlg = wx.TextEntryDialog(None, msg, title, value=f'{fill}',style= wx.OK)
@@ -314,14 +314,14 @@ def get_duration(video_path:str) -> tuple[float,int,str]:
     return frames, seconds, HHMMSS
 
 def msgbox(msg:str,title=' '):
-    import wx
+    
 
     app = wx.App(False)  # Create the wx.App instance
 
     wx.MessageBox(msg, title, wx.OK | wx.ICON_INFORMATION)
 
 def error(msg:str):
-    import wx
+    
 
     app = wx.App(False)  # Create the wx.App instance
 
@@ -421,7 +421,7 @@ def assignval(valuename:str,value):
 
 def dropdown(choices: list[str],title='') -> str: 
     """Create a wxPython window with a dropdown menu and return the selected item on Enter."""
-    import wx
+    
     app = wx.App(False)  # Create the wx.App instance
 
     # Create a frame (main window)
@@ -537,3 +537,21 @@ def group_from_end(data: list, chunk_size: int) -> list[list[str]]:
     # Create chunks from the reversed list, then reverse the chunks and their contents
     temp_chunks = [reversed_list[i:i + chunk_size] for i in range(0, len(reversed_list), chunk_size)]
     return [chunk[::-1] for chunk in temp_chunks[::-1]]
+
+def is_dir(path:str) -> bool:
+    try:
+        return os.path.isdir(path)
+    except:
+        return False
+
+def is_file(path:str) -> bool:
+    try:
+        return os.path.isfile(path)
+    except:
+        return False
+    
+def path_exists(path:str) -> bool:
+    try:
+        return os.path.exists(path)
+    except:
+        return False

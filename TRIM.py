@@ -5,7 +5,7 @@ import sys
 from addtopss import addtopss
 from common.common import clear_gpu_memory
 
-def trim_frames(input_path: str, start_time:str, end_time:str,output_folder:str = None,show_terminal:bool = True):
+def trim_frames(input_path: str, start_time:str|int, end_time:str|int,output_folder:str = None,show_terminal:bool = True):
     if not os.path.isfile(input_path):
         print(f"Error: The file '{input_path}' does not exist.")
         return None
@@ -48,7 +48,8 @@ def trim_frames(input_path: str, start_time:str, end_time:str,output_folder:str 
             "-an",                   
             output_path
         ]
-        print(" ".join(cmd),'\n'*4)
+        print(f"start_frame = {start_time}\nend_frame = {end_time}")
+        
         if show_terminal:
             subprocess.run(cmd, check=True)
         else:
@@ -62,7 +63,7 @@ def trim_frames(input_path: str, start_time:str, end_time:str,output_folder:str 
         print("Error: FFmpeg not on PATH.")
         return None
 
-def trim_timestamps(input_path:str, start_time:str, end_time,output_folder:str = None, count:int = 1, ):
+def trim_timestamps(input_path:str, start_time:str|int, end_time:str|int,output_folder:str = None, count:int = 1, ):
     startforname = start_time.replace(":", "")
     endforname = end_time.replace(":", "")
     file_name = os.path.splitext(os.path.basename(input_path))[0]
@@ -92,14 +93,14 @@ def trim_timestamps(input_path:str, start_time:str, end_time,output_folder:str =
             "-hwaccel", "cuda",
             "-hwaccel_output_format", "cuda",
             "-c:v", "h264_cuvid",
-            "-i", input_path,
-            "-ss", start_time,
-            "-to", end_time,
+            "-i", f'{input_path}',
+            "-ss", f'{start_time}',
+            "-to", f'{end_time}',
             "-c:v", "h264_nvenc",
             "-preset", "p1",
             "-y",
             "-an",                   
-            output_path
+            f'{output_path}'
         ]
         print(" ".join(cmd))
         # print(f"START:{start_time:*>40}]\nEND:{end_time:*>40}")
@@ -132,8 +133,9 @@ def main():
     else:
         startpath = ''
 
-    file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
+    
     if True: # variable verifications - collapse for readability 
+        file_paths = select_video(title=f"Select Video(S) to TRIM",path=startpath)
         if not file_paths:
             print("No file selected. Exiting...")
             return
@@ -167,8 +169,11 @@ def main():
         output_folder = makefolder(file_paths[0],output_folder="trimmed-")
     else:
         output_folder = None
+
     all_processing_complete = False
     output_path = None
+
+    
     if len(end_times) == len(start_times):
         for count, start_time in enumerate(start_times):
             end_time = end_times[count]

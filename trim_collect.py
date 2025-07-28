@@ -1,6 +1,5 @@
 import pyperclip,os
 from common.common import askstring,remove_other,assignval,findval,error
-import subprocess
 
 def trim_collect(vid:str,pss_string:str):
 
@@ -34,16 +33,24 @@ def trim_collect(vid:str,pss_string:str):
     # subprocess.run(["pythonw",__file__])
 
 def main():
+    vid = pyperclip.paste().strip("\"")
+
     pss_string:str = remove_other(askstring("start_times and end_times separated by a period:",f"{os.path.basename(vid)}")).strip(".")
     if not pss_string:
         return
-    vid = pyperclip.paste().strip("\"")
-    trim_collect(vid,pss_string)
+    trim_collect(vid,adjust(pss_string))
 
 def add_done_to_queue():
     to_trim = findval("trim_done")
     for vid,pss_string in to_trim.items():
-        trim_collect(vid,pss_string)
+        trim_collect(vid,adjust(pss_string))
+
+def adjust(pss_string:str) -> str:
+    both_times:list = pss_string.split(".")
+    for c, time in enumerate(both_times):
+        if time == both_times[c-1]:
+            both_times[c-1] = f'{int(both_times[c-1])-1}'
+    return ".".join(both_times)
 
 if __name__ == "__main__":
     main()

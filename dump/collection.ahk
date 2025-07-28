@@ -22,6 +22,12 @@ $t::
     send, {Rightq}
     Run, pyw "%pythonScriptsDir%\trim_collect.py"
     return
+$norm::
+    send, ^+{c} ; Send "Copy as path" command
+    ; send, {Enter}
+    send, {Rightq}
+    Run, pyw "%pythonScriptsDir%\sort_name.py"
+    return
 #IfWinActive
 
 $q::ExitApp
