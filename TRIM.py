@@ -20,7 +20,7 @@ def trim_frames(input_path: str, start_time:str, end_time:str,output_folder:str 
 
     if os.path.exists(output_path): # if file already exists, do I want ugly name with timestamps? 
         output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"
-        if show_terminal: # uses the 'show_terminal' parameter to determine whether or not to PROMPT to change the name of the trimmed output (if we show it → prompts, if we don't show → will automatically change the name to include timestamps)
+        if show_terminal: # uses the 'show_terminal' parameter to determine whether or not to PROMPT to change the name of the trimmed output (if we show terminal → prompts, if we don't show → will automatically change the name to include timestamps)
             if custom_dialog(msg=f"{file_name} already exists in {output_folder}. \nProceed with new name {output_name}?",title="Continue") == 'no':
                 return
             

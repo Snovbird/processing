@@ -26,7 +26,9 @@ else:
         destination_path = os.path.join(new_folder, os.path.basename(path_to_move))
         # 3. Check if a file with the same name already exists to prevent overwriting
         if os.path.exists(destination_path):
-            error(f"Skipping: '{os.path.basename(path_to_move)}' already exists in the destination.")
+            # error(f"Skipping: '{os.path.basename(path_to_move)}' already exists in the destination.")
+            new_folder = r"C:\Users\samahalabo\Desktop\collected DS+\collected 2"
+            destination_path = os.path.join(new_folder, os.path.basename(path_to_move))
         else:
             # 4. Use the more robust shutil.move to move the file/folder
             shutil.move(path_to_move, new_folder)

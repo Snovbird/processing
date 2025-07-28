@@ -15,7 +15,6 @@ $c::
     
     Run, pyw "%pythonScriptsDir%\collection.py"
     return
-#IfWinActive
 
 $t::
     send, ^+{c} ; Send "Copy as path" command
@@ -23,5 +22,6 @@ $t::
     send, {Rightq}
     Run, pyw "%pythonScriptsDir%\trim_collect.py"
     return
+#IfWinActive
 
 $q::ExitApp
