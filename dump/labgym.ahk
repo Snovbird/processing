@@ -33,7 +33,7 @@ pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
 return
 
 ^+A::
-run, "C:\Users\%Username%\Desktop\.LabGym"
+run, "C:\Users\%Username%\Desktop"
 return
 ^+z::
 run, "C:\Users\%Username%\Videos"

@@ -11,7 +11,8 @@ def trim_frames(input_path: str, start_time:str|int, end_time:str|int,output_fol
         return None
     file_name = os.path.splitext(os.path.basename(input_path))[0]
     output_name = f"{file_name}.mp4"
-
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder,exist_ok=True)
     if output_folder:
         output_path = os.path.join(output_folder, output_name)
     else:
@@ -48,7 +49,8 @@ def trim_frames(input_path: str, start_time:str|int, end_time:str|int,output_fol
             "-an",                   
             output_path
         ]
-        print(f"start_frame = {start_time}\nend_frame = {end_time}")
+        print(input_path)
+        print(f"FIRST_frame = {start_time}\nLAST_frame = {end_time}")
         
         if show_terminal:
             subprocess.run(cmd, check=True)
@@ -57,15 +59,18 @@ def trim_frames(input_path: str, start_time:str|int, end_time:str|int,output_fol
         return output_path
     
     except subprocess.CalledProcessError as e:
-        print(f"Error during conversion: {e}")
+        error(f"Error during conversion: {e}")
         return None
     except FileNotFoundError:
-        print("Error: FFmpeg not on PATH.")
+        error("Error: FFmpeg not on PATH.")
         return None
 
 def trim_timestamps(input_path:str, start_time:str|int, end_time:str|int,output_folder:str = None, count:int = 1, ):
-    startforname = start_time.replace(":", "")
-    endforname = end_time.replace(":", "")
+    # startforname = start_time.replace(":", "")
+    # endforname = end_time.replace(":", "")
+    if not os.exists(output_folder):
+        os.makedirs(output_folder,exist_ok=True)
+
     file_name = os.path.splitext(os.path.basename(input_path))[0]
     output_name = f"{file_name}.mp4"
     # Create unique output path for each segment

@@ -1,10 +1,11 @@
 import pyperclip,os
-from common.common import askstring,remove_other,assignval,findval,error
+from common.common import askstring,remove_other,assignval,findval,error,is_file
+import subprocess
 
 def trim_collect(vid:str,pss_string:str):
 
     print(vid)
-    if not os.path.isfile(vid): # if is not a path althogether: the error should terminate the script
+    if not is_file(vid): # if is not a path althogether: the error should terminate the script
         return
     # file,ext = os.path.splitext(os.path.basename(vid))
     # os.startfile(os.path.join(
@@ -30,7 +31,7 @@ def trim_collect(vid:str,pss_string:str):
 
     print(start_times,end_times)
     assignval("trim_queue",[{"input_path":vid,"start_time":start_times[i],"end_time":end_times[i]} for i in range(len(start_times))])
-    # subprocess.run(["pythonw",__file__])
+    
 
 def main():
     vid = pyperclip.paste().strip("\"")
@@ -39,6 +40,7 @@ def main():
     if not pss_string:
         return
     trim_collect(vid,adjust(pss_string))
+    subprocess.run(["pythonw",__file__])
 
 def add_done_to_queue():
     to_trim = findval("trim_done")
@@ -54,3 +56,11 @@ def adjust(pss_string:str) -> str:
 
 if __name__ == "__main__":
     main()
+    if False: # add manually
+        
+        path = None 
+
+        pss_string = None
+
+        trim_collect(vid,adjust(pss_string))
+        both_times:list = pss_string.split(".")

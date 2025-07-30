@@ -313,22 +313,21 @@ def get_duration(video_path:str) -> tuple[float,int,str]:
     
     return frames, seconds, HHMMSS
 
-def msgbox(msg:str,title=' '):
+def msgbox(msg:str,title:str=' '):
     
 
     app = wx.App(False)  # Create the wx.App instance
 
     wx.MessageBox(msg, title, wx.OK | wx.ICON_INFORMATION)
 
-def error(msg:str):
+def error(msg:str,title:str="ERROR"):
     
 
     app = wx.App(False)  # Create the wx.App instance
 
-    wx.MessageBox(f"Error: {msg}", "Error", wx.OK | wx.ICON_ERROR)
+    wx.MessageBox(f"Error: {msg}", title, wx.OK | wx.ICON_ERROR)
 
 def find_folder_path(foldername:str) -> str:
-    import os
     import json
 
     # First, read the JSON data
@@ -352,7 +351,7 @@ def find_folder_path(foldername:str) -> str:
                 with open(JSON_PATH, 'w') as j:
                     json.dump(jsondata, j,indent=4)
                 return output_path
-        print("No folder with the given name")
+        error(f"No folder with the name {foldername}")
         return None
 
     try:
@@ -361,8 +360,6 @@ def find_folder_path(foldername:str) -> str:
             return findfolder
         else:
             return longfind()
-    except KeyError:
-        return longfind()
     except KeyError:
         return longfind()
     

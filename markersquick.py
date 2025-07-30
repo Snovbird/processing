@@ -2,7 +2,7 @@ import os
 import subprocess
 from common.common import clear_gpu_memory,askstring,select_video,windowpath,find_folder_path,findval,error,assignval,makefolder
 
-def apply_png_overlay(video_path, output_path,cage_number,width,thedate,overlays_path, ):
+def apply_png_overlay(video_path, output_path,cage_number,width,thedate,overlays_path):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
     
@@ -20,7 +20,7 @@ def apply_png_overlay(video_path, output_path,cage_number,width,thedate,overlays
 
     alldates = findval("dates")[::-1]
     for d in range(alldates.index(thedate),len(alldates)):
-        imagepath = os.path.join(overlays_path, f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
+        imagepath = os.path.join(overlays_path, f"cage{cage_number}_{alldates[d]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
         if os.path.exists(imagepath):
             break
     if not os.path.exists(imagepath):
@@ -86,8 +86,10 @@ def main():
 
     # Find output folder named "2) MARKED videos"
     # output_path = find_folder("2) MARKED videos")
-    output_path = makefolder(video_paths[0],foldername="marked")
-    overlays_path = find_folder_path("MARKERS_overlays") # Contains images
+    
+    output_path = makefolder(video_paths[0],foldername="marked-") # Unless I want to add a suffix like "-marked" to all videos, the output folder is necessary so the output has exact same name as input 
+
+    overlays_path = find_folder_path("2-MARKERS") # Contains image overlays
     for vid in video_paths:
         cage_number = ''.join(char for char in os.path.splitext(os.path.basename(vid))[0][0:2] if char.isdigit()) # [0:2] since only the first 2 numbers interest us
         output_vid_path = apply_png_overlay(vid, cage_number,output_path=output_path,width=width,thedate=thedate,overlays_path=overlays_path,) 
@@ -98,7 +100,8 @@ def main():
         os.startfile(output_path)
     else:
         # Show an error message
-        print("Error", "Failed to apply overlay. Check console for details.")
+        
+        error("Error", "Failed to apply overlay. Check console for details.")
 
 if __name__ == "__main__":
     main()
