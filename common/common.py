@@ -271,7 +271,7 @@ def makefolder(file_path, foldername='',count=1) -> str:
         # print(f"Created folder: {resized_folder_path}")
     return resized_folder_path
 
-def get_duration(video_path:str) -> tuple[float,int,str]:
+def get_duration(video_path: str) -> tuple[float, str] | None:
     """
     Get the duration of a video file
     
@@ -279,7 +279,7 @@ def get_duration(video_path:str) -> tuple[float,int,str]:
         video_path: Path to the video file
         
     Returns:
-        A tuple containing (seconds, formatted_time)
+        A tuple containing (frames,seconds, formatted_time) or None if error
     """
     import os
     import cv2
@@ -287,7 +287,7 @@ def get_duration(video_path:str) -> tuple[float,int,str]:
 
     # Check if file exists
     if not os.path.isfile(video_path):
-        print(f"Error: File '{video_path}' does not exist")
+        print(f"Error finding video duration: File '{video_path}' does not exist")
         return None
         
     # Create video capture object
@@ -303,15 +303,15 @@ def get_duration(video_path:str) -> tuple[float,int,str]:
     fps = video.get(cv2.CAP_PROP_FPS)
     
     # Calculate duration in seconds
-    seconds = round(frames / fps)
+    seconds = frames / fps
     
-    # Format time as HH:MM:SS
-    HHMMSS = str(datetime.timedelta(seconds=seconds)).replace(":","")
+    # Format time as HH:MM:SS (keep the colons!)
+    formatted_time = str(datetime.timedelta(seconds=int(seconds)))
     
     # Release the video object
     video.release()
     
-    return frames, seconds, HHMMSS
+    return frames, seconds, formatted_time
 
 def msgbox(msg:str,title:str=' '):
     

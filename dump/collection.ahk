@@ -12,23 +12,27 @@ run, py "%pythonScriptsDir%\trim_loop.py"
 #IfWinActive, ahk_exe explorer.exe
 $c::
     send, ^+{c} ; Send "Copy as path" command
-    send, {Rightq}
+    send, {Right}
     
     Run, pyw "%pythonScriptsDir%\collection.py"
     return
 
 $t::
-vk6B::
+vk6B:: ; Numpad "+"
     send, ^+{c} ; Send "Copy as path" command
     ; send, {Enter}
-    send, {Rightq}
+    send, {Right}
     Run, pyw "%pythonScriptsDir%\trim_collect.py"
     return
 $n::
     send, ^+{c} ; Send "Copy as path" command
-    ; send, {Enter}
-    send, {Rightq}
+    send, {Right}
     Run, pyw "%pythonScriptsDir%\sort_name.py"
+    return
+
+$m::
+    send, ^+{c} ; Send "Copy as path" command
+    Run, pyw "%pythonScriptsDir%\remove_one.pyw"
     return
 #IfWinActive
 
