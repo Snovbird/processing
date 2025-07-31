@@ -552,3 +552,21 @@ def path_exists(path:str) -> bool:
         return os.path.exists(path)
     except:
         return False
+def get_date_mmdd() -> str:
+    """
+    Returns: 
+    Today's date formatted as MM-DD.
+    ## Also:
+    Assigns this date to the value "dates" in the json 
+    """
+    from datetime import date
+    # Get today's date
+    today = date.today()
+    # Format the date as MM-DD
+    formatted_date = today.strftime("%m-%d")
+    alldates = findval("dates")
+    if alldates[-1] != formatted_date:
+        alldates.append(formatted_date)
+        assignval("dates",alldates)
+        print(f"Added date: {formatted_date}")
+    return formatted_date

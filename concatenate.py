@@ -171,7 +171,6 @@ def main():
         clear_gpu_memory()
         os.startfile(output_folder)
 
-
 def group_files_by_digits(file_paths: list[str]) -> list[list[str]]:
     from collections import defaultdict
 

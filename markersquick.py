@@ -2,7 +2,7 @@ import os
 import subprocess
 from common.common import clear_gpu_memory,askstring,select_video,windowpath,find_folder_path,findval,error,assignval,makefolder
 
-def apply_png_overlay(video_path, output_path,cage_number,width,thedate,overlays_path):
+def apply_png_overlay(video_path, output_path,cage_number,thedate,overlays_path):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
     
@@ -23,9 +23,10 @@ def apply_png_overlay(video_path, output_path,cage_number,width,thedate,overlays
         imagepath = os.path.join(overlays_path, f"cage{cage_number}_{alldates[d]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
         if os.path.exists(imagepath):
             break
-    if not os.path.exists(imagepath):
-        error(msg=f"There is no overlay images for cage {cage_number}\nPath {imagepath} DNE")
-        return
+    else: # redundant but idc
+        if not os.path.exists(imagepath):
+            error(msg=f"There is no overlay images for cage {cage_number}.\nPath '{imagepath}' does not exist")
+            return "No Overlay Error"
 
     try:
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
@@ -92,7 +93,7 @@ def main():
     overlays_path = find_folder_path("2-MARKERS") # Contains image overlays
     for vid in video_paths:
         cage_number = ''.join(char for char in os.path.splitext(os.path.basename(vid))[0][0:2] if char.isdigit()) # [0:2] since only the first 2 numbers interest us
-        output_vid_path = apply_png_overlay(vid, cage_number,output_path=output_path,width=width,thedate=thedate,overlays_path=overlays_path,) 
+        output_vid_path = apply_png_overlay(vid, cage_number,output_path=output_path,thedate=thedate,overlays_path=overlays_path,) 
 
     if output_vid_path:
         print(output_vid_path)
