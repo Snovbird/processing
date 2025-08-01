@@ -12,7 +12,7 @@ pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
         MsgBox, , TIP, TIP: Focus your recordings folder before pressing 'Ctrl + Shift + P' to start navigating there
-        Run, py "%pythonScriptsDir%\newtrim.py" 
+        Run, py "%pythonScriptsDir%\process_recordings.py" 
         return
     }
 
@@ -21,7 +21,7 @@ pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
         try {
             if (window.HWND == WinExist("A")) {
                 fullPath := window.Document.Folder.Self.Path
-                command := "py -3.10 """ pythonScriptsDir "\newtrim.py"" """ fullPath """"
+                command := "py -3.10 """ pythonScriptsDir "\process_recordings.py"" """ fullPath """"
                 ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
                 Run, % command
                 return
