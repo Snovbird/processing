@@ -571,7 +571,7 @@ def path_exists(path:str) -> bool:
     except:
         return False
 
-def get_date_mmdd() -> str:
+def get_date_yyyymmdd() -> str:
     """
     Returns: 
     Today's date formatted as MM-DD.
@@ -582,7 +582,7 @@ def get_date_mmdd() -> str:
     # Get today's date
     today = date.today()
     # Format the date as MM-DD
-    formatted_date = today.strftime("%m-%d")
+    formatted_date = today.strftime("%Y%m%d")
     alldates = findval("dates")
     if alldates[-1] != formatted_date:
         alldates.append(formatted_date)

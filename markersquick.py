@@ -1,8 +1,8 @@
 import os
 import subprocess
-from common.common import clear_gpu_memory,askstring,select_video,windowpath,find_folder_path,findval,error,assignval,makefolder
+from common.common import clear_gpu_memory,askstring,select_video,windowpath,find_folder_path,findval,error,assignval,makefolder,get_date_yyyymmdd
 import sys
-def apply_png_overlay(video_path, output_path,cage_number,thedate,overlays_path):
+def apply_png_overlay(video_path, output_path,cage_number,thedate,overlays_path,room="12cage"):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
     
@@ -16,11 +16,11 @@ def apply_png_overlay(video_path, output_path,cage_number,thedate,overlays_path)
     # Get the directory and filename of the input video
     video_name = os.path.splitext(os.path.basename(video_path))[0]
 
-    output_path = os.path.join(output_path, f"{video_name}_{cage_number}.mp4")
+    output_path = os.path.join(output_path, f"{video_name}-{cage_number}.mp4")
 
     alldates = findval("dates")[::-1]
     for d in range(alldates.index(thedate),len(alldates)):
-        imagepath = os.path.join(overlays_path, f"cage{cage_number}_{alldates[d]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
+        imagepath = os.path.join(overlays_path, room,f"cage{cage_number}{alldates[d]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
         if os.path.exists(imagepath):
             break
     else: # redundant but idc
@@ -89,24 +89,13 @@ def main():
         return
     thedate = askstring(msg= "Enter the date formatted as MM-DD:", title="Enter Date",fill=findval("last_used_date"))
     assignval("last_used_date",thedate)
-
+    get_date_yyyymmdd() # to assign to json
     # AL_position = custom_dialog(title="Active lever position", msg="Is the active lever near the door (FN) or away (FF)", op1="FN", op2="FF")
     
     width = 2048
     if not width or int(width) not in [2048, 1024, 1280, 480]:
         return
-    
 
-    from datetime import date
-    # Get today's date
-    today = date.today()
-    # Format the date as MM-DD
-    formatted_date = today.strftime("%m-%d")
-    alldates = findval("dates")
-    if alldates[-1] != formatted_date:
-        alldates.append(formatted_date)
-        assignval("dates",alldates)
-        print(f"Added date: {formatted_date}")
 
     # Find output folder named "2) MARKED videos"
     # output_path = find_folder("2) MARKED videos")

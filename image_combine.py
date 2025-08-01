@@ -62,6 +62,4 @@ def combine_and_resize_images(photo1_path, photo2_path, output_folder=None,targe
     finally:
         if 'app' in locals() and app:
             app.Destroy()
-
-
-combine_and_resize_images(r"C:\Users\samahalabo\Desktop\.SNAPSHOTS (images)\1_7-trim(207-500)_1-04.png",r"C:\Users\samahalabo\Desktop\.SNAPSHOTS (images)\cage6_06-16.png",r"C:\Users\samahalabo\Desktop\.SNAPSHOTS (images)")
+        return full_output_path

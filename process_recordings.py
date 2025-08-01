@@ -1,9 +1,11 @@
 from cagename import name_cages
 from concatenate import combine_videos_with_cuda,group_files_by_digits
-from common.common import select_folder,clear_gpu_memory,get_date_mmdd,find_folder_path,findval,assignval,makefolder,error
+from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,makefolder,error,get_date_yyyymmdd,askstring
 from markersquick import apply_png_overlay
 import os, shutil
 from frameoverlay import overlay_FRAMES
+from photo_carrousel import photo_carrousel
+from image_combine import combine_and_resize_images
 
 def process_folder():
     """Process a videos of video recordings by naming cages and concatenating videos."""
@@ -29,9 +31,33 @@ def process_folder():
     grouped_files = [[os.path.join(folder_path, file) for file in group] for group in grouped_files]
     
     # Create output videos for concatenated videos
-    from common.common import makefolder
     concatenation_output_folder = makefolder(grouped_files[0][0], foldername='(not ready) processed videos')
+
+    # ask and initiate variables to find what markers to use
+    overlays_path = find_folder_path("2-MARKERS")
+    room_options = os.listdir(overlays_path)
+    room = askstring(msg=f"Enter the name of the room. Options are:\n{'\n'.join(room_options)}")
+    date_today = get_date_yyyymmdd()
+    alldates = findval("dates")[::-1] # invert it to loop from latest dates first then to earlier ones
+    ready_combined_imgs_paths = []
+
+    combined_output_folder = makefolder(concatenation_output_folder, foldername='combined')
+    for group in grouped_files:
+        cage_number = ''.join(char for char in os.path.splitext(os.path.basename(group[0]))[0][0:2] if char.isdigit()) # extract digits from first two filename characters to get cage number
+        for d in range(alldates.index(date_today),len(alldates)):
+            imagepath = os.path.join(overlays_path, room,f"cage{cage_number}{alldates[d]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
+            if os.path.exists(imagepath):
+                break
+        else:
+            error(msg=f"There is no overlay images for cage {cage_number}.\nPath '{imagepath}' does not exist")
+        combined_outputpath = combine_and_resize_images(group[0],imagepath,output_folder=combined_output_folder)
+        ready_combined_imgs_paths.append(combined_outputpath)
     
+    for img in ready_combined_imgs_paths:
+        if photo_carrousel(img) == 'STOP markers NOT aligned':
+            return emergency_overlay_maker()
+
+
     # Concatenate each group of videos
     for group in grouped_files:
         combine_videos_with_cuda(group, concatenation_output_folder)
@@ -39,18 +65,18 @@ def process_folder():
             pass
     did_break = None
 
-
     for count, concatenated_video_path in enumerate([os.path.join(concatenation_output_folder, basename) for basename in sorted(os.listdir(concatenation_output_folder)) if os.path.isfile(os.path.join(concatenation_output_folder, basename))]):
         if count == 0:
             marked_outputs_folder = makefolder(concatenated_video_path, foldername='marked')
         if apply_png_overlay(concatenated_video_path, # if statement is to check whether the transparent overlay images exist; if DNE -> returns string "No overlay png Error"
                           marked_outputs_folder,
                           cage_number=''.join(char for char in os.path.splitext(os.path.basename(concatenated_video_path))[0][0:2] if char.isdigit()),
-                          thedate=get_date_mmdd(),
+                          thedate=get_date_yyyymmdd(),
                           overlays_path=find_folder_path("2-MARKERS")
                           ) == "Error: No overlay png":
-            did_break = True
-            break
+            os.remove(concatenation_output_folder)
+            return emergency_overlay_maker()
+            
         if clear_gpu_memory():
             pass
     else:
@@ -64,73 +90,16 @@ def process_folder():
             
             if clear_gpu_memory():
                 pass
-        new_name = os.path.join(os.path.dirname(frameoverlay_output_folder),"VIDEOS READY FOR ANALYSIS")
         final_output_folder = makefolder(folder_path,foldername="VIDEOS READY FOR ANALYSIS-")    
         for file in [os.path.join(frameoverlay_output_folder, basename) for basename in sorted(os.listdir(frameoverlay_output_folder)) if os.path.isfile(os.path.join(frameoverlay_output_folder, basename))]:
             shutil.move(file,final_output_folder)
         
-        os.remove(concatenation_output_folder)
-    if did_break:
-        emergency_overlay_maker()
         os.remove(concatenation_output_folder)
 
 def emergency_overlay_maker():
     # shutil.copy(photoshop project)
     pass
 
-def photo_carrousel(photo1_path):
-    import wx
-
-    app = wx.App(False)
-    frame = wx.Frame(None, title="Photo Carousel", size=(1024+40, 768+40))
-
-    # Load the base image (photo1)
-    img1 = wx.Image(photo1_path, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
-
-    # Create a memory DC to draw on
-    dc = wx.MemoryDC()
-    dc.SelectObject(img1)  # Select img1 as the base to draw on
-
-    # Deselect the bitmap
-    dc.SelectObject(wx.NullBitmap)
-
-    # Create a static bitmap to display the result
-    wx.StaticBitmap(frame, -1, img1, (0, 0), (img1.GetWidth(), img1.GetHeight()))
-
-    frame.Show()
-    app.MainLoop()    
-    
-    def on_button_click(event):
-        button = event.GetEventObject()
-        print(f"Button '{button.GetLabel()}' clicked!")
-        frame.Close()
-
-    # Create a panel to hold the buttons
-    panel = wx.Panel(frame)
-    
-    # Create a sizer for the panel
-    sizer = wx.BoxSizer(wx.VERTICAL)
-    
-    # Add the image to the sizer
-    sizer.Add(wx.StaticBitmap(panel, -1, img1), 0, wx.ALL | wx.CENTER, 10)
-
-    # Create buttons
-    button1 = wx.Button(panel, label="Button 1")
-    button2 = wx.Button(panel, label="Button 2")
-
-    # Bind buttons to event handler
-    button1.Bind(wx.EVT_BUTTON, on_button_click)
-    button2.Bind(wx.EVT_BUTTON, on_button_click)
-
-    # Add buttons to sizer
-    button_sizer = wx.BoxSizer(wx.HORIZONTAL)
-    button_sizer.Add(button1, 0, wx.ALL, 5)
-    button_sizer.Add(button2, 0, wx.ALL, 5)
-    sizer.Add(button_sizer, 0, wx.CENTER)
-
-    panel.SetSizer(sizer)
-    frame.Show()
-    app.MainLoop()
 
 
 if __name__ == "__main__":
