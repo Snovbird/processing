@@ -17,21 +17,23 @@ def main():
     toreplace = askstring("Enter String to REPLACE", 'Str remover')
     append_string = askstring("Enter string to append to filenames:","String Input")
     if append_string:
-        START_or_END = custom_dialog('Place string at the START or END of the file name?','START or END','START',"END")
+        START_or_END_or_REPLACE = custom_dialog(msg=f"Place string at the START, END of the file name or simply replace '{toreplace}'",
+                                     title='START or END or REPLACE',
+                                     op1="START",op2="END",op3="REPLACE")
 
     if not append_string:
         append_string = ''
-        START_or_END = 'END'
+        START_or_END_or_REPLACE = 'END'
     
     # Step 3: Process files
     try:
-        process_files(source_folder, append_string,toreplace,START_or_END)
+        process_files(source_folder, append_string,toreplace,START_or_END_or_REPLACE)
         msgbox(f"Successfully renamed files!", "Success")
     except Exception as e:
         error(str(e))
 
 
-def process_files(source_folder, append_string,toreplace,START_or_END):
+def process_files(source_folder, append_string,toreplace,START_or_END_or_REPLACE):
     """Create subfolder and copy files with modified names"""
     # Create subfolder path
     subfolder_path = os.path.join(source_folder, append_string)
@@ -53,11 +55,13 @@ def process_files(source_folder, append_string,toreplace,START_or_END):
         
         # Create new filename with appended string
         name, extension = os.path.splitext(filename)
-        if START_or_END == 'START':
+        if START_or_END_or_REPLACE == 'START':
             new_filename = f"{append_string}{name.replace(toreplace,'')}{extension}" # can add a separator if necessary
-        elif START_or_END == 'END':
+        elif START_or_END_or_REPLACE == 'END':
             new_filename = f"{name.replace(toreplace,'')}{append_string}{extension}" # can add a separator if necessary
-
+        elif START_or_END_or_REPLACE == 'REPLACE':
+            new_filename = f"{name.replace(toreplace,append_string)}{extension}"
+            
         destination_file_path = os.path.join(subfolder_path, new_filename)
         
         # Copy file to subfolder with new name

@@ -7,7 +7,7 @@ common/__pycache__/__init__.cpython-312.pyc
 common/__pycache__/common.cpython-312.pyc
 __pycache__/markersquick.cpython-310.pyc
 common/data.json
-
+dump/links
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

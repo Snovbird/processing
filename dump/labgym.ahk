@@ -7,12 +7,11 @@ pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
 
 ; Now, pythonScriptsDir will hold "c:\Users\%Username%\Desktop\.LabGym\misc\pythonfiles"
 
-
-!+T::
+^+P::
 ; Check if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, 48, Info, Not in File Explorer. Running script without a start path.
+        MsgBox, , TIP, TIP: Focus your recordings folder before pressing 'Ctrl + Shift + P' to start navigating there
         Run, py "%pythonScriptsDir%\newtrim.py" 
         return
     }
@@ -29,7 +28,31 @@ pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
             }
         }
     }
-    MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
+    ; MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
+return
+
+!+T::
+; Check if the active window is File Explorer
+    WinGetClass, activeClass, A
+    if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
+        MsgBox, ,TIP, TIP: Focus your recordings folder before pressing 'Ctrl + Shift + P' to start navigating there
+        Run, py "%pythonScriptsDir%\newtrim.py" 
+        return
+    }
+
+    ; Use the Explorer COM object to get the actual path
+    for window in ComObjCreate("Shell.Application").Windows {
+        try {
+            if (window.HWND == WinExist("A")) {
+                fullPath := window.Document.Folder.Self.Path
+                command := "py -3.10 """ pythonScriptsDir "\newtrim.py"" """ fullPath """"
+                ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
+                Run, % command
+                return
+            }
+        }
+    }
+    ; MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
 
 ^+A::
@@ -42,7 +65,7 @@ return
 ; Check if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, 48, Info, Not in File Explorer. Running script without a start path.
+        MsgBox, ,TIP, TIP: Focus your recordings folder before pressing 'Ctrl + Shift + P' to start navigating there
         Run, py "%pythonScriptsDir%\extractpng.py" 
         return
     }
@@ -59,7 +82,7 @@ return
             }
         }
     }
-    MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
+    ; MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
 
 ^!+l::
@@ -68,15 +91,17 @@ return
 !+F::
 run, pyw "%pythonScriptsDir%\trial_formula.py"
 return
-!r::
+$!r::
 run, pyw "%pythonScriptsDir%\resize.py"
 return
-
+$!s::
+run,pyw "%pythonScriptsDir%\sort_generated_pairs_to_folder.py"
+return
 !+C::
 ; Check if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, 48, Info, Not in File Explorer. Running script without a start path.
+        MsgBox, ,TIP, TIP: Focus your recordings folder before pressing 'Ctrl + Shift + P' to start navigating there
         Run, py "%pythonScriptsDir%\concatenate.py" 
         return
     }
@@ -93,21 +118,41 @@ return
             }
         }
     }
-    MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
+    ; MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
 
 !n::
 run, pyw "%pythonScriptsDir%\rename_files.py"
 return
 !m::
-run, pyw "%pythonScriptsDir%\markersquick.py"
+; Check if the active window is File Explorer
+    WinGetClass, activeClass, A
+    if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
+        MsgBox, ,TIP, TIP: Focus your recordings folder before pressing 'Ctrl + Shift + P' to start navigating there
+        Run, py "%pythonScriptsDir%\markersquick.py" 
+        return
+    }
+
+    ; Use the Explorer COM object to get the actual path
+    for window in ComObjCreate("Shell.Application").Windows {
+        try {
+            if (window.HWND == WinExist("A")) {
+                fullPath := window.Document.Folder.Self.Path
+                command := "py -3.10 """ pythonScriptsDir "\markersquick.py"" """ fullPath """"
+                ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
+                Run, % command
+                return
+            }
+        }
+    }
+    ; MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
 
 !T::
 ; Check if the active window is File Explorer
     WinGetClass, activeClass, A
     if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, 48, Info, Not in File Explorer. Running script without a start path.
+        MsgBox, , TIP, TIP: Focus your recordings folder before pressing 'Ctrl + Shift + P' to start navigating there
         Run, py "%pythonScriptsDir%\trim.py" 
         return
     }
@@ -124,7 +169,7 @@ return
             }
         }
     }
-    MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
+    ; MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
 
 ^!+A::

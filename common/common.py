@@ -14,11 +14,11 @@ def windowpath() -> str:
     window = win32gui.GetForegroundWindow()
     return str(win32gui.GetWindowText(window)).replace(' - File Explorer','').replace("\\\\","/")
 
-def custom_dialog(msg="",title='',op1="yes",op2="No",dimensions:tuple|int = (300, 150)) -> str:
+def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple|int = (300, 150)) -> str:
     
 
     class custom_dialog(wx.Dialog):
-        def __init__(self, parent, title, message, option1="Proceed", option2="Skip"):
+        def __init__(self, parent, title, message, option1="Proceed", option2="Skip",option3=None):
             super().__init__(parent, title=title, size=dimensions, style=wx.DEFAULT_DIALOG_STYLE)
             
             # Create a vertical box sizer for layout
@@ -40,7 +40,12 @@ def custom_dialog(msg="",title='',op1="yes",op2="No",dimensions:tuple|int = (300
             self.option2_btn = wx.Button(self, label=option2)
             self.option2_btn.Bind(wx.EVT_BUTTON, self.on_option2)
             hbox.Add(self.option2_btn, 1, wx.ALL | wx.EXPAND, 5)
-            
+            if option3:
+                self.option3_btn = wx.Button(self, label=option3)
+                self.option3_btn.Bind(wx.EVT_BUTTON, self.on_option3)
+                hbox.Add(self.option3_btn, 1, wx.ALL | wx.EXPAND, 5)
+
+
             # Add the button sizer to the main sizer
             vbox.Add(hbox, 0, wx.ALL | wx.EXPAND, 10)
             
@@ -62,12 +67,17 @@ def custom_dialog(msg="",title='',op1="yes",op2="No",dimensions:tuple|int = (300
             """Handle the second button click."""
             self.result = self.option2_btn.GetLabel()  # Store the button label as the result
             self.EndModal(wx.ID_CANCEL)  # Close the dialog with Cancel status
-
+        def on_option3(self, event):
+            """Handle the second button click."""
+            self.result = self.option3_btn.GetLabel()  # Store the button label as the result
+            self.EndModal(wx.ID_CANCEL)  # Close the dialog with Cancel status
         app = wx.App(False)  # Create the wx.App instance
     
     app = wx.App()
     # Create the dialog
-    dialog = custom_dialog(None, title=title, message=msg, option1=op1, option2=op2)
+    if op3:
+        op3 = f"{op3}"
+    dialog = custom_dialog(None, title=title, message=msg, option1=f'{op1}', option2=f'{op2}',option3=op3)
     
     # Show the dialog modally and get the result
     if dialog.ShowModal() == wx.ID_OK:
@@ -245,31 +255,39 @@ def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
     dlg.Destroy()  # Clean up the dialog
     return None
 
-def makefolder(file_path, foldername='',count=1) -> str:
+def makefolder(file_or_folder_path:str, foldername:str='',count:int=1,hide:bool=False) -> str:
     import os
     # Get directory containing the file
-    if os.path.isdir(file_path):
-        folder_path = file_path
+    if os.path.isdir(file_or_folder_path):
+        folder_path = file_or_folder_path
     else:
-        folder_path = os.path.dirname(file_path)
-        # file_name = os.path.splitext(os.path.basename(file_path))[0]    # Get just the filename without extension
+        folder_path = os.path.dirname(file_or_folder_path)
+        # file_name = os.path.splitext(os.path.basename(file_or_folder_path))[0]    # Get filename without extension
     
     # Create folder name
-    resized_folder_name = f"{foldername}{count}"
+    new_folder_name = f"{foldername}{count}"
     
     # Create full path to new folder
-    resized_folder_path = os.path.join(folder_path, resized_folder_name)
+    new_folder_path = os.path.join(folder_path, new_folder_name)
     # Check if folder exists and print debug info
-    # print(f"Checking if folder exists: {resized_folder_path}")
-    # print(f"Folder exists: {os.path.exists(resized_folder_path)}")
+    # print(f"Checking if folder exists: {new_folder_path}")
+    # print(f"Folder exists: {os.path.exists(new_folder_path)}")
     
     # Create the folder if it doesn't exist
-    if os.path.exists(resized_folder_path):
-        return makefolder(file_path,foldername,count+1)
+    if os.path.exists(new_folder_path):
+        return makefolder(file_or_folder_path,foldername,count=count+1)
     else:
-        os.makedirs(resized_folder_path)
-        # print(f"Created folder: {resized_folder_path}")
-    return resized_folder_path
+        os.makedirs(new_folder_path)
+        if hide:
+            import subprocess
+            import sys
+            creationflags = 0
+            if sys.platform == 'win32':
+                creationflags = subprocess.CREATE_NO_WINDOW
+            subprocess.run(['attrib', '+h', new_folder_path], check=True, creationflags=creationflags)
+
+        # print(f"Created folder: {new_folder_path}")
+    return new_folder_path
 
 def get_duration(video_path: str) -> tuple[float, str] | None:
     """
@@ -552,6 +570,7 @@ def path_exists(path:str) -> bool:
         return os.path.exists(path)
     except:
         return False
+
 def get_date_mmdd() -> str:
     """
     Returns: 
@@ -570,3 +589,17 @@ def get_date_mmdd() -> str:
         assignval("dates",alldates)
         print(f"Added date: {formatted_date}")
     return formatted_date
+
+def list_files(dir:str) -> list[str]:
+    return [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))]
+
+def list_folders(dir:str) -> list[str]:
+    return [folder for folder in os.listdir(dir) if os.path.isdir(os.path.join(dir, folder))]
+
+def unhide_folder(dir:str):
+    import sys,subprocess
+    creationflags = 0
+    if sys.platform == 'win32':
+        creationflags = subprocess.CREATE_NO_WINDOW
+                
+    subprocess.run(['attrib', '-h', dir], check=True, creationflags=creationflags)

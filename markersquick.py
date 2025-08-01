@@ -1,7 +1,7 @@
 import os
 import subprocess
 from common.common import clear_gpu_memory,askstring,select_video,windowpath,find_folder_path,findval,error,assignval,makefolder
-
+import sys
 def apply_png_overlay(video_path, output_path,cage_number,thedate,overlays_path):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
@@ -16,7 +16,7 @@ def apply_png_overlay(video_path, output_path,cage_number,thedate,overlays_path)
     # Get the directory and filename of the input video
     video_name = os.path.splitext(os.path.basename(video_path))[0]
 
-    output_path = os.path.join(output_path, f"{video_name}.mp4")
+    output_path = os.path.join(output_path, f"{video_name}_{cage_number}.mp4")
 
     alldates = findval("dates")[::-1]
     for d in range(alldates.index(thedate),len(alldates)):
@@ -26,7 +26,14 @@ def apply_png_overlay(video_path, output_path,cage_number,thedate,overlays_path)
     else: # redundant but idc
         if not os.path.exists(imagepath):
             error(msg=f"There is no overlay images for cage {cage_number}.\nPath '{imagepath}' does not exist")
-            return "No Overlay Error"
+            return "Error: No overlay png"
+    center = True
+    center = False
+    
+    if center:
+        drawtext = "drawtext=fontfile=Arial.ttf:text=%{n}:x=(w-tw)/2:y=(h-th)/2:fontcolor=white:box=1:boxcolor=0x00000000:fontsize=h*16/768"
+    else: # top left corner
+        drawtext ="drawtext=fontfile=Arial.ttf:text=%{n}:x=(0)/2:y=(0)/2:fontcolor=white:box=1:boxcolor=0x00000000:fontsize=h*16/768"
 
     try:
         # FFmpeg command to overlay the PNG on the video using GPU acceleration
@@ -57,8 +64,24 @@ def apply_png_overlay(video_path, output_path,cage_number,thedate,overlays_path)
 
 def main():
     # Initialize tkinter and hide the root window
-    startpath = windowpath()
-
+    if len(sys.argv) > 1:
+        path_arg = sys.argv[1]
+        # Check if the argument is a valid directory path
+        if os.path.isdir(path_arg):
+            startpath = path_arg
+        else:
+            # If not a full path, try to construct one from common locations
+            possible_paths = [
+                os.path.join(os.path.expanduser("~"), path_arg),      # User folder
+                os.path.join(os.path.expanduser("~"), "Desktop", path_arg), # Desktop
+                os.path.join("C:\\", path_arg)                       # Root drive
+            ]
+            for path in possible_paths:
+                if os.path.isdir(path):
+                    startpath = path
+                    break
+    else:
+        startpath = ''
     video_paths = select_video(title="Select videos for MARKERS QUICK",path=startpath)
 
     if not video_paths:
@@ -93,7 +116,7 @@ def main():
     overlays_path = find_folder_path("2-MARKERS") # Contains image overlays
     for vid in video_paths:
         cage_number = ''.join(char for char in os.path.splitext(os.path.basename(vid))[0][0:2] if char.isdigit()) # [0:2] since only the first 2 numbers interest us
-        output_vid_path = apply_png_overlay(vid, cage_number,output_path=output_path,thedate=thedate,overlays_path=overlays_path,) 
+        output_vid_path = apply_png_overlay(vid, output_path=output_path,cage_number=cage_number,thedate=thedate,overlays_path=overlays_path,) 
 
     if output_vid_path:
         print(output_vid_path)

@@ -2,7 +2,7 @@ import subprocess
 import os
 from common.common import clear_gpu_memory,select_video,askstring,makefolder,windowpath,hhmmss_to_seconds
 
-def extractpng(video: str, times: list[int], output_folder: str):
+def extractpng(video: str, times: list[int], output_folder: str) -> tuple[str,...]:
     """
     Extracts frames from a video at specific timestamps using ffmpeg's fast seek.
 
@@ -12,6 +12,7 @@ def extractpng(video: str, times: list[int], output_folder: str):
         output_folder (str): The folder to save the extracted PNG frames.
     """
     video_name = os.path.splitext(os.path.basename(video))[0]
+    outputs = []
     for i, seconds in enumerate(times):
         # Create a unique filename for each frame from each video to avoid overwrites
         output_filename = os.path.join(output_folder, f'{video_name}_{i:03d}.png')
@@ -37,6 +38,8 @@ def extractpng(video: str, times: list[int], output_folder: str):
         except subprocess.CalledProcessError as e:
             print(f"Error extracting frame at {seconds}s from {os.path.basename(video)}")
             print(f"FFmpeg stderr: {e.stderr}")
+        outputs.append(output_filename)
+    return (output for output in outputs)
 
 def main():
     import sys
