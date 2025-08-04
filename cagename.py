@@ -28,7 +28,6 @@ def name_cages(source_folder):
         while os.path.exists(full_renamed_path) and letter_ord_value < 123:
             letter_ord_value += 1
             full_renamed_path = os.path.join(source_folder,f"{cage_number}{chr(letter_ord_value)}_{thedate}{extension}")
-            print(letter_ord_value)
         else:
             os.rename(os.path.join(source_folder,filename),full_renamed_path)
             
