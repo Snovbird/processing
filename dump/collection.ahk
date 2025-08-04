@@ -32,7 +32,7 @@ $n::
 
 $m::
     send, ^+{c} ; Send "Copy as path" command
-    Run, pyw "%pythonScriptsDir%\remove_one.pyw"
+    Run, pyw "%pythonScriptsDir%\remove_one.py"
     return
 #IfWinActive
 

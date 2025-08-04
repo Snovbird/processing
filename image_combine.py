@@ -58,3 +58,7 @@ def combine_and_resize_images(photo1_path, photo2_path, output_folder=None,
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+    
+if __name__ == "__main__":
+    from common.common import select_anyfile,select_folder
+    combine_and_resize_images(select_anyfile()[0],select_anyfile()[0],select_folder())

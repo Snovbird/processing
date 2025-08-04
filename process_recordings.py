@@ -1,6 +1,6 @@
 from cagename import name_cages
 from concatenate import combine_videos_with_cuda,group_files_by_digits
-from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,get_date_yyyymmdd,askstring,dropdown,custom_dialog
+from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,get_date_yyyymmdd,askstring,dropdown,custom_dialog,list_folders
 from markersquick import apply_png_overlay
 import os, shutil
 from frameoverlay import overlay_FRAMES
@@ -48,7 +48,7 @@ def process_folder():
 
         # ask and initiate variables to find what markers to use
         overlays_path = find_folder_path("2-MARKERS")
-        room_options = os.listdir(overlays_path)
+        room_options = list_folders(overlays_path)
         # stroption = '\n'.join(room_options)
         # room = askstring(msg=f"Enter the name of the room. Options are:\n{stroption}")
         room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Enter the name of the room the videos are from")
@@ -62,7 +62,7 @@ def process_folder():
         combined_output_folder = makefolder(concatenation_output_folder, foldername='combined')
         png_outputs = makefolder(combined_output_folder, foldername='png')
         for group in grouped_files:
-            imgpath = extractpng(group[0],times=[1],output_folder=png_outputs)
+            imgpath = extractpng(group[0],times=[1],output_folder=png_outputs)[0]
 
             cage_number = ''.join(char for char in os.path.splitext(os.path.basename(group[0]))[0][0:2] if char.isdigit()) # extract digits from first two filename characters to get cage number
             for d in range(alldates.index(date_today),len(alldates)):
@@ -119,6 +119,7 @@ def process_folder():
 
 def emergency_overlay_maker():
     # shutil.copy(photoshop project)
+    error("No emergency overlay maker")
     pass
 
 
