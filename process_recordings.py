@@ -1,6 +1,6 @@
 from cagename import name_cages
 from concatenate import combine_videos_with_cuda,group_files_by_digits
-from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,makefolder,error,get_date_yyyymmdd,askstring,dropdown,custom_dialog
+from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,get_date_yyyymmdd,askstring,dropdown,custom_dialog
 from markersquick import apply_png_overlay
 import os, shutil
 from frameoverlay import overlay_FRAMES
@@ -22,7 +22,7 @@ def process_folder():
     # Get all video files in the folder
     dates_dict = {}
     for file in [os.path.join(initial_folder, file) for file in os.listdir(initial_folder) if os.path.isfile(os.path.join(initial_folder, file))]:
-        date_to_investigate = file.split("_")[1]
+        date_to_investigate = os.path.splitext(os.path.basename(file))[0].split("_")[1]
         a_date_folder = dates_dict.get(date_to_investigate, None) 
         if not a_date_folder:
             a_date_folder = makefolder(initial_folder,foldername=date_to_investigate)
