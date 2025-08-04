@@ -21,7 +21,7 @@ def process_folder():
         pass
     # Get all video files in the folder
     dates_dict = {}
-    for file in [os.path.join(initial_folder, file)  for file in os.listdir(initial_folder) if os.path.isfile(os.path.join(initial_folder, file))]:
+    for file in [os.path.join(initial_folder, file) for file in os.listdir(initial_folder) if os.path.isfile(os.path.join(initial_folder, file))]:
         date_to_investigate = file.split("_")[1]
         a_date_folder = dates_dict.get(date_to_investigate, None) 
         if not a_date_folder:

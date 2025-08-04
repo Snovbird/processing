@@ -434,13 +434,16 @@ def assignval(valuename:str,value):
     except Exception as e:
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
-def dropdown(choices: list[str],title='') -> str: 
+def dropdown(choices: list[str], title='') -> str: 
     """Create a wxPython window with a dropdown menu and return the selected item on Enter."""
     
     app = wx.App(False)  # Create the wx.App instance
 
     # Create a frame (main window)
     frame = wx.Frame(None, title=title, size=(300, 150))
+    
+    # Center the frame on the screen
+    frame.CenterOnScreen()
     
     # Create a panel to hold the dropdown menu
     panel = wx.Panel(frame)

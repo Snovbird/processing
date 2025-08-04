@@ -1,3 +1,3 @@
-from common.common import assignval,custom_dialog
+from common.common import assignval,dropdown
 
-print([1,2,3] + [5])
+dropdown(["1"])
