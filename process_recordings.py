@@ -7,6 +7,7 @@ from frameoverlay import overlay_FRAMES
 from photo_carrousel import photo_carrousel
 from image_combine import combine_and_resize_images
 from extractpng import extractpng
+
 def process_folder():
     """Process a videos of video recordings by naming cages and concatenating videos."""
     # Select the folder to process

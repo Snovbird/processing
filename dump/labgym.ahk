@@ -36,7 +36,9 @@ return
     }
     ; MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
-
+^!+q::
+    run, "%A_ScriptDir%/move_keys.ahk"
+Return
 ^+A::
 run, "C:\Users\%Username%\Desktop"
 return
