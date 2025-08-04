@@ -1,8 +1,9 @@
 import os
 import re
 import wx
-def rename_folders():
-    for content in os.listdir():
+from common.common import windowpath,find_folder_path,is_dir
+def rename_folders(folder_path=None):
+    for content in os.listdir(folder_path):
         if os.path.isdir(content) and content != ".git":
             if "(" in content:
                 os.rename(content,content.split("(")[0])
@@ -47,13 +48,13 @@ def rename_folders():
 import os
 import wx
 
-def show_content():
+def show_content(folder_path=None):
     app = wx.App(False)
     
     content_count = {}
     
     # Only process directories, skip files
-    for content in os.listdir():
+    for content in os.listdir(folder_path):
         if os.path.isdir(content):  # Check if it's a directory
             try:
                 filecount = len([f for f in os.listdir(content) 
@@ -76,6 +77,15 @@ def show_content():
     
     # Show ONE message box with all the information
     wx.MessageBox(message, "File Counts in each folder", wx.OK | wx.ICON_INFORMATION)
+
+def main():
+    startpath = windowpath()
+    if is_dir(startpath):
+        show_content(startpath)
+    else:
+        path = find_folder_path(startpath)
+        show_content(path)
+
 if __name__ == "__main__":
-    # rename_folders()
-    show_content()
+    #show_content()
+    main()

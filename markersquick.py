@@ -2,7 +2,7 @@ import os
 import subprocess
 from common.common import clear_gpu_memory,askstring,select_video,find_folder_path,findval,error,assignval,makefolder,get_date_yyyymmdd
 import sys
-def apply_png_overlay(video_path, output_path,room="12cage",cage_number=None,date_today=None):
+def apply_png_overlay(video_path, output_path,room="12cage",cage_number=None,date_to_provide=None):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
     
@@ -17,19 +17,19 @@ def apply_png_overlay(video_path, output_path,room="12cage",cage_number=None,dat
     video_name = os.path.splitext(os.path.basename(video_path))[0]
 
     output_path = os.path.join(output_path, f"{video_name}.mp4")
-    if not overlays_path():
-    
+    overlays_path = find_folder_path("2-MARKERS")
+        
     if not cage_number:
         cage_number = ''.join(char for char in video_name[0:2] if char.isdigit()) 
-    if not date_today: # If a date is inside of the video name,but today's date was not provided (date_today = today's date)
-        index_date = video_name.split("_")[1]
-    else: # today's date was provided
-        index_date = date_today
+
+    if not date_to_provide: # If a date is inside of the video name,but today's date was not provided (date_today = today's date)
+        date_to_provide = video_name.split("_")[1]
+    #today's date was provided
+    imgpath = find_imgpath_overlay_date(date_to_provide,room,cage_number)
 
     # no matter what check if image works
-    imgpath = 
-    if not os.path.exists(imagepath):
-        error(msg=f"There is no overlay images for cage {cage_number}.\nPath '{imagepath}' does not exist")
+    if not os.path.exists(imgpath):
+        error(msg=f"There is no overlay images for cage {cage_number}.\nPath '{imgpath}' does not exist")
         return "Error: No overlay png"
 
     try:
@@ -38,7 +38,7 @@ def apply_png_overlay(video_path, output_path,room="12cage",cage_number=None,dat
             "ffmpeg",
             "-hwaccel", "cuda",
             "-i", video_path,
-            "-i", imagepath,
+            "-i", imgpath,
             "-filter_complex", "[0][1]overlay=x=0:y=0",
             "-c:v", "h264_nvenc",
             "-y",  # Overwrite output file if it exists
@@ -113,15 +113,21 @@ def main():
         
         error("Error", "Failed to apply overlay. Check console for details.")
 
-def find_img_date(date_provided,room,cage_number) -> str:
+def find_imgpath_overlay_date(date_provided,room,cage_number) -> str:
     overlays_path = find_folder_path("2-MARKERS")
     alldates = findval("dates")[::-1] # invert it to loop from latest dates first then to earlier ones
     if date_provided not in alldates:
         alldates = findval("dates")[::-1]
-    for date in alldates:
-        imagepath = os.path.join(overlays_path, room,f"cage{cage_number}_{alldates[d]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
-        if os.path.exists(imagepath):
-            break
+        for date in alldates:
+            imgpath = os.path.join(overlays_path, room,f"cage{cage_number}_{date}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
+            if os.path.exists(imgpath):
+                break
+    else:
+        for date_index in range(alldates.index(date_provided),len(alldates)):
+            imgpath = os.path.join(overlays_path, room,f"cage{cage_number}_{alldates[date_index]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
+            if os.path.exists(imgpath):
+                break
+    return imgpath
 
 if __name__ == "__main__":
     main()

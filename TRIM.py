@@ -68,9 +68,9 @@ def trim_frames(input_path: str, start_time:str|int, end_time:str|int,output_fol
 def trim_timestamps(input_path:str, start_time:str|int, end_time:str|int,output_folder:str = None, count:int = 1, ):
     # startforname = start_time.replace(":", "")
     # endforname = end_time.replace(":", "")
-    if not os.exists(output_folder):
-        os.makedirs(output_folder,exist_ok=True)
-
+    if not output_folder:
+        output_folder = os.path.dirname(input_path)
+    
     file_name = os.path.splitext(os.path.basename(input_path))[0]
     output_name = f"{file_name}.mp4"
     # Create unique output path for each segment
