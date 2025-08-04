@@ -44,15 +44,38 @@ def rename_folders():
                 except (OSError, PermissionError) as e:
                     print(f"Error accessing directory '{content}': {e}")
 
-def show_content():
-    content_count = {}
-    for content in os.listdir():
-        filecount = len(os.listdir(content))
-        content_count[content] = filecount
-    for key,value in content_count.items():
-        msg = f"{key}: {value}"
-        wx.MessageBox("Contents:\n" + '\n'.join([f"{key}: {value}" for key,value in content_count.items()]) +f"\n TOTAL:{sum([values for values in content_count.values()])}","File Counts in each folder", wx.OK | wx.ICON_INFORMATION)
+import os
+import wx
 
+def show_content():
+    app = wx.App(False)
+    
+    content_count = {}
+    
+    # Only process directories, skip files
+    for content in os.listdir():
+        if os.path.isdir(content):  # Check if it's a directory
+            try:
+                filecount = len([f for f in os.listdir(content) 
+                               if os.path.isfile(os.path.join(content, f))])
+                content_count[content] = filecount
+            except PermissionError:
+                content_count[content] = "Access Denied"
+            except Exception as e:
+                content_count[content] = f"Error: {e}"
+    
+    if not content_count:
+        wx.MessageBox("No directories found in current folder.", "No Directories", wx.OK | wx.ICON_INFORMATION)
+        return
+    
+    # Create the message content
+    message_lines = [f"{key} = {value}" for key, value in content_count.items()]
+    total_files = sum(v for v in content_count.values() if isinstance(v, int))
+    
+    message = "Contents:\n" + '\n'.join(message_lines) + f"\nTOTAL: {total_files}"
+    
+    # Show ONE message box with all the information
+    wx.MessageBox(message, "File Counts in each folder", wx.OK | wx.ICON_INFORMATION)
 if __name__ == "__main__":
     # rename_folders()
     show_content()
