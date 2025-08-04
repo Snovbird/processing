@@ -124,7 +124,7 @@ def clear_gpu_memory() -> bool:
         print(f"GPU memory cleanup failed: {e}")
         return False
     
-def select_video(title="Select videos",path='') -> str:
+def select_video(title:str="Select videos",path:str='',avi:bool = False) -> list[str]:
     
     app = wx.App(False)
 
@@ -145,7 +145,11 @@ def select_video(title="Select videos",path='') -> str:
             return video_paths
         
     # Create wildcard string for mp4 files only
-    wildcard = "Video Files (*.mp4)|*.mp4" #"Video files (*.mp4;*.avi)|*.mp4;*.avi" #"Video Files (*.mp4)|*.mp4" #"Video Files (*.mp4;*.avi;*.mov;*.mkv;*.webm)|*.mp4;*.avi;*.mov;*.mkv;*.webm"
+    if avi:
+        wildcard = "Video files (*.mp4;*.avi)|*.mp4;*.avi" #"Video Files (*.mp4)|*.mp4" #"Video Files (*.mp4;*.avi;*.mov;*.mkv;*.webm)|*.mp4;*.avi;*.mov;*.mkv;*.webm"
+    else: # mp4 only
+        wildcard = "Video Files (*.mp4)|*.mp4"
+    
     try:
         import os
         os.path.isdir(path)
@@ -175,10 +179,19 @@ def select_video(title="Select videos",path='') -> str:
     else:
         return pathDNE()
 
-def select_anyfile(title="Select files",path='') -> str:
-    
+def select_anyfile(title="Select files",path='',specific_ext:list[str]=None) -> list[str]:
+    """
+    ##Default:
+    Any files (*.*)|*.*
+    ##If specific_ext list is provided:
+    provide extensions as ["txt","xlsx","csv"] without periods 
+    """
     app = wx.App(False)
-    wildcard = "Any files (*.*)|*.*"
+    if not specific_ext:
+        wildcard = "Any files (*.*)|*.*"
+    else:
+        ext_filtered = [ext.replace(".",'') for ext in specific_ext]
+        wildcard = f"Files (*.{';*.'.join(specific_ext)})|*.{';*.'.join(specific_ext)}"
     def pathDNE():
         with wx.FileDialog(
             None,

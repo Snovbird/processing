@@ -200,7 +200,7 @@ def group_files_by_digits(file_paths: list[str]) -> list[list[str]]:
         name_without_ext = os.path.splitext(filename)[0]
         
         # This is your provided logic to create the grouping key
-        digit_key = ''.join(char for char in name_without_ext if char.isdigit())
+        digit_key = ''.join([char for char in name_without_ext if char.isdigit()])
         
         # Add the full file path to the list for this key
         grouped_files[digit_key].append(file_path)

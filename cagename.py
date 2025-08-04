@@ -31,7 +31,7 @@ def name_cages(source_folder):
         else:
             os.rename(os.path.join(source_folder,filename),full_renamed_path)
             
-    os.startfile(source_folder)
+    
 
 def main():
     # Initialize wx application
@@ -48,6 +48,8 @@ def main():
         name_cages(source_folder)
     except Exception as e:
         wx.MessageBox(f"Error: {str(e)}", "Error", wx.OK | wx.ICON_ERROR)
+    
+    os.startfile(source_folder)
 
 
 if __name__ == "__main__":

@@ -40,7 +40,7 @@ return
     run, "%A_ScriptDir%/move_keys.ahk"
 Return
 !k::
-    Run, pyw "%pythonScriptsDir%\add count to folder names.pyw"
+    Run, pyw "%pythonScriptsDir%\add count to folder names.py"
 return
 ^+A::
 run, "C:\Users\%Username%\Desktop"

@@ -39,7 +39,7 @@ def extractpng(video: str, times: list[int], output_folder: str) -> tuple[str,..
             print(f"Error extracting frame at {seconds}s from {os.path.basename(video)}")
             print(f"FFmpeg stderr: {e.stderr}")
         outputs.append(output_filename)
-    return (output for output in outputs)
+    return tuple(outputs)
 
 def main():
     import sys

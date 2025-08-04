@@ -1,9 +1,9 @@
 import wx
 from common.common import select_anyfile
 
-def photo_carrousel(photo1_path):
+def photo_carrousel(img_path:str,btn1:str="All good go to next image",btn2:str="STOP markers NOT aligned"):
     app = wx.App(False)
-    frame = wx.Frame(None, title="Photo Carousel", size=(1024 + 40, 768 + 40))
+    frame = wx.Frame(None, title="Photo Carousel", size=(1024 + 40, 768 + 150))
     selection = [None]  # Use a list to make it mutable for the nested function
     # It's best practice to put all controls on a panel
     panel = wx.Panel(frame)
@@ -11,8 +11,10 @@ def photo_carrousel(photo1_path):
     # Load the base image
     try:
         # Use wx.BITMAP_TYPE_ANY to automatically detect file type
-        img1_bitmap = wx.Image(photo1_path[0], wx.BITMAP_TYPE_ANY).ConvertToBitmap()
+        img1_bitmap = wx.Image(img_path, wx.BITMAP_TYPE_ANY).ConvertToBitmap()
     except Exception as e:
+        import pyperclip
+        pyperclip.copy(e)
         wx.MessageBox(f"Failed to load image: {e}", "Error", wx.OK | wx.ICON_ERROR)
         frame.Destroy()
         return None
@@ -34,8 +36,8 @@ def photo_carrousel(photo1_path):
     button_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
     # Create buttons
-    button1 = wx.Button(panel, label="STOP markers NOT aligned")
-    button2 = wx.Button(panel, label="All good go to next image")
+    button1 = wx.Button(panel, label=btn1)
+    button2 = wx.Button(panel, label=btn2)
 
     # Bind buttons to the event handler
     button1.Bind(wx.EVT_BUTTON, on_button_click)
@@ -59,7 +61,7 @@ def photo_carrousel(photo1_path):
 
 
 def main():
-    photo1 = select_anyfile()
+    photo1:str = select_anyfile()[0]
     if photo1:  # Check if a file was selected
         print(photo_carrousel(photo1))
 
