@@ -1,6 +1,3 @@
-import wx
-import os
-
 from PIL import Image, ImageEnhance
 import os
 
