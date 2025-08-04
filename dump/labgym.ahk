@@ -9,25 +9,7 @@ pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
 
 ^+P::
 ; Check if the active window is File Explorer
-    WinGetClass, activeClass, A
-    if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, , TIP, TIP: Focus your recordings folder before pressing 'Ctrl + Shift + P' to start navigating there
-        Run, py "%pythonScriptsDir%\process_recordings.py" 
-        return
-    }
-
-    ; Use the Explorer COM object to get the actual path
-    for window in ComObjCreate("Shell.Application").Windows {
-        try {
-            if (window.HWND == WinExist("A")) {
-                fullPath := window.Document.Folder.Self.Path
-                command := "py -3.10 """ pythonScriptsDir "\process_recordings.py"" """ fullPath """"
-                ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
-                Run, % command
-                return
-            }
-        }
-    }
+Run, py "%pythonScriptsDir%\process_recordings.py" 
     ; MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
 

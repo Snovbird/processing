@@ -36,7 +36,8 @@ def process_folder():
     # ask and initiate variables to find what markers to use
     overlays_path = find_folder_path("2-MARKERS")
     room_options = os.listdir(overlays_path)
-    room = askstring(msg=f"Enter the name of the room. Options are:\n{'\n'.join(room_options)}")
+    stroption = '\n'.join(room_options)
+    room = askstring(msg=f"Enter the name of the room. Options are:\n{stroption}")
     date_today = get_date_yyyymmdd()
     alldates = findval("dates")[::-1] # invert it to loop from latest dates first then to earlier ones
     ready_combined_imgs_paths = []

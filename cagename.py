@@ -2,28 +2,10 @@ import os
 import wx
 from common.common import select_folder,windowpath
 
-
-def get_string_input(question,title):
-    """Show text input dialog for string"""
-    with wx.TextEntryDialog(None, question,title) as dlg:
-        if dlg.ShowModal() == wx.ID_OK:
-            input_string = dlg.GetValue().strip()
-            if not input_string:
-                # wx.MessageBox("Please enter a valid string!", "Warning", 
-                #               wx.OK | wx.ICON_WARNING)
-                return ''
-                
-            # Remove invalid filename characters
-            invalid_chars = '<>:"/\\|?*'
-            for char in invalid_chars:
-                input_string = input_string.replace(char, '')
-            return input_string
-        return None
-
 def name_cages(source_folder):
     """Create subfolder and copy files with modified names"""    
     # Get all files in source folder
-    files = [f for f in sorted(os.listdir(source_folder)) 
+    files = [f for f in os.listdir(source_folder) 
              if os.path.isfile(os.path.join(source_folder, f))]
     
     if not files:
@@ -38,8 +20,8 @@ def name_cages(source_folder):
             continue # skips to next iteration. desktop.ini shows up when you change a folder's appearance
         if '_' not in name :
             print("exitted cuz no underscore",name)
-            return
-        thedate = name.split('_')[3][:9] # to get YYYYMMDD
+            continue
+        thedate = name.split('_')[3][:8] # to get YYYYMMDD
         # N864A6_ch1_main_20250714103626_20250714110000
         cage_number = name.split('_')[1].replace('ch','')
         letter_ord_value = 97
