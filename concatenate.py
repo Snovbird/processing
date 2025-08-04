@@ -13,7 +13,7 @@ def combine_videos_with_cuda(input_files, output_folder):
         # Create intermediate directory for temporary files
         temp_dir = tempfile.mkdtemp()
         intermediate_files = []
-        concat_list = None
+        concat_list_txt = None
         try:
             # STAGE 1: Transcode each file to ensure consistency
             for i, file in enumerate(input_files):
@@ -37,19 +37,21 @@ def combine_videos_with_cuda(input_files, output_folder):
                 for file in intermediate_files:
                     escaped_file = os.path.abspath(file).replace("'", "'\\''")
                     temp.write(f"file '{escaped_file}'\n")
-                concat_list = temp.name
+                concat_list_txt = temp.name
             
-            outputfile = f"{''.join(char for char in os.path.splitext(os.path.basename(input_files[0]))[0] if char.isdigit())}{os.path.splitext(os.path.basename(input_files[0]))[1]}" # Output should be named after the cage number
-            output = os.path.join(output_folder, outputfile)
+            basename,ext = os.path.splitext(os.path.basename(input_files[0]))
+            date = basename.split("_")[1]
+            output_name = f"{''.join(char for char in basename[0:2] if char.isdigit())}_{date}{ext}" # Output should be named after the cage number
+            output_path = os.path.join(output_folder, output_name)
             
             # Simple concatenation of consistently encoded files (no CUDA needed for this stage)
             cmd = [
                 'ffmpeg', '-y',
                 '-f', 'concat',
                 '-safe', '0',
-                '-i', concat_list,
+                '-i', concat_list_txt,
                 '-c', 'copy',  # Just copy streams without re-encoding
-                output
+                output_path
             ]
             print(cmd)
             subprocess.run(cmd, check=True)
@@ -63,8 +65,8 @@ def combine_videos_with_cuda(input_files, output_folder):
                         os.remove(file)
                     except:
                         pass
-            if os.path.exists(concat_list):
-                os.remove(concat_list)
+            if os.path.exists(concat_list_txt):
+                os.remove(concat_list_txt)
             try:
                 os.rmdir(temp_dir)
             except:

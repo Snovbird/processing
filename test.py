@@ -1,3 +1,3 @@
 from common.common import assignval,custom_dialog
 
-raise Exception("Apples")
+print([1,2,3] + [5])

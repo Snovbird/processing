@@ -6,7 +6,7 @@ import os, shutil
 from frameoverlay import overlay_FRAMES
 from photo_carrousel import photo_carrousel
 from image_combine import combine_and_resize_images
-
+from extractpng import extractpng
 def process_folder():
     """Process a videos of video recordings by naming cages and concatenating videos."""
     # Select the folder to process
@@ -43,15 +43,18 @@ def process_folder():
     ready_combined_imgs_paths = []
 
     combined_output_folder = makefolder(concatenation_output_folder, foldername='combined')
+    png_outputs = makefolder(combined_output_folder, foldername='png')
     for group in grouped_files:
+        imgpath = extractpng(group[0],times=[1],output_folder=png_outputs)
+
         cage_number = ''.join(char for char in os.path.splitext(os.path.basename(group[0]))[0][0:2] if char.isdigit()) # extract digits from first two filename characters to get cage number
         for d in range(alldates.index(date_today),len(alldates)):
-            imagepath = os.path.join(overlays_path, room,f"cage{cage_number}{alldates[d]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
+            imagepath = os.path.join(overlays_path, room,f"cage{cage_number}_{alldates[d]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
             if os.path.exists(imagepath):
                 break
         else:
             error(msg=f"There is no overlay images for cage {cage_number}.\nPath '{imagepath}' does not exist")
-        combined_outputpath = combine_and_resize_images(group[0],imagepath,output_folder=combined_output_folder)
+        combined_outputpath = combine_and_resize_images(imgpath,imagepath,output_folder=combined_output_folder)
         ready_combined_imgs_paths.append(combined_outputpath)
     
     for img in ready_combined_imgs_paths:
