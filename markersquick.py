@@ -2,7 +2,7 @@ import os
 import subprocess
 from common.common import clear_gpu_memory,askstring,select_video,find_folder_path,findval,error,assignval,makefolder,is_date
 import sys
-def apply_png_overlay(video_path, output_path,room="12cage",cage_number=None,date_to_provide=None):
+def apply_png_overlay(video_path, output_folder,room="12cage",cage_number=None,date_to_provide=None):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
     
@@ -16,7 +16,7 @@ def apply_png_overlay(video_path, output_path,room="12cage",cage_number=None,dat
     # Get the directory and filename of the input video
     video_name = os.path.splitext(os.path.basename(video_path))[0]
 
-    output_path = os.path.join(output_path, f"{video_name}.mp4")
+    output_path = os.path.join(output_folder, f"{video_name}.mp4")
     overlays_path = find_folder_path("2-MARKERS")
         
     if not cage_number:

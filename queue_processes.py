@@ -1,18 +1,16 @@
 # necessary
-from common.common import askint,select_video,select_folder,dropdown,custom_dialog
+from common.common import askint,select_video,select_folder,dropdown,custom_dialog,makefolder
 
 # Queue-able processes
 from concatenate import combine_videos_with_cuda
 from extractpng import extractpng
 from frameoverlay import overlay_FRAMES
 from markersquick import apply_png_overlay
-from photo_carrousel import photo_carrousel
-from image_combine import combine_and_resize_images
-
-# how_many_folders = askint("How many different folders to loop through?")
+# from photo_carrousel import photo_carrousel
+# from image_combine import combine_and_resize_images
 
 def queue():
-    functions:list[str] = ["combine_videos_with_cuda","extractpng","overlay_FRAMES","apply_png_overlay","photo_carrousel","combine_and_resize_images"]
+    functions:list[str] = ["combine_videos_with_cuda","extractpng","overlay_FRAMES","apply_png_overlay",] #"photo_carrousel","combine_and_resize_images"
     sel = dropdown(functions)
     if not sel:
         return
@@ -28,8 +26,10 @@ def queue():
         #     selected_functions.append(sel)
         #     functions.remove(sel)
     for group in videos:
+        output_folder = makefolder(group[0],"Processed videos-")
         for vid in group:
-            exec(sel + "(vid)")
+            
+            exec(sel + "(vid,output_folder={output_folder}")
 
 if __name__ == "__main__":
     queue()
