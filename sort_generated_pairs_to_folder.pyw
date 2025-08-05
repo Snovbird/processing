@@ -1,27 +1,18 @@
-from common.common import select_folder,find_folder_path,msgbox
+from common.common import select_folder,find_folder_path,msgbox,dropdown,list_files,list_folders
 import os
 import shutil
-def copythhsa():
-    import pyperclip
-    a = [os.path.join(r"C:\Users\samahalabo\Desktop\7-SORTED behaviors examples pairs",basename) for basename in os.listdir(r"C:\Users\samahalabo\Desktop\7-SORTED behaviors examples pairs")]
-    pyperclip.copy(a)
-
 
 def main():
     parent = select_folder("Select parent folder",path=find_folder_path("6-GENERATED behavior examples pairs"))
     if not parent:
         return
-    destinations = ['C:\\Users\\samahalabo\\Desktop\\7-SORTED behaviors examples pairs\\CheckMagazine',
-                'C:\\Users\\samahalabo\\Desktop\\7-SORTED behaviors examples pairs\\EnterMagazine',
-                'C:\\Users\\samahalabo\\Desktop\\7-SORTED behaviors examples pairs\\LeverApproach',
-                'C:\\Users\\samahalabo\\Desktop\\7-SORTED behaviors examples pairs\\OrientFNCL',
-                'C:\\Users\\samahalabo\\Desktop\\7-SORTED behaviors examples pairs\\PressLever']
-    
-    dtn = destinations[1]
-
-    dtn = select_folder(path=r"C:\Users\samahalabo\Desktop\7-SORTED behaviors examples pairs")
-
-    print(os.listdir(parent)[0])
+    sorted_dir7 = find_folder_path("7-SORTED behaviors examples pairs")
+    destinations = list_folders(find_folder_path("5-behavior video CLIPS"))
+    destinations = [os.path.join(sorted_dir7,destination) for destination in destinations.copy()] # behavior names
+    dtn = dropdown(choices=destinations,title="Choose destination")
+    if not os.path.exists:
+        os.makedirs(dtn)
+    dtn = select_folder(path=sorted_dir7)
 
     # The original list comprehension was incorrect. This is a more readable and correct way to achieve the goal.
     # It finds all files in the second level of subdirectories, matching the structure:
