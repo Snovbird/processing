@@ -27,9 +27,8 @@ def queue():
         #     functions.remove(sel)
     for group in videos:
         output_folder = makefolder(group[0],"Processed videos-")
-        for vid in group:
+        for vid in group:  
+            exec(f"{sel}(vid, output_folder='{output_folder}')")
             
-            exec(sel + "(vid,output_folder={output_folder}")
-
 if __name__ == "__main__":
     queue()
