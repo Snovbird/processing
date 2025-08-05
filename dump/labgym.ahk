@@ -78,11 +78,11 @@ return
 !+F::
 run, pyw "%pythonScriptsDir%\trial_formula.py"
 return
-$!r::
-run, pyw "%pythonScriptsDir%\resize.py"
-return
+; $!r::
+; run, pyw "%pythonScriptsDir%\resize.py" ; resize is in dump now
+; return
 $!s::
-run,pyw "%pythonScriptsDir%\sort_generated_pairs_to_folder.py"
+    run,pyw "%pythonScriptsDir%\sort_generated_pairs_to_folder.py"
 return
 !+C::
 ; Check if the active window is File Explorer
