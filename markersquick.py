@@ -1,6 +1,6 @@
 import os
 import subprocess
-from common.common import clear_gpu_memory,askstring,select_video,find_folder_path,findval,error,assignval,makefolder,get_date_yyyymmdd
+from common.common import clear_gpu_memory,askstring,select_video,find_folder_path,findval,error,assignval,makefolder,is_date
 import sys
 def apply_png_overlay(video_path, output_path,room="12cage",cage_number=None,date_to_provide=None):
     """
@@ -23,7 +23,10 @@ def apply_png_overlay(video_path, output_path,room="12cage",cage_number=None,dat
         cage_number = ''.join(char for char in video_name[0:2] if char.isdigit()) 
 
     if not date_to_provide: # If a date is inside of the video name,but today's date was not provided (date_today = today's date)
+        
         date_to_provide = video_name.split("_")[1]
+        if not is_date(date_to_provide):
+            date_to_provide = findval("dates")[-1] # will loop through known dates
     #today's date was provided
     imgpath = find_imgpath_overlay_date(date_to_provide,room,cage_number)
 

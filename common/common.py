@@ -618,3 +618,16 @@ def unhide_folder(dir:str):
         creationflags = subprocess.CREATE_NO_WINDOW
                 
     subprocess.run(['attrib', '-h', dir], check=True, creationflags=creationflags)
+
+def is_date(date_string):
+    import datetime
+    """Simple date checker for most common formats"""
+    common_formats = ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y']
+    
+    for fmt in common_formats:
+        try:
+            datetime.strptime(date_string.strip(), fmt)
+            return True
+        except ValueError:
+            continue
+    return False
