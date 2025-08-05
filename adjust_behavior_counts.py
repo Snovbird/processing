@@ -157,7 +157,7 @@ def main():
         return
     columns = simple_excel_to_lists(excel_path)
     
-    missing_counts = 
+    missing_counts = None # will be more complicated further on 
     
 # Usage examples:
 if __name__ == "__main__":
