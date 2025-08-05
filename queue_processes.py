@@ -10,23 +10,26 @@ from photo_carrousel import photo_carrousel
 from image_combine import combine_and_resize_images
 
 # how_many_folders = askint("How many different folders to loop through?")
-how_many_functions = askint("How many process to do?")
 
+def queue():
+    functions:list[str] = ["combine_videos_with_cuda","extractpng","overlay_FRAMES","apply_png_overlay","photo_carrousel","combine_and_resize_images"]
+    sel = dropdown(functions)
+    if not sel:
+        return
+    # choice= custom_dialog("Select different videos for each process or select same videos for all?","Input Handling",op1="DIFF vids",op2="SAME vids")
+    videos = []
+    selection = True
+    while selection:
+        selection = select_video(f"Select videos. Cancel to stop loop")
+        if selection:
+            videos.append(selection)
+        # for function in range(how_many_functions):
+        #     sel = dropdown(functions)
+        #     selected_functions.append(sel)
+        #     functions.remove(sel)
+    for group in videos:
+        for vid in group:
+            exec(sel + "(vid)")
 
-functions:list[str] = ["combine_videos_with_cuda","extractpng","overlay_FRAMES","apply_png_overlay","photo_carrousel","combine_and_resize_images"]
-sel = dropdown(functions)
-
-choice= custom_dialog("Select different videos for each process or select same videos for all?","Input Handling",op1="DIFF vids",op2="SAME vids")
-videos = []
-selection = True
-while selection:
-    selection = select_video(f"Select videos. Cancel to stop loop")
-    if selection:
-        videos.append(selection)
-    # for function in range(how_many_functions):
-    #     sel = dropdown(functions)
-    #     selected_functions.append(sel)
-    #     functions.remove(sel)
-for group in videos:
-    for vid in group:
-        exec(sel + "(vid)")
+if __name__ == "__main__":
+    queue()
