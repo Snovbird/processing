@@ -37,8 +37,9 @@ def process_folder():
     room_options = list_folders(overlays_path)
     room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_path="dump/star.ico")
     if room == "ENTER NEW ROOM NAME":
-        return emergency_overlay_maker()
-        for folder_date in os.listdir(initial_folder):
+        return emergency_overlay_maker(date,room)
+    
+    for folder_date in os.listdir(initial_folder):
         folder_path = os.path.join(initial_folder, folder_date) # folder path for each date
         files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
 
@@ -67,7 +68,7 @@ def process_folder():
                 return emergency_overlay_maker()
     
     # Loop through each date-named folder (usually initial_folder should only have vids for one day but this is necessary in case videos over multiple dates are present 
-    for folder_date in os.listdir(initial_folder):
+    for order,folder_date in enumerate(os.listdir(initial_folder)):
         folder_path = os.path.join(initial_folder, folder_date) # folder path for each date
         files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
 
@@ -129,7 +130,7 @@ def process_folder():
         import time
         while True:
             try:
-                os.remove(combined_output_folder)
+                os.remove(concatenation_output_folder)
                 print("Trying to DELETE")
                 break
             except:
@@ -146,9 +147,9 @@ def process_folder():
 
         
 
-def emergency_overlay_maker():
+def emergency_overlay_maker(cage_number,date,room,):
     # shutil.copy(photoshop project)
-    
+    #os.rename()
     error("No emergency overlay maker")
     pass
     # makefolder()

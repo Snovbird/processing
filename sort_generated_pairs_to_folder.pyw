@@ -14,7 +14,7 @@ def main():
     if not dtn:
         return
     dtn = os.path.join(sorted_dir7,dtn)
-    if not os.path.exists:
+    if not os.path.exists(dtn):
         os.makedirs(dtn)
     # dtn = select_folder(path=sorted_dir7)
 
