@@ -34,7 +34,7 @@ def process_folder():
     # variables that don't need multiple assignations
     overlays_path = find_folder_path("2-MARKERS")
     room_options = list_folders(overlays_path)
-    room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Enter the name of the room the videos are from")
+    room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_path="dump/star.ico")
     if room == "ENTER NEW ROOM NAME":
         return emergency_overlay_maker()
     
