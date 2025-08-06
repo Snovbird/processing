@@ -446,41 +446,66 @@ def assignval(valuename:str,value):
     except Exception as e:
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
-def dropdown(choices: list[str], title='') -> str: 
-    """Create a wxPython window with a dropdown menu and return the selected item on Enter."""
+def dropdown(choices: list[str], title='', icon_path=None) -> str: 
+    """Create a wxPython window with a dropdown menu and return the selected item on Enter or OK button."""
     
     app = wx.App(False)  # Create the wx.App instance
 
     # Create a frame (main window)
-    frame = wx.Frame(None, title=title, size=(300, 150))
+    frame = wx.Frame(None, title=title, size=(315, 150))
+    
+    # Set custom icon if provided
+    if icon_path:
+        try:
+            icon = wx.Icon(icon_path, wx.BITMAP_TYPE_ICO)  # For .ico files
+            frame.SetIcon(icon)
+        except Exception as e:
+            print(f"Failed to load icon: {e}")
     
     # Center the frame on the screen
     frame.CenterOnScreen()
     
-    # Create a panel to hold the dropdown menu
+    # Rest of your existing code remains the same...
     panel = wx.Panel(frame)
     
-    # Create a dropdown menu (wx.Choice) with some options
-    dropdown = wx.Choice(panel, choices=choices, pos=(50, 30), size=(200, -1))
-    dropdown.SetSelection(0)  # Set the default selection to the first item
+    dropdown = wx.Choice(panel, choices=choices, pos=(50, 20), size=(200, -1))
+    dropdown.SetSelection(0)
     
-    # Variable to store the selected item
-    selected_item = [None]  # Use a mutable object (list) to store the result
+    selected_item = [None]
     
-    # Event handler for pressing Enter
-    def on_enter(event):
-        selected_item[0] = dropdown.GetString(dropdown.GetSelection())  # Get the selected item
-        print(f"Selected item: {selected_item[0]}")  # Print the selected item
-        frame.Close()  # Close the window
+    button_width = 70
+    button_spacing = 10
+    total_button_width = (button_width * 2) + button_spacing
+    start_x = (300 - total_button_width) // 2
     
-    # Bind the Enter key to the event handler
-    frame.Bind(wx.EVT_CHAR_HOOK, on_enter)
+    ok_button = wx.Button(panel, label="OK", pos=(start_x, 70), size=(button_width, 30))
+    cancel_button = wx.Button(panel, label="Cancel", pos=(start_x + button_width + button_spacing, 70), size=(button_width, 30))
     
-    # Show the frame
+    def on_key_press(event):
+        if event.GetKeyCode() == wx.WXK_RETURN:
+            selected_item[0] = dropdown.GetString(dropdown.GetSelection())
+            print(f"Selected item: {selected_item[0]}")
+            frame.Close()
+        else:
+            event.Skip()
+    
+    def on_ok(event):
+        selected_item[0] = dropdown.GetString(dropdown.GetSelection())
+        print(f"Selected item: {selected_item[0]}")
+        frame.Close()
+    
+    def on_cancel(event):
+        selected_item[0] = None
+        print("Selection cancelled")
+        frame.Close()
+    
+    frame.Bind(wx.EVT_CHAR_HOOK, on_key_press)
+    ok_button.Bind(wx.EVT_BUTTON, on_ok)
+    cancel_button.Bind(wx.EVT_BUTTON, on_cancel)
+    
     frame.Show()
     app.MainLoop()
     
-    # Return the selected item after the window is closed
     return selected_item[0]
 
 def hhmmss_to_seconds(time_str:str) -> int:
