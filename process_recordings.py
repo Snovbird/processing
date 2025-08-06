@@ -38,6 +38,33 @@ def process_folder():
     room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_path="dump/star.ico")
     if room == "ENTER NEW ROOM NAME":
         return emergency_overlay_maker()
+        for folder_date in os.listdir(initial_folder):
+        folder_path = os.path.join(initial_folder, folder_date) # folder path for each date
+        files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
+
+        # Group files by their digit sequences for concatenation
+        grouped_files = [[os.path.join(folder_path, file) for file in group] for group in group_files_by_digits(files)]
+        if not grouped_files:
+            print("No files found that can be grouped for concatenation.")
+            return
+        
+        # Concatenations variables (needed for photo carrousel)
+        concatenation_output_folder = makefolder(grouped_files[0][0], foldername='(delete me once done) Gradually processed videos')
+        ready_combined_imgs_paths = []
+        
+        # Photo carroussel to verify if overlays aren't displaced
+        combined_output_folder = makefolder(concatenation_output_folder, foldername='combined')
+        png_outputs = makefolder(combined_output_folder, foldername='png')
+        for group in grouped_files:
+            bg_imgpath = extractpng(group[0],times=[1],output_folder=png_outputs)[0]
+            date_for_group = os.path.splitext(os.path.basename(group[0]))[0].split("_")[1]
+            cage_number = ''.join(char for char in os.path.splitext(os.path.basename(group[0]))[0][0:2] if char.isdigit()) # extract digits from first two filename characters to get cage number
+            overlay_imgpath = find_imgpath_overlay_date(date_provided=date_for_group,room=room,cage_number=cage_number)
+            combined_outputpath = combine_and_resize_images(bg_imgpath,overlay_imgpath,output_folder=combined_output_folder)
+            ready_combined_imgs_paths.append(combined_outputpath)
+        for img in ready_combined_imgs_paths:
+            if photo_carrousel(img) == 'STOP markers NOT aligned':
+                return emergency_overlay_maker()
     
     # Loop through each date-named folder (usually initial_folder should only have vids for one day but this is necessary in case videos over multiple dates are present 
     for folder_date in os.listdir(initial_folder):
@@ -94,19 +121,12 @@ def process_folder():
                             ):
                 error(f"Overlay error for:\n{marked_vid_path}\ninto {frameoverlay_output_folder}\n\nTerminating process. Please delete the folder {concatenation_output_folder}") # error if does not return output path
                 return
-            if clear_gpu_memory():
-                pass
-        processed_outputfolder = makefolder(folder_path,foldername=f"{folder_date}{room.split(' ')[0]}")    
+            clear_gpu_memory()
+                
+        processed_outputfolder = makefolder(processed_path_dir3,foldername=f"{folder_date}{room.split(' ')[0]}",start_at_1=False)    
         for file in [os.path.join(frameoverlay_output_folder, basename) for basename in sorted(os.listdir(frameoverlay_output_folder)) if os.path.isfile(os.path.join(frameoverlay_output_folder, basename))]:
             shutil.move(file,processed_outputfolder)
         import time
-        while True:
-            try:
-                final_output_path = shutil.move(processed_outputfolder,processed_path_dir3)
-                print("Trying to move folder")
-                break
-            except:
-                time.sleep(1)
         while True:
             try:
                 os.remove(combined_output_folder)
@@ -114,6 +134,7 @@ def process_folder():
                 break
             except:
                 time.sleep(1)
+        msgbox(f"Delted {combined_output_folder}")
     msgbox(msg="Video Processing complete!",title="Success")
     # os.startfile(processed_outputfolder)
 

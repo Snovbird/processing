@@ -280,7 +280,7 @@ def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,h
     if not start_at_1 and count == 1:
         new_folder_name = f"{foldername}"
     else:
-        new_folder_name = f"{foldername}{count}"
+        new_folder_name = f"{foldername}-{count}"
 
     # Create full path to new folder
     new_folder_path = os.path.join(folder_path, new_folder_name)
