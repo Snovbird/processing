@@ -267,7 +267,7 @@ def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
     dlg.Destroy()  # Clean up the dialog
     return None
 
-def makefolder(file_or_folder_path:str, foldername:str='',count:int=1,hide:bool=False) -> str:
+def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,hide:bool=False,count:int=1,) -> str:
     import os
     # Get directory containing the file
     if os.path.isdir(file_or_folder_path):
@@ -277,8 +277,11 @@ def makefolder(file_or_folder_path:str, foldername:str='',count:int=1,hide:bool=
         # file_name = os.path.splitext(os.path.basename(file_or_folder_path))[0]    # Get filename without extension
     
     # Create folder name
-    new_folder_name = f"{foldername}{count}"
-    
+    if not start_at_1 and count == 1:
+        new_folder_name = f"{foldername}"
+    else:
+        new_folder_name = f"{foldername}{count}"
+
     # Create full path to new folder
     new_folder_path = os.path.join(folder_path, new_folder_name)
     # Check if folder exists and print debug info
@@ -287,7 +290,7 @@ def makefolder(file_or_folder_path:str, foldername:str='',count:int=1,hide:bool=
     
     # Create the folder if it doesn't exist
     if os.path.exists(new_folder_path):
-        return makefolder(file_or_folder_path,foldername,count=count+1)
+        return makefolder(file_or_folder_path,foldername,hide=hide,count=count+1)
     else:
         os.makedirs(new_folder_path)
         if hide:

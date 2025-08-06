@@ -32,6 +32,7 @@ def process_folder():
         shutil.move(file,a_date_folder)
     
     # variables that don't need multiple assignations
+    processed_path_dir3 = find_folder_path("3-Videos ready for analysis (processed)")
     overlays_path = find_folder_path("2-MARKERS")
     room_options = list_folders(overlays_path)
     room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_path="dump/star.ico")
@@ -39,8 +40,8 @@ def process_folder():
         return emergency_overlay_maker()
     
     # Loop through each date-named folder (usually initial_folder should only have vids for one day but this is necessary in case videos over multiple dates are present 
-    for folder_path in os.listdir(initial_folder):
-        folder_path = os.path.join(initial_folder, folder_path) # folder path for each date
+    for folder_date in os.listdir(initial_folder):
+        folder_path = os.path.join(initial_folder, folder_date) # folder path for each date
         files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
 
         # Group files by their digit sequences for concatenation
@@ -95,12 +96,34 @@ def process_folder():
                 return
             if clear_gpu_memory():
                 pass
-        final_output_folder = makefolder(folder_path,foldername="VIDEOS READY FOR ANALYSIS-")    
+        processed_outputfolder = makefolder(folder_path,foldername=f"{folder_date}{room.split(' ')[0]}")    
         for file in [os.path.join(frameoverlay_output_folder, basename) for basename in sorted(os.listdir(frameoverlay_output_folder)) if os.path.isfile(os.path.join(frameoverlay_output_folder, basename))]:
-            shutil.move(file,final_output_folder)
-    
+            shutil.move(file,processed_outputfolder)
+        import time
+        while True:
+            try:
+                final_output_path = shutil.move(processed_outputfolder,processed_path_dir3)
+                print("Trying to move folder")
+                break
+            except:
+                time.sleep(1)
+        while True:
+            try:
+                os.remove(combined_output_folder)
+                print("Trying to DELETE")
+                break
+            except:
+                time.sleep(1)
     msgbox(msg="Video Processing complete!",title="Success")
-    os.startfile(final_output_folder)
+    # os.startfile(processed_outputfolder)
+
+    dates_count = len(list_folders(initial_folder))
+    if  dates_count> 1:
+        os.startfile(processed_path_dir3)
+    elif dates_count == 1:
+        os.startfile(final_output_path) # folder specific
+
+        
 
 def emergency_overlay_maker():
     # shutil.copy(photoshop project)
