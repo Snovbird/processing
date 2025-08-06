@@ -7,12 +7,16 @@ def main():
     if not parent:
         return
     sorted_dir7 = find_folder_path("7-SORTED behaviors examples pairs")
-    destinations = list_folders(find_folder_path("5-behavior video CLIPS"))
-    destinations = [os.path.join(sorted_dir7,destination) for destination in destinations.copy()] # behavior names
+    bv_clips_dir = find_folder_path("5-behavior video CLIPS")
+    destinations = [folder for folder in os.listdir(bv_clips_dir) if os.path.isdir(os.path.join(bv_clips_dir,folder))]
+    # destinations = [os.path.join(sorted_dir7,destination) for destination in destinations.copy()] # behavior names
     dtn = dropdown(choices=destinations,title="Choose destination")
+    if not dtn:
+        return
+    dtn = os.path.join(sorted_dir7,dtn)
     if not os.path.exists:
         os.makedirs(dtn)
-    dtn = select_folder(path=sorted_dir7)
+    # dtn = select_folder(path=sorted_dir7)
 
     # The original list comprehension was incorrect. This is a more readable and correct way to achieve the goal.
     # It finds all files in the second level of subdirectories, matching the structure:
