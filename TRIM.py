@@ -171,7 +171,7 @@ def main():
             return
 
     if len(start_times) > 1 and len(file_paths) == 1 or len(file_paths) > 1:  # folder needed if multiple trims for one file
-        output_folder = makefolder(file_paths[0],output_folder="trimmed-")
+        output_folder = makefolder(file_paths[0],foldername="trimmed-")
     else:
         output_folder = None
 

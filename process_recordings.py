@@ -69,7 +69,7 @@ def process_folder():
         for img in ready_combined_imgs_paths:
             if photo_carrousel(img) == 'STOP markers NOT aligned':
                 return emergency_overlay_maker()
-        init_folderpaths.append((concatenated_video_path,combined_output_folder))
+        init_folderpaths.append((concatenation_output_folder,combined_output_folder))
     
     # Loop through each date-named folder (usually initial_folder should only have vids for one day but this is necessary in case videos over multiple dates are present 
     for order,folder_date in enumerate(os.listdir(initial_folder)):
