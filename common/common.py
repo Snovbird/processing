@@ -450,8 +450,6 @@ def assignval(valuename:str,value):
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
 def dropdown(choices: list[str], title='', icon_path=None) -> str: 
-    """Create a wxPython window with a dropdown menu and return the selected item on Enter or OK button."""
-    
     app = wx.GetApp()
     if not app:
         app = wx.App(False)
@@ -459,25 +457,21 @@ def dropdown(choices: list[str], title='', icon_path=None) -> str:
     else:
         created_app = False
 
-    # Create a frame (main window)
-    frame = wx.Frame(None, title=title, size=(315, 150))
+    # Create a dialog instead of a frame for modal behavior
+    dialog = wx.Dialog(None, title=title, size=(315, 150))
     
-    # Set custom icon if provided
     if icon_path:
         try:
-            icon = wx.Icon(icon_path, wx.BITMAP_TYPE_ICO)  # For .ico files
-            frame.SetIcon(icon)
+            icon = wx.Icon(icon_path, wx.BITMAP_TYPE_ICO)
+            dialog.SetIcon(icon)
         except Exception as e:
             print(f"Failed to load icon: {e}")
     
-    # Center the frame on the screen
-    frame.CenterOnScreen()
+    dialog.CenterOnScreen()
     
-    # Rest of your existing code remains the same...
-    panel = wx.Panel(frame)
-    
-    dropdown = wx.Choice(panel, choices=choices, pos=(50, 20), size=(200, -1))
-    dropdown.SetSelection(0)
+    panel = wx.Panel(dialog)
+    dropdown_ctrl = wx.Choice(panel, choices=choices, pos=(50, 20), size=(200, -1))
+    dropdown_ctrl.SetSelection(0)
     
     selected_item = [None]
     
@@ -491,33 +485,27 @@ def dropdown(choices: list[str], title='', icon_path=None) -> str:
     
     def on_key_press(event):
         if event.GetKeyCode() == wx.WXK_RETURN:
-            selected_item[0] = dropdown.GetString(dropdown.GetSelection())
-            print(f"Selected item: {selected_item[0]}")
-            frame.Close()
+            selected_item[0] = dropdown_ctrl.GetString(dropdown_ctrl.GetSelection())
+            dialog.EndModal(wx.ID_OK)
         else:
             event.Skip()
     
     def on_ok(event):
-        selected_item[0] = dropdown.GetString(dropdown.GetSelection())
-        print(f"Selected item: {selected_item[0]}")
-        frame.Close()
+        selected_item[0] = dropdown_ctrl.GetString(dropdown_ctrl.GetSelection())
+        dialog.EndModal(wx.ID_OK)
     
     def on_cancel(event):
         selected_item[0] = None
-        print("Selection cancelled")
-        frame.Close()
+        dialog.EndModal(wx.ID_CANCEL)
     
-    frame.Bind(wx.EVT_CHAR_HOOK, on_key_press)
+    dialog.Bind(wx.EVT_CHAR_HOOK, on_key_press)
     ok_button.Bind(wx.EVT_BUTTON, on_ok)
     cancel_button.Bind(wx.EVT_BUTTON, on_cancel)
     
-    frame.Show()
-    if created_app:
-        app.MainLoop()
-    else:
-        # Use modal dialog instead
-        frame.ShowModal()
-
+    # Always use ShowModal for dialogs
+    dialog.ShowModal()
+    dialog.Destroy()
+    
     return selected_item[0]
 
 def hhmmss_to_seconds(time_str:str) -> int:
