@@ -2,7 +2,7 @@ import os
 import subprocess
 from common.common import clear_gpu_memory,askstring,select_video,find_folder_path,findval,error,assignval,makefolder,is_date
 import sys
-def apply_png_overlay(video_path, output_folder,room="12cage",cage_number=None,date_to_provide=None):
+def apply_png_overlay(video_path, output_folder,room="OPTO-ROOM (12 cages)",cage_number=None,date_to_provide=None):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
     
@@ -102,13 +102,13 @@ def main():
     output_folder = makefolder(video_paths[0],foldername="marked-") # Unless I want to add a suffix like "-marked" to all videos, the output folder is necessary so the output has exact same name as input 
     overlays_path = find_folder_path("2-MARKERS")
     
-    room = dropdown(list_folders(overlays_path))
+    # room = dropdown(list_folders(overlays_path))
      # Contains image overlays
     from common.common import msgbox
-    msgbox(f"{overlays_path=}\n{room=}")
+    # msgbox(f"{overlays_path=}\n{room=}")
     for vid in video_paths:
         cage_number = ''.join(char for char in os.path.splitext(os.path.basename(vid))[0][0:2] if char.isdigit()) # [0:2] since only the first 2 numbers interest us
-        output_vid_path = apply_png_overlay(vid, output_folder=output_folder,cage_number=cage_number,room=room,date_to_provide=date_provided) 
+        output_vid_path = apply_png_overlay(vid, output_folder=output_folder,cage_number=cage_number,date_to_provide=date_provided) 
 
     if output_vid_path:
         print(output_vid_path)
