@@ -77,7 +77,7 @@ def trim_timestamps(input_path:str, start_time:str|int, end_time:str|int,output_
     if output_folder:
         file_name = os.path.splitext(os.path.basename(input_path))[0]
         output_path = os.path.join(output_folder, output_name)
-    else:
+    else: # same folder as input_path
         output_folder = os.path.dirname(input_path)
         output_path = os.path.join(output_folder, output_name)
     
@@ -85,11 +85,6 @@ def trim_timestamps(input_path:str, start_time:str|int, end_time:str|int,output_
         count += 1
         output_name = f"{file_name}{count}.mp4"
         output_path = os.path.join(output_folder, output_name)        
-
-    else:
-        file_dir = os.path.dirname(input_path)
-        file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(file_dir, output_name)
     
     try:
         # GPU-accelerated command for a single segment
@@ -176,8 +171,6 @@ def main():
         output_folder = None
 
     all_processing_complete = False
-    output_path = None
-
     
     if len(end_times) == len(start_times):
         for count, start_time in enumerate(start_times):
@@ -185,14 +178,13 @@ def main():
             if unitoption == 'HHMMSS':
                 start_time = format_time_colons(start_time)
                 end_time = format_time_colons(end_time)
-                print("Start time:", start_time)
-                print("End time:", end_time)
+                # print("Start time:", start_time)
+                # print("End time:", end_time)
                 for path in file_paths:
                     output_path = trim_timestamps(path, start_time, end_time, output_folder=output_folder, count=count)    
             elif unitoption == 'Frames':
                 for path in file_paths:
                     output_path = trim_frames(path, start_time, end_time, output_folder=output_folder, count=count)
-                
         all_processing_complete = clear_gpu_memory() # -> True
     else:
         print("ERROR", f"Must enter same # of start times as end times.\nStart times = {start_times}\nEnd times = {end_times}")
