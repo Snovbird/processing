@@ -41,6 +41,7 @@ def process_folder():
     
     # Variables to store folder paths for each date. 
     init_folderpaths = []
+    imgs_and_properties = {}
     # lists of folder paths 
     for folder_date in os.listdir(initial_folder):
         folder_path = os.path.join(initial_folder, folder_date) # folder path for each date
@@ -65,10 +66,11 @@ def process_folder():
             cage_number = ''.join(char for char in os.path.splitext(os.path.basename(group[0]))[0][0:2] if char.isdigit()) # extract digits from first two filename characters to get cage number
             overlay_imgpath = find_imgpath_overlay_date(date_provided=date_for_group,room=room,cage_number=cage_number)
             combined_outputpath = combine_and_resize_images(bg_imgpath,overlay_imgpath,output_folder=combined_output_folder)
-            ready_combined_imgs_paths.append(combined_outputpath)
-        for img in ready_combined_imgs_paths:
-            if photo_carrousel(img) == 'STOP markers NOT aligned':
-                return emergency_overlay_maker()
+            ready_combined_imgs_paths[combined_outputpath] = cage_number
+
+    for imgpath, number in ready_combined_imgs_paths.items():
+        if photo_carrousel(imgpath) == 'STOP markers NOT aligned':
+            return emergency_overlay_maker(cage_number=number,room=room)
         init_folderpaths.append((concatenation_output_folder,combined_output_folder))
     
     # Loop through each date-named folder (usually initial_folder should only have vids for one day but this is necessary in case videos over multiple dates are present 
