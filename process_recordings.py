@@ -12,7 +12,7 @@ def process_folder():
     """Process a videos of video recordings by naming cages and concatenating videos."""
     # Select the folder to process
     initial_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
-    if not initial_folder:
+    if not initial_folder or os.path.basename(initial_folder) == "TEST_RECORDINGS":
         return
     
     # First, name the cages in the selected folder
