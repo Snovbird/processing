@@ -87,10 +87,10 @@ def main():
     if not video_paths:
         print("No video file selected. Exiting...")
         return
-    date_today = askstring(msg= "Enter the date formatted as MM-DD:", title="Enter Date",fill=findval("last_used_date"))
-    assignval("last_used_date",date_today)
+    date_provided = askstring(msg= "Enter the date formatted as MM-DD:", title="Enter Date",fill=findval("last_used_date"))
+    assignval("last_used_date",date_provided)
     # AL_position = custom_dialog(title="Active lever position", msg="Is the active lever near the door (FN) or away (FF)", op1="FN", op2="FF")
-    
+    from common.common import dropdown,list_folders
     width = 2048
     if not width or int(width) not in [2048, 1024, 1280, 480]:
         return
@@ -99,20 +99,20 @@ def main():
     # Find output folder named "2) MARKED videos"
     # output_path = find_folder("2) MARKED videos")
     
-    output_path = makefolder(video_paths[0],foldername="marked-") # Unless I want to add a suffix like "-marked" to all videos, the output folder is necessary so the output has exact same name as input 
-
+    output_folder = makefolder(video_paths[0],foldername="marked-") # Unless I want to add a suffix like "-marked" to all videos, the output folder is necessary so the output has exact same name as input 
+    room = dropdown(list_folders(find_folder_path("2-MARKERS")))
     overlays_path = find_folder_path("2-MARKERS") # Contains image overlays
+    
     for vid in video_paths:
         cage_number = ''.join(char for char in os.path.splitext(os.path.basename(vid))[0][0:2] if char.isdigit()) # [0:2] since only the first 2 numbers interest us
-        output_vid_path = apply_png_overlay(vid, output_path=output_path,cage_number=cage_number,date_today=date_today,overlays_path=overlays_path,) 
+        output_vid_path = apply_png_overlay(vid, output_folder=output_folder,cage_number=cage_number,room=room,date_to_provide=date_provided) 
 
     if output_vid_path:
         print(output_vid_path)
         clear_gpu_memory()
-        os.startfile(output_path)
+        os.startfile(output_folder)
     else:
         # Show an error message
-        
         error("Error", "Failed to apply overlay. Check console for details.")
 
 def find_imgpath_overlay_date(date_provided,room,cage_number) -> str:
