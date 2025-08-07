@@ -1,11 +1,11 @@
 import subprocess
 import tempfile
 import os
-from common.common import select_video,askint,clear_gpu_memory,makefolder,custom_dialog,select_folder
+from common.common import select_video,askint,clear_gpu_memory,makefolder,custom_dialog,select_folder,error
 import sys
 
 
-def combine_videos_with_cuda(input_files, output_folder):
+def concatenate(input_files:list[str], output_folder:str):
     if True or len(input_files) > 2:
         """
         Combine multiple video files using NVIDIA CUDA hardware acceleration with two-stage approach.
@@ -54,8 +54,11 @@ def combine_videos_with_cuda(input_files, output_folder):
                 output_path
             ]
             print(cmd)
-            subprocess.run(cmd, check=True)
-            return True
+            try:
+                subprocess.run(cmd, check=True)
+            except:
+                error(f"error with {input_files}")
+            return output_path
             
         finally:
             # Clean up all temporary files
@@ -168,7 +171,7 @@ def main():
         return
     output_folder = makefolder(toconcat[0][0],foldername='concat')
     for setofvids in toconcat:
-        ready = combine_videos_with_cuda(setofvids,output_folder)
+        ready = concatenate(setofvids,output_folder)
     if ready:
         clear_gpu_memory()
         os.startfile(output_folder)

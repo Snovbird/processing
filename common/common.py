@@ -634,10 +634,38 @@ def get_date_yyyymmdd() -> str:
     return formatted_date
 
 def list_files(dir:str) -> list[str]:
+    """
+    returns:
+    the NAMES of files in a directory
+
+    ex: `apples.mp4,banana.mp4`
+    """
     return [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))]
 
 def list_folders(dir:str) -> list[str]:
+    """
+    returns:
+    the NAMES of folders in a directory
+
+    ex: `apples,banana`
+    """
     return [folder for folder in os.listdir(dir) if os.path.isdir(os.path.join(dir, folder))]
+
+def list_filespaths(dir:str) -> list[str]:
+    """
+    returns: the FULL path of files in a directory
+
+    ex: `C:/users/me/apples.mp4, C:/users/me/banana.mp4`
+    """
+    return [os.path.join(dir, file) for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))]
+
+def list_folderspaths(dir:str) -> list[str]:
+    """
+    returns: the FULL path of folders in a directory
+
+    ex: `C:/users/me/apples/, C:/users/me/banana/`
+    """
+    return [os.path.join(dir, folder) for folder in os.listdir(dir) if os.path.isdir(os.path.join(dir, folder))]
 
 def unhide_folder(dir:str):
     import sys,subprocess
@@ -647,10 +675,10 @@ def unhide_folder(dir:str):
                 
     subprocess.run(['attrib', '-h', dir], check=True, creationflags=creationflags)
 
-def is_date(date_string):
+def is_date(date_string:str) -> bool:
     from datetime import datetime
     """Simple date checker for most common formats"""
-    common_formats = ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y']
+    common_formats = ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%Y%m%d']
     
     for fmt in common_formats:
         try:
