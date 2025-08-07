@@ -1,3 +1,3 @@
-from common.common import is_date
+from common.common import dropdown
 
-print(is_date("20250714"))
+dropdown(["a"])

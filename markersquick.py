@@ -100,9 +100,12 @@ def main():
     # output_path = find_folder("2) MARKED videos")
     
     output_folder = makefolder(video_paths[0],foldername="marked-") # Unless I want to add a suffix like "-marked" to all videos, the output folder is necessary so the output has exact same name as input 
-    room = dropdown(list_folders(find_folder_path("2-MARKERS")))
-    overlays_path = find_folder_path("2-MARKERS") # Contains image overlays
+    overlays_path = find_folder_path("2-MARKERS")
     
+    room = dropdown(list_folders(overlays_path))
+     # Contains image overlays
+    from common.common import msgbox
+    msgbox(f"{overlays_path=}\n{room=}")
     for vid in video_paths:
         cage_number = ''.join(char for char in os.path.splitext(os.path.basename(vid))[0][0:2] if char.isdigit()) # [0:2] since only the first 2 numbers interest us
         output_vid_path = apply_png_overlay(vid, output_folder=output_folder,cage_number=cage_number,room=room,date_to_provide=date_provided) 
