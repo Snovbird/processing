@@ -95,7 +95,6 @@ def main():
     if not width or int(width) not in [2048, 1024, 1280, 480]:
         return
 
-
     # Find output folder named "2) MARKED videos"
     # output_path = find_folder("2) MARKED videos")
     
