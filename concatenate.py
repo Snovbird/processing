@@ -53,11 +53,9 @@ def concatenate(input_files:list[str], output_folder:str):
                 '-c', 'copy',  # Just copy streams without re-encoding
                 output_path
             ]
+            print(f"{'CONCATENATE':^40}")
             print(cmd)
-            try:
-                subprocess.run(cmd, check=True)
-            except:
-                error(f"error with {input_files}")
+            subprocess.run(cmd, check=True)
             return output_path
             
         finally:
