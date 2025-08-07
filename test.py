@@ -1,3 +1,2 @@
 from common.common import dropdown
-
-dropdown(["a"])
+print(f"{'*CONCATENATE':*^40}")

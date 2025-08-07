@@ -684,3 +684,18 @@ def is_date(date_string:str) -> bool:
         except ValueError:
             continue
     return False
+
+def wrap(input_str:str,count:int=20,wrap:str="*",printq:bool=True):
+    """
+    Args:
+    input_str: the middle component of the string
+    count: the amount of characters on either side of the middle string
+    wrap: the character wrapping the input. Default is asterisk "*"
+    printq: yes or no? do we print the wrapped string. Default is yes
+    """
+    total = count *2 + len(input_str)
+    wrapped:str = f"{input_str:wrap^total}"
+    if printq:
+        print(wrapped)
+    return wrapped
+    

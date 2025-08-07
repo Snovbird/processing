@@ -44,7 +44,7 @@ def process_folder():
     if room == "ENTER NEW ROOM NAME":
         return emergency_overlay_maker()
     
-    # Variables to store folder and image paths for each date. 
+    # Variables to store folder and image paths for each date.
     init_folderpaths = []
     ready_combined_imgs_paths = {}
     # lists of folder for different dates 
@@ -61,9 +61,9 @@ def process_folder():
         # Concatenations variables (needed for photo carrousel)
         concatenation_output_folder = makefolder(grouped_files[0][0], foldername='(delete me once done) Gradually processed videos')
         
-        
         # Photo carroussel to verify if overlays aren't displaced
         png_outputs = makefolder(concatenation_output_folder, foldername='png')
+        init_folderpaths.append(concatenation_output_folder)
         combined_output_folder = makefolder(png_outputs, foldername='combined')
         for group in grouped_files:
             bg_imgpath = extractpng(group[0],times=[1],output_folder=png_outputs)[0]
@@ -71,12 +71,12 @@ def process_folder():
             cage_number = ''.join(char for char in os.path.splitext(os.path.basename(group[0]))[0][0:2] if char.isdigit()) # extract digits from first two filename characters to get cage number
             overlay_imgpath = find_imgpath_overlay_date(date_provided=date_for_group,room=room,cage_number=cage_number)
             combined_outputpath = combine_and_resize_images(bg_imgpath,overlay_imgpath,output_folder=combined_output_folder)
-            ready_combined_imgs_paths[combined_outputpath] = cage_number
-
+            ready_combined_imgs_paths[combined_outputpath] = cage_number 
+    # do a carroussel of all images at once
     for imgpath, number in ready_combined_imgs_paths.items():
         if photo_carrousel(imgpath) == 'STOP markers NOT aligned':
             return emergency_overlay_maker(cage_number=number,room=room)
-        init_folderpaths.append(concatenation_output_folder)
+        
     
     # Loop through each date-named folder (usually initial_folder should only have vids for one day but this is necessary in case videos over multiple dates are present 
     for order,folder_date in enumerate(list_folders(initial_folder)):
@@ -94,14 +94,6 @@ def process_folder():
         for group in grouped_files:
             concatenate(group, concatenation_output_folder)
             clear_gpu_memory()
-
-            import time
-            time.sleep(2)  # Allow GPU to fully release resources
-            
-            # Force garbage collection
-            import gc
-            gc.collect()
-
 
         # Apply Markers 
         for count, concatenated_video_path in enumerate([os.path.join(concatenation_output_folder, basename) for basename in sorted(os.listdir(concatenation_output_folder)) if os.path.isfile(os.path.join(concatenation_output_folder, basename))]):
