@@ -37,8 +37,11 @@ def process_folder():
     room_options = list_folders(overlays_path)
     room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_path="dump/star.ico")
     if room == "ENTER NEW ROOM NAME":
-        return emergency_overlay_maker(date,room)
+        return emergency_overlay_maker()
     
+    # Variables to store folder paths for each date. 
+    init_folderpaths = []
+    # lists of folder paths 
     for folder_date in os.listdir(initial_folder):
         folder_path = os.path.join(initial_folder, folder_date) # folder path for each date
         files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
@@ -66,9 +69,11 @@ def process_folder():
         for img in ready_combined_imgs_paths:
             if photo_carrousel(img) == 'STOP markers NOT aligned':
                 return emergency_overlay_maker()
+        init_folderpaths.append((concatenated_video_path,combined_output_folder))
     
     # Loop through each date-named folder (usually initial_folder should only have vids for one day but this is necessary in case videos over multiple dates are present 
     for order,folder_date in enumerate(os.listdir(initial_folder)):
+        concatenated_video_path,combined_output_folder = init_folderpaths[order] # get paths to folders made during photo carrousel step
         folder_path = os.path.join(initial_folder, folder_date) # folder path for each date
         files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
 
@@ -80,7 +85,7 @@ def process_folder():
         
         # Concatenations variables (needed for photo carrousel)
         concatenation_output_folder = makefolder(grouped_files[0][0], foldername='(delete me once done) Gradually processed videos')
-        ready_combined_imgs_paths = []
+        ready_combined_imgs_paths = {}
         
         # Photo carroussel to verify if overlays aren't displaced
         combined_output_folder = makefolder(concatenation_output_folder, foldername='combined')
@@ -91,10 +96,11 @@ def process_folder():
             cage_number = ''.join(char for char in os.path.splitext(os.path.basename(group[0]))[0][0:2] if char.isdigit()) # extract digits from first two filename characters to get cage number
             overlay_imgpath = find_imgpath_overlay_date(date_provided=date_for_group,room=room,cage_number=cage_number)
             combined_outputpath = combine_and_resize_images(bg_imgpath,overlay_imgpath,output_folder=combined_output_folder)
-            ready_combined_imgs_paths.append(combined_outputpath)
-        for img in ready_combined_imgs_paths:
-            if photo_carrousel(img) == 'STOP markers NOT aligned':
-                return emergency_overlay_maker()
+            ready_combined_imgs_paths[combined_outputpath] = cage_number
+
+        for imgpath, number in ready_combined_imgs_paths.items():
+            if photo_carrousel(imgpath) == 'STOP markers NOT aligned':
+                return emergency_overlay_maker(cage_number=number,room=room)
 
         # Concatenate each group of videos
         for group in grouped_files:
@@ -126,7 +132,7 @@ def process_folder():
                 
         processed_outputfolder = makefolder(processed_path_dir3,foldername=f"{folder_date}{room.split(' ')[0]}",start_at_1=False)    
         for file in [os.path.join(frameoverlay_output_folder, basename) for basename in sorted(os.listdir(frameoverlay_output_folder)) if os.path.isfile(os.path.join(frameoverlay_output_folder, basename))]:
-            shutil.move(file,processed_outputfolder)
+            final_output_path = shutil.move(file,processed_outputfolder)
         import time
         while True:
             try:
@@ -140,19 +146,43 @@ def process_folder():
     # os.startfile(processed_outputfolder)
 
     dates_count = len(list_folders(initial_folder))
-    if  dates_count> 1:
+    if dates_count> 1:
         os.startfile(processed_path_dir3)
     elif dates_count == 1:
-        os.startfile(final_output_path) # folder specific
+        os.startfile(os.path.dirname(final_output_path)) # folder specific
 
-        
 
-def emergency_overlay_maker(cage_number,date,room,):
-    # shutil.copy(photoshop project)
-    #os.rename()
-    error("No emergency overlay maker")
-    pass
-    # makefolder()
+def emergency_overlay_maker(cage_number=None,room=None):
+    from common.common import get_date_yyyymmdd,select_video,askint
+    marker_overlays_path = find_folder_path("2-MARKERS")
+    date = askstring("Please enter the date as YYYYMMDD for this overlay. \nDefault is today's date.",fill=get_date_yyyymmdd())
+    room_folder_path = os.path.join(marker_overlays_path,room)
+    if not cage_number:
+        cage_number = askint("Enter the cage number:","Cage number")
+        if not cage_number:
+            return
+    
+    if not room:
+        room = askstring("Provide the name of the new room:","New room name",fill="ROOMNAME (numberofcages)")
+        room_folder_path = makefolder(marker_overlays_path,foldername=room,start_at_1=False)
+    else:
+        # ↓ alternative name needed | working path
+        room_folder_path = makefolder(room_folder_path,f"cage{cage_number}_{date}.psd",start_at_1=False)
+    
+    first_psdfile_path = shutil.copy(os.path.join(find_folder_path("PSD_TEMPLATES_MARKERS"),"templatepsd.psd"),room_folder_path)
+    # name example = cage6_20250616.png
+    psdfile_path = os.path.join(room_folder_path,f"cage{cage_number}_{date}.psd")
+    os.rename(first_psdfile_path,psdfile_path)
+    os.startfile(room_folder_path)
+    msgbox("A folder will open next. From the explorer, select a video from which an image will be extracted align the markers.\nThis image will be automatically added to the opened folder.")
+    times = 1
+    imgpath = extractpng(video=select_video("Select video from which an image will be extracted align the markers"),times=(times,),output_folder=room_folder_path)[0]
+    while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
+        os.remove(imgpath)
+        times += 5
+        imgpath = extractpng(video=select_video("Select video from which an image will be extracted align the markers"),times=(times,),output_folder=room_folder_path)[0]
+
+    
 
 
 if __name__ == "__main__":
