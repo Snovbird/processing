@@ -1,6 +1,6 @@
 from cagename import name_cages
 from concatenate import combine_videos_with_cuda,group_files_by_digits
-from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,askstring,dropdown,custom_dialog,list_folders
+from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,askstring,dropdown,list_folders
 from markersquick import apply_png_overlay, find_imgpath_overlay_date
 import os, shutil
 from frameoverlay import overlay_FRAMES
@@ -80,7 +80,7 @@ def process_folder():
         # Group files by their digit sequences for concatenation
         grouped_files = [[os.path.join(folder_path, file) for file in group] for group in group_files_by_digits(files)]
         if not grouped_files:
-            print("No files found that can be grouped for concatenation.")
+            error("No files found that can be grouped for concatenation.")
             return
         
         # Concatenations variables (needed for photo carrousel)
@@ -182,7 +182,6 @@ def emergency_overlay_maker(cage_number=None,room=None):
         times += 5
         imgpath = extractpng(video=select_video("Select video from which an image will be extracted align the markers"),times=(times,),output_folder=room_folder_path)[0]
 
-    
 
 
 if __name__ == "__main__":
