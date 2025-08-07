@@ -79,7 +79,7 @@ def process_folder():
         init_folderpaths.append(concatenation_output_folder)
     
     # Loop through each date-named folder (usually initial_folder should only have vids for one day but this is necessary in case videos over multiple dates are present 
-    for order,folder_date in enumerate(os.listdir(initial_folder)):
+    for order,folder_date in enumerate(list_folders(initial_folder)):
         concatenation_output_folder = init_folderpaths[order] # get paths to folders made during photo carrousel step
         folder_path = os.path.join(initial_folder, folder_date) # folder path for each date
         files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
@@ -94,6 +94,14 @@ def process_folder():
         for group in grouped_files:
             concatenate(group, concatenation_output_folder)
             clear_gpu_memory()
+
+            import time
+            time.sleep(2)  # Allow GPU to fully release resources
+            
+            # Force garbage collection
+            import gc
+            gc.collect()
+
 
         # Apply Markers 
         for count, concatenated_video_path in enumerate([os.path.join(concatenation_output_folder, basename) for basename in sorted(os.listdir(concatenation_output_folder)) if os.path.isfile(os.path.join(concatenation_output_folder, basename))]):
