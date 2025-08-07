@@ -122,7 +122,8 @@ def process_folder():
                 print("Trying to DELETE")
                 os.remove(concatenation_output_folder)
                 break
-            except:
+            except Exception as e:
+                print(f"Error: {e}")
                 time.sleep(1)
         msgbox(f"Delted {combined_output_folder}")
     msgbox(msg="Video Processing complete!",title="Success")
