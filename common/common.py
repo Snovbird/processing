@@ -452,7 +452,12 @@ def assignval(valuename:str,value):
 def dropdown(choices: list[str], title='', icon_path=None) -> str: 
     """Create a wxPython window with a dropdown menu and return the selected item on Enter or OK button."""
     
-    app = wx.App(False)  # Create the wx.App instance
+    app = wx.GetApp()
+    if not app:
+        app = wx.App(False)
+        created_app = True
+    else:
+        created_app = False
 
     # Create a frame (main window)
     frame = wx.Frame(None, title=title, size=(315, 150))
@@ -507,8 +512,12 @@ def dropdown(choices: list[str], title='', icon_path=None) -> str:
     cancel_button.Bind(wx.EVT_BUTTON, on_cancel)
     
     frame.Show()
-    app.MainLoop()
-    
+    if created_app:
+        app.MainLoop()
+    else:
+        # Use modal dialog instead
+        frame.ShowModal()
+
     return selected_item[0]
 
 def hhmmss_to_seconds(time_str:str) -> int:
