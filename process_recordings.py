@@ -39,12 +39,13 @@ def process_folder():
     if room == "ENTER NEW ROOM NAME":
         return emergency_overlay_maker()
     
-    # Variables to store folder paths for each date. 
+    # Variables to store folder and image paths for each date. 
     init_folderpaths = []
     imgs_and_properties = {}
-    # lists of folder paths 
-    for folder_date in os.listdir(initial_folder):
-        folder_path = os.path.join(initial_folder, folder_date) # folder path for each date
+    ready_combined_imgs_paths = {}
+    # lists of folder for different dates 
+    for folder_date in list_folders(initial_folder):
+
         files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
 
         # Group files by their digit sequences for concatenation
@@ -55,7 +56,7 @@ def process_folder():
         
         # Concatenations variables (needed for photo carrousel)
         concatenation_output_folder = makefolder(grouped_files[0][0], foldername='(delete me once done) Gradually processed videos')
-        ready_combined_imgs_paths = {}
+        
         
         # Photo carroussel to verify if overlays aren't displaced
         png_outputs = makefolder(concatenation_output_folder, foldername='png')
