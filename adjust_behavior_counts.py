@@ -38,23 +38,6 @@ def excel_columns_to_lists(file_path):
         print(f"Error reading Excel file: {str(e)}")
         return {}
 
-# Example usage
-def example_usage():
-    """Example of how to use the function"""
-    
-    # Replace with your Excel file path
-    file_path = "your_file.xlsx"
-    
-    # Get all columns as lists
-    columns = excel_columns_to_lists(file_path) # {column name : column data}
-    
-    # Access individual column lists
-    if columns:
-        for column_name, column_data in columns.items():
-            print(f"\n{column_name}:")
-            print(f"First 5 values: {column_data[:5]}")
-            print(f"Data type: {type(column_data[0]) if column_data else 'Empty'}")
-
 # Even simpler one-liner version
 def simple_excel_to_lists(file_path):
     """One-liner version"""
@@ -65,109 +48,182 @@ def simple_excel_to_lists(file_path):
         return {}
 
 def count_continuous_sets(lst, min_length=4, max_gap=3):
-    """
-    Count continuous sets of values that meet the minimum length requirement.
-    Sets separated by max_gap or fewer different values are considered the same set.
-    
-    Args:
-        lst: Input list of values
-        min_length: Minimum length for a set to be counted (default 4)
-        max_gap: Maximum gap between sets to consider them as one (default 3)
-    
-    Returns:
-        Dictionary with counts of qualifying sets for each value
-    """
+    """Ultra-optimized version with numpy key conversion"""
     if not lst:
         return {}
     
-    # Group consecutive identical values with their positions
-    groups = []
-    current_value = lst[0]
-    current_start = 0
-    current_count = 1
-    
-    for i in range(1, len(lst)):
-        if lst[i] == current_value:
-            current_count += 1
-        else:
-            groups.append((current_value, current_start, current_count))
-            current_value = lst[i]
-            current_start = i
-            current_count = 1
-    
-    # Add the last group
-    groups.append((current_value, current_start, current_count))
-    
-    # Merge groups of same value that are separated by max_gap or less
-    merged_sets = {}
-    
-    for value, start, count in groups:
-        if value not in merged_sets:
-            merged_sets[value] = []
-        merged_sets[value].append((start, count))
-    
-    # For each value, merge close groups and count qualifying sets
-    result = {}
-    
-    for value, positions in merged_sets.items():
-        merged_groups = []
-        current_total = positions[0][1]  # count of first group
-        current_end = positions[0][0] + positions[0][1]  # end position of first group
+    try:
+        import numpy as np
+        arr = np.array(lst)
         
-        for i in range(1, len(positions)):
-            start_pos, count = positions[i]
-            gap = start_pos - current_end
+        # Find change points
+        changes = np.where(arr[:-1] != arr[1:])[0] + 1
+        starts = np.concatenate(([0], changes))
+        ends = np.concatenate((changes, [len(arr)]))
+        
+        # Group by value
+        result = {}
+        for value in np.unique(arr):
+            mask = arr[starts] == value
+            value_starts = starts[mask]
+            value_lengths = (ends - starts)[mask]
             
-            if gap <= max_gap:
-                # Merge with current group
-                current_total += count
-                current_end = start_pos + count
+            # Merge close groups and count
+            if len(value_starts) == 1:
+                result[value] = 1 if value_lengths[0] >= min_length else 0
             else:
-                # Start new group
+                gaps = value_starts[1:] - (value_starts[:-1] + value_lengths[:-1])
+                merge_points = gaps > max_gap
+                
+                qualifying_count = 0
+                current_total = value_lengths[0]
+                
+                for i, should_split in enumerate(merge_points):
+                    if should_split:
+                        if current_total >= min_length:
+                            qualifying_count += 1
+                        current_total = value_lengths[i + 1]
+                    else:
+                        current_total += value_lengths[i + 1]
+                
                 if current_total >= min_length:
-                    merged_groups.append(current_total)
-                current_total = count
-                current_end = start_pos + count
+                    qualifying_count += 1
+                    
+                result[value] = qualifying_count
         
-        # Don't forget the last group
-        if current_total >= min_length:
-            merged_groups.append(current_total)
+        # Convert numpy keys to Python integers
+        final_result = {}
+        for key, value in result.items():
+            final_result[int(key.item() if hasattr(key, 'item') else key)] = value
         
-        result[value] = len(merged_groups)
+        return final_result
+    except:
+        pass
+    # except ImportError:
+    #     return count_continuous_sets(lst, min_length, max_gap)    
+
+import pandas as pd
+from common.common import select_folder, makefolder
+import os
+
+def dict_to_excel(data_dict, output_path=None, filename="output.xlsx"):
+    """
+    Create an Excel file with dictionary keys in row 1 and values in row 2.
     
-    # Ensure all unique values from the list are in the result
-    for value in set(lst):
-        if value not in result:
-            result[value] = 0
+    Args:
+        data_dict (dict): Dictionary to convert to Excel
+        output_path (str): Directory path to save the file (optional)
+        filename (str): Name of the Excel file (default: "output.xlsx")
     
-    return result
+    Returns:
+        str: Full path to the created Excel file
+    """
+    try:
+        # If no output path provided, ask user to select folder
+        if not output_path:
+            output_path = select_folder("Select folder to save Excel file")
+            if not output_path:
+                return None
+        
+        # Ensure filename has .xlsx extension
+        if not filename.endswith('.xlsx'):
+            filename += '.xlsx'
+        
+        # Create full file path
+        full_path = os.path.join(output_path, filename)
+        
+        # Create DataFrame with keys as column headers and values as first row
+        df = pd.DataFrame([data_dict])
+        
+        # Write to Excel
+        df.to_excel(full_path, index=False, header=True)
+        
+        print(f"Excel file created successfully: {full_path}")
+        return full_path
+        
+    except Exception as e:
+        print(f"Error creating Excel file: {str(e)}")
+        return None
 
-# Test with your example
-test_list = [1,1,1,1,2,2,1,1,1,1,3,3,3,1,1,3,3,3,3,2,2,2,4,4,4,4]
-print(count_continuous_sets(test_list))
-# Output: {1: 1, 2: 0, 3: 1, 4: 1}
+# Alternative version with more control over formatting
+def dict_to_excel_advanced(data_dict, output_path=None, filename="ACTUAL behavior counts.xlsx", sheet_name="behavior counts"):
+    """
+    Advanced version with more formatting options.
+    """
+    try:
+        if not output_path:
+            output_path = select_folder("Select folder to save Excel file")
+            if not output_path:
+                return None
+        
+        if not filename.endswith('.xlsx'):
+            filename += '.xlsx'
+        
+        full_path = os.path.join(output_path, filename)
+        
+        # Create Excel writer object for more control
+        with pd.ExcelWriter(full_path, engine='openpyxl') as writer:
+            # Create DataFrame
+            df = pd.DataFrame([data_dict])
+            
+            # Write to Excel
+            df.to_excel(writer, sheet_name=sheet_name, index=False, header=True)
+            
+            # Optional: Access workbook for additional formatting
+            workbook = writer.book
+            worksheet = writer.sheets[sheet_name]
+            
+            # Auto-adjust column widths
+            for column in worksheet.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)  # Cap at 50 characters
+                worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        print(f"Excel file created successfully: {full_path}")
+        return full_path
+        
+    except Exception as e:
+        print(f"Error creating Excel file: {str(e)}")
+        return None
 
-# You can adjust the parameters:
-# count_continuous_sets(test_list, min_length=5, max_gap=2)
-
-
+# Integration with your existing code
 def main():
-    excel_path = select_anyfile("Find the data excel",specific_ext="xlsx")
+    excel_path = select_anyfile("Find the excel file containing data", specific_ext="xlsx")[0]
     if not excel_path:
         return
-    columns = simple_excel_to_lists(excel_path)
+    col1, col2, *_ = excel_columns_to_lists(excel_path).values()
+
+    new_counts = count_continuous_sets(col2)
     
-    missing_counts = None # will be more complicated further on 
+    # Create Excel file from the results
+    output_file = dict_to_excel(
+        new_counts, 
+        output_path=os.path.dirname(excel_path),  # Save in same folder as input
+        filename="behavior_counts_results.xlsx"
+    )
     
+    if output_file:
+        print(f"Results saved to: {output_file}")
+        # Optional: Open the file
+        os.startfile(output_file)
+
+def main():
+    excel_path = select_anyfile("Find the excel file containing data",specific_ext="xlsx")[0]
+    if not excel_path:
+        return
+    col1, col2, *_ = excel_columns_to_lists(excel_path).values()
+
+    new_counts = count_continuous_sets(col2) # I want ordered sets, not a dictionnary
+    
+    dict_to_excel_advanced(new_counts, output_path=os.path.dirname(excel_path),)
 # Usage examples:
 if __name__ == "__main__":
     # Method 1: Detailed function with error handling
-    columns = excel_columns_to_lists("data.xlsx")
-    
-    # Method 2: Simple one-liner
-    columns_simple = simple_excel_to_lists("data.xlsx")
-    
-    # Access specific columns
-    if 'Sales' in columns:
-        sales_list = columns['Sales']
-        print(f"Sales data: {sales_list}")
+    main()

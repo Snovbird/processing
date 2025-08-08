@@ -1,2 +1,6 @@
 from common.common import dropdown
-print(f"{'*CONCATENATE':*^40}")
+
+
+a,b,*_ = (1,2)
+
+print(a,b)

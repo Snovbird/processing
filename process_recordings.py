@@ -49,7 +49,6 @@ def process_folder():
     ready_combined_imgs_paths = {}
     # lists of folder for different dates 
     for folder_path in list_folderspaths(initial_folder):
-
         files = list_files(folder_path)
 
         # Group files by their digit sequences for concatenation
@@ -130,7 +129,8 @@ def process_folder():
                 print(f"Error deleting folder {concatenation_output_folder}: {e}")
                 time.sleep(1)
     msgbox(msg="Video Processing complete!",title="Success")
-    # os.startfile(processed_outputfolder)
+
+    os.startfile(processed_outputfolder)
 
     dates_count = len(list_folders(initial_folder))
     if dates_count> 1:
@@ -168,7 +168,7 @@ def emergency_overlay_maker(cage_number=None,room=None):
         os.remove(imgpath)
         times += 5
         imgpath = extractpng(video=select_video("Select video from which an image will be extracted align the markers"),times=(times,),output_folder=room_folder_path)[0]
-
+    os.startfile(room_folder_path)
 
 
 if __name__ == "__main__":
