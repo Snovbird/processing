@@ -449,8 +449,10 @@ def assignval(valuename:str,value):
     except Exception as e:
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
-def dropdown(choices: list[str], title='', icon_path=None) -> str: 
+def dropdown(choices: list[str], title='', icon_path=None) -> str:
     app = wx.GetApp()
+    if "MARKERS_TEMPLATES" in choices:
+        choices.remove("MARKERS_TEMPLATES")
     if not app:
         app = wx.App(False)
         created_app = True

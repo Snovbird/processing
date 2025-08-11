@@ -17,7 +17,7 @@ def apply_png_overlay(video_path, output_folder,room="OPTO-ROOM (12 cages)",cage
     video_name = os.path.splitext(os.path.basename(video_path))[0]
 
     output_path = os.path.join(output_folder, f"{video_name}.mp4")
-    overlays_path = find_folder_path("2-MARKERS")
+    overlays_path = find_folder_path("2-markers")
         
     if not cage_number:
         cage_number = ''.join(char for char in video_name[0:2] if char.isdigit()) 
@@ -99,7 +99,7 @@ def main():
     # output_path = find_folder("2) MARKED videos")
     
     output_folder = makefolder(video_paths[0],foldername="marked-") # Unless I want to add a suffix like "-marked" to all videos, the output folder is necessary so the output has exact same name as input 
-    overlays_path = find_folder_path("2-MARKERS")
+    overlays_path = find_folder_path("2-markers")
     
     # room = dropdown(list_folders(overlays_path))
      # Contains image overlays
@@ -118,7 +118,7 @@ def main():
         error("Error", "Failed to apply overlay. Check console for details.")
 
 def find_imgpath_overlay_date(date_provided,room,cage_number) -> str:
-    overlays_path = find_folder_path("2-MARKERS")
+    overlays_path = find_folder_path("2-markers")
     alldates = findval("dates")[::-1] # invert it to loop from latest dates first then to earlier ones
     if date_provided not in alldates:
         alldates = findval("dates")[::-1]

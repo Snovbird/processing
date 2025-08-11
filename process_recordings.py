@@ -18,7 +18,7 @@ def process_folder():
     if len(list_files(initial_folder)) == 0 and len(list_folders(initial_folder)) > 0:
         dates_dict = {os.path.basename(date_folder) : date_folder for date_folder in list_folderspaths(initial_folder) if is_date(os.path.basename(date_folder))}
         if len(dates_dict.keys()) == 0:
-            error(f"Folders inside of {initial_folder} are empty")
+            error(f"Folders are empty inside of {initial_folder}")
             return
     else:
         # First, name the cages in the selected folder
@@ -37,7 +37,7 @@ def process_folder():
             shutil.move(file,a_date_folder)
     
     # variables that don't need multiple assignations
-    processed_path_dir3 = find_folder_path("3-Videos ready for analysis (processed)")
+    processed_path_dir3 = find_folder_path("3-PROCESSED")
     overlays_path = find_folder_path("2-MARKERS")
     room_options = list_folders(overlays_path)
     room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_path="dump/star.ico")
@@ -46,7 +46,7 @@ def process_folder():
     
     # Variables to store folder and image paths for each date.
     init_folderpaths = []
-    ready_combined_imgs_paths = {}
+    ready_combined_imgs_paths = {} # dict to pass args to emergencyoverlaymaker fct
     # lists of folder for different dates 
     for folder_path in list_folderspaths(initial_folder):
 
@@ -59,7 +59,7 @@ def process_folder():
             return
         
         # Concatenations variables (needed for photo carrousel)
-        concatenation_output_folder = makefolder(grouped_files[0][0], foldername='(delete me once done) Gradually processed videos')
+        concatenation_output_folder = makefolder(grouped_files[0][0], foldername='(delete me once done)')
         
         # Photo carroussel to verify if overlays aren't displaced
         png_outputs = makefolder(concatenation_output_folder, foldername='png')
@@ -118,13 +118,12 @@ def process_folder():
                 return
             clear_gpu_memory()
         processed_outputfolder = makefolder(processed_path_dir3,foldername=f"{folder_date} {room.split(' ')[0]}",start_at_1=False)    
-        msgbox(processed_outputfolder)
         for file in [os.path.join(frameoverlay_output_folder, basename) for basename in sorted(os.listdir(frameoverlay_output_folder)) if os.path.isfile(os.path.join(frameoverlay_output_folder, basename))]:
             final_output_path = shutil.move(file,processed_outputfolder)
         import time
         while True:
             try:
-                shutil.rmtree(concatenation_output_folder)
+                # shutil.rmtree(concatenation_output_folder)
                 break
             except Exception as e:
                 print(f"Error deleting folder {concatenation_output_folder}: {e}")
@@ -143,6 +142,9 @@ def emergency_overlay_maker(cage_number=None,room=None):
     from common.common import get_date_yyyymmdd,select_video,askint
     marker_overlays_path = find_folder_path("2-MARKERS")
     date = askstring("Please enter the date as YYYYMMDD for this overlay. \nDefault is today's date.",fill=get_date_yyyymmdd())
+    if not room:
+        room = dropdown(list_folders(marker_overlays_path) + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_path="dump/star.ico")
+        
     room_folder_path = os.path.join(marker_overlays_path,room)
     if not cage_number:
         cage_number = askint("Enter the cage number:","Cage number")
@@ -156,21 +158,27 @@ def emergency_overlay_maker(cage_number=None,room=None):
         # ↓ alternative name needed | working path
         room_folder_path = makefolder(room_folder_path,f"cage{cage_number}_{date}.psd",start_at_1=False)
     
-    first_psdfile_path = shutil.copy(os.path.join(find_folder_path("PSD_TEMPLATES_MARKERS"),"templatepsd.psd"),room_folder_path)
+    first_project_path = shutil.copy(os.path.join(find_folder_path("MARKERS_TEMPLATES"),"templatepsd.psd"),room_folder_path)
     # name example = cage6_20250616.png
-    psdfile_path = os.path.join(room_folder_path,f"cage{cage_number}_{date}.psd")
-    os.rename(first_psdfile_path,psdfile_path)
-    os.startfile(room_folder_path)
-    msgbox("A folder will open next. From the explorer, select a video from which an image will be extracted align the markers.\nThis image will be automatically added to the opened folder.")
+    project_path = os.path.join(room_folder_path,f"cage{cage_number}_{date}.xcf")
+    os.rename(first_project_path,project_path)
+    msgbox("A folder will open next. From the explorer, select a video from which an image will be extracted to align the markers.\nThis image will be automatically added to the opened folder.")
+    safe_start(project_path)
     times = 1
-    imgpath = extractpng(video=select_video("Select video from which an image will be extracted align the markers"),times=(times,),output_folder=room_folder_path)[0]
+    imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
     while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
         os.remove(imgpath)
         times += 5
         imgpath = extractpng(video=select_video("Select video from which an image will be extracted align the markers"),times=(times,),output_folder=room_folder_path)[0]
 
+    # Open the newly modified project file, likely in GIMP.
+    os.startfile(project_path)
 
-
+def safe_start(path):
+    os.startfile(path)
+    import time
+    time.sleep(2)
+    return
 if __name__ == "__main__":
     # process_folder()
     process_folder()

@@ -44,7 +44,7 @@ def process_files(source_folder, append_string,toreplace,START_or_END_or_REPLACE
     
     # Get all files in source folder
     files = [f for f in os.listdir(source_folder) 
-             if os.path.isfile(os.path.join(source_folder, f))]
+             if os.path.isdir(os.path.join(source_folder, f))]
     
     if not files:
         raise Exception("The selected folder does not contain any files.")
