@@ -178,20 +178,32 @@ def select_video(title:str="Select videos",path:str='',avi:bool = False) -> list
     else:
         return pathDNE()
 
-def select_anyfile(title="Select files",path='',specific_ext:list[str]=None) -> list[str]:
+def select_anyfile(title="Select files",path='',specific_ext:list[str] | str=None) -> list[str]:
     """
     ##Default:
     Any files (*.*)|*.*
     ##If specific_ext list is provided:
     provide extensions as ["txt","xlsx","csv"] without periods 
+
+    Args:
+    title: Message displayed in the topleft of the explorer window
+    path: start directory where the navigation begins (startpath)
+    specific_ext: The extension(s) name(s) WITHOUT PERIOD displayed while browsing 
     """
     app = wx.App(False)
     if not specific_ext:
         wildcard = "Any files (*.*)|*.*"
-    else:
-        ext_filtered = [ext.replace(".",'') for ext in specific_ext]
-        wildcard = f"Files (*.{';*.'.join(specific_ext)})|*.{';*.'.join(specific_ext)}"
+    elif type(specific_ext) == str:
+        ext_filtered = ';*.'.join([specific_ext.replace(".",'')])
+        wildcard = f"Files (*.{ext_filtered})|*.{ext_filtered}"
+
+    else: # string or tuple
+        ext_filtered = ';*.'.join([ext.replace(".",'') for ext in specific_ext])
+        wildcard = f"Files (*.{ext_filtered})|*.{ext_filtered}"
     def pathDNE():
+        app = wx.GetApp()
+        if not app:
+            app = wx.App(False)
         with wx.FileDialog(
             None,
             message=title,
@@ -256,7 +268,6 @@ def askint(msg="Enter an integer:", title="Integer Input", fill='0') -> int:
 
 def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
     
-
     app = wx.App(False)  # Create the wx.App instance
     dlg = wx.TextEntryDialog(None, msg, title, value=f'{fill}',style= wx.OK)
     dlg.Centre()
