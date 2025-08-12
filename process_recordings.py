@@ -1,8 +1,8 @@
+import os, shutil, subprocess
 from cagename import name_cages
 from concatenate import concatenate,group_files_by_digits
 from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,askstring,dropdown,list_files,list_folders,list_folderspaths,list_filespaths,list_files,is_date
 from markersquick import apply_png_overlay, find_imgpath_overlay_date
-import os, shutil
 from frameoverlay import overlay_FRAMES
 from photo_carrousel import photo_carrousel
 from image_combine import combine_and_resize_images
@@ -40,7 +40,7 @@ def process_folder():
     processed_path_dir3 = find_folder_path("3-PROCESSED")
     overlays_path = find_folder_path("2-MARKERS")
     room_options = list_folders(overlays_path)
-    room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_path="dump/star.ico")
+    room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_name="star")
     if room == "ENTER NEW ROOM NAME":
         return emergency_overlay_maker()
     
@@ -143,7 +143,7 @@ def emergency_overlay_maker(cage_number=None,room=None):
     marker_overlays_path = find_folder_path("2-MARKERS")
     date = askstring("Please enter the date as YYYYMMDD for this overlay. \nDefault is today's date.",fill=get_date_yyyymmdd())
     if not room:
-        room = dropdown(list_folders(marker_overlays_path) + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_path="dump/star.ico")
+        room = dropdown(list_folders(marker_overlays_path) + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_name="star")
         
     room_folder_path = os.path.join(marker_overlays_path,room)
     if not cage_number:
@@ -156,14 +156,13 @@ def emergency_overlay_maker(cage_number=None,room=None):
         room_folder_path = makefolder(marker_overlays_path,foldername=room,start_at_1=False)
     else:
         # ↓ alternative name needed | working path
-        room_folder_path = makefolder(room_folder_path,f"cage{cage_number}_{date}.psd",start_at_1=False)
+        room_folder_path = makefolder(room_folder_path,f"cage{cage_number}_{date}",start_at_1=False)
     
-    first_project_path = shutil.copy(os.path.join(find_folder_path("MARKERS_TEMPLATES"),"templatepsd.psd"),room_folder_path)
+    first_project_path = shutil.copy(os.path.join(find_folder_path("MARKERS_TEMPLATES"),"template.xcf"),room_folder_path)
     # name example = cage6_20250616.png
     project_path = os.path.join(room_folder_path,f"cage{cage_number}_{date}.xcf")
     os.rename(first_project_path,project_path)
-    msgbox("A folder will open next. From the explorer, select a video from which an image will be extracted to align the markers.\nThis image will be automatically added to the opened folder.")
-    safe_start(project_path)
+    msgbox("A file explorer window will open next. From the explorer, select a video from which an image will be extracted to align the markers.\nThis image will be automatically added to the opened folder.")
     times = 1
     imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
     while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":

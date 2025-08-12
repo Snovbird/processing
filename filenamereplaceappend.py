@@ -25,32 +25,42 @@ def main():
         append_string = ''
         START_or_END_or_REPLACE = 'END'
     
-    # Step 3: Process files
+    # Step 3: Process targets
     try:
-        process_files(source_folder, append_string,toreplace,START_or_END_or_REPLACE)
-        msgbox(f"Successfully renamed files!", "Success")
+        rename_files(source_folder, append_string,toreplace,START_or_END_or_REPLACE)
+        msgbox(f"Successfully renamed targets!", "Success")
     except Exception as e:
         error(str(e))
 
 
-def process_files(source_folder, append_string,toreplace,START_or_END_or_REPLACE):
-    """Create subfolder and copy files with modified names"""
+def rename_files(source_folder, append_string,toreplace,START_or_END_or_REPLACE,file_or_folder=None):
+    """Create subfolder and copy targets with modified names"""
     # Create subfolder path
     subfolder_path = os.path.join(source_folder, append_string)
-    
+    if not file_or_folder:
+        file_or_folder = custom_dialog("Change file or folder names?","Target","File","Folder")
+        if not file_or_folder:
+            return
     # Create subfolder if it doesn't exist
     # if not os.path.exists(subfolder_path):
     #     os.makedirs(subfolder_path)
     
-    # Get all files in source folder
-    files = [f for f in os.listdir(source_folder) 
-             if os.path.isdir(os.path.join(source_folder, f))]
+    # Get all targets in source folder
+    if file_or_folder == 'File':
+        
+        targets = [f for f in os.listdir(source_folder) 
+                if os.path.isfile(os.path.join(source_folder, f))]
+    elif file_or_folder == 'Folder':
+        targets = [f for f in os.listdir(source_folder) 
+                if os.path.isdir(os.path.join(source_folder, f))]
+    else:
+        targets = ''
     
-    if not files:
-        raise Exception("The selected folder does not contain any files.")
+    if not targets:
+        raise Exception(f"The selected folder does not contain any {file_or_folder}.")
     
-    # Copy files with appended names
-    for filename in files:
+    # Copy targets with appended names
+    for filename in targets:
         source_file_path = os.path.join(source_folder, filename)
         
         # Create new filename with appended string

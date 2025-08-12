@@ -2,6 +2,7 @@ import os
 import wx
 # Get the absolute path to the directory containing this file (common.py)
 COMMON_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPTS_PATH = os.path.dirname(COMMON_CURRENT_DIR)
 # Define the path to data.json, assuming it's in the same directory as this script.
 # This makes file access independent of where the script is run from.
 JSON_PATH = os.path.join(COMMON_CURRENT_DIR, 'data.json')
@@ -180,9 +181,12 @@ def select_video(title:str="Select videos",path:str='',avi:bool = False) -> list
 
 def select_anyfile(title="Select files",path='',specific_ext:list[str] | str=None) -> list[str]:
     """
-    ##Default:
-    Any files (*.*)|*.*
-    ##If specific_ext list is provided:
+    Returns a **`LIST`**
+
+    
+    Default wildcard: Any files (\*.\*)|\*.\*
+
+    **If specific_ext**:
     provide extensions as ["txt","xlsx","csv"] without periods 
 
     Args:
@@ -291,7 +295,7 @@ def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,h
     if not start_at_1 and count == 1:
         new_folder_name = f"{foldername}"
     else:
-        new_folder_name = f"{foldername}-{count}"
+        new_folder_name = f"{foldername.replace('-','')}-{count}"
 
     # Create full path to new folder
     new_folder_path = os.path.join(folder_path, new_folder_name)
@@ -460,7 +464,14 @@ def assignval(valuename:str,value):
     except Exception as e:
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
-def dropdown(choices: list[str], title='', icon_path=None) -> str:
+def dropdown(choices: list[str], title='', icon_name=None) -> str:
+    """
+    Args:
+    choices: list of string (options) to display in the dropdown
+    title: Title in the top left of the window
+    icon_name:  **`star`**, **`check`**
+    """
+
     app = wx.GetApp()
     if "MARKERS_TEMPLATES" in choices:
         choices.remove("MARKERS_TEMPLATES")
@@ -471,14 +482,15 @@ def dropdown(choices: list[str], title='', icon_path=None) -> str:
         created_app = False
 
     # Create a dialog instead of a frame for modal behavior
-    dialog = wx.Dialog(None, title=title, size=(315, 150))
-    
-    if icon_path:
-        try:
-            icon = wx.Icon(icon_path, wx.BITMAP_TYPE_ICO)
-            dialog.SetIcon(icon)
-        except Exception as e:
-            print(f"Failed to load icon: {e}")
+    if icon_name:
+        dialog = wx.Dialog(None, title=title, size=(315, 150))
+        icon_path = os.path.join(SCRIPTS_PATH,'icons',f"{icon_name}.ico")
+        if os.path.exists(icon_path):
+            try:
+                icon = wx.Icon(icon_path, wx.BITMAP_TYPE_ICO)
+                dialog.SetIcon(icon)
+            except Exception as e:
+                print(f"Failed to load icon: {e}")
     
     dialog.CenterOnScreen()
     

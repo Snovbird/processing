@@ -134,7 +134,9 @@ return
     }
     ; MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
 return
-
+^!+t::
+Run, py "%pythonScriptsDir%\test.py"
+return
 !T::
 ; Check if the active window is File Explorer
     WinGetClass, activeClass, A

@@ -1,4 +1,5 @@
-from common.common import dropdown
-print(f"{'*CONCATENATE':*^40}")
+from common.common import dropdown,msgbox()
+import os
 
-dropdown(['1','2'])
+msgbox(msg="Video Processing complete!",title="Success")
+os.startfile(processed_outputfolder)
