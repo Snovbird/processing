@@ -179,6 +179,40 @@ def analyze_data_and_create_summaries(sales_df, employee_df):
     
     return summaries
 
+# def merge_same_names(list_of_dicts):
+#     """
+#     Group consecutive dictionaries with the same 'name' key and combine their 'frame_duration' values.
+#     Non-consecutive dictionaries with the same name will remain separate.
+    
+#     Args:
+#         list_of_dicts: List of dictionaries with 'name' and 'frame_duration' keys
+        
+#     Returns:
+#         List of dictionaries with combined frame_duration for consecutive same names
+#     """
+#     if not list_of_dicts:
+#         return []
+    
+#     result = []
+#     current_name = list_of_dicts[0]["name"]
+#     current_frames = list_of_dicts[0]["frame_duration"]
+    
+#     for i in range(1, len(list_of_dicts)):
+#         if list_of_dicts[i]["name"] == current_name:
+#             # Same name as previous - combine frame_duration
+#             current_frames += list_of_dicts[i]["frame_duration"]
+#         else:
+#             # Different name - save current group and start new one
+#             result.append({"name": current_name, "frame_duration": current_frames})
+#             current_name = list_of_dicts[i]["name"]
+#             current_frames = list_of_dicts[i]["frame_duration"]
+    
+#     # Don't forget the last group
+#     result.append({"name": current_name, "frame_duration": current_frames})
+    
+#     return result
+
+
 def main():
     """
     Main tutorial function demonstrating pandas operations
