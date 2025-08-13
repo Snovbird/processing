@@ -51,7 +51,7 @@ def trial_formula(plus_or_minus_first:str|None = None,extract_which:str|None=Non
     print(len([i for i in Cycle if i == "DS-"]),"DS- len")
     dspluslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS+"]
     dsminuslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS-"]
-    ITIlist = [int(list_of_timestamps[i]+ 40*(1 if div(i% 2, i% 2) != 0 else -0.25)) for i in range(1,len(Cycle)-1)]
+    ITIlist = [int(list_of_timestamps[i]+ 40*(1 if div(i% 2, i% 2) != 0 else -0.25)) for i in range(0,len(Cycle))]
     if not extract_which:
         extract_which = custom_dialog(msg="GET VALUES FOR WHICH CUE?\n This will give timestamps for: DS+, ITI or DS-",title="First trial",op1="DS+",op2="ITI",op3="DS-") # = "DS+" # Timestamps for which of the two cue lights (plus or minus) will be copied
 

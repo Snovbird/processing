@@ -87,10 +87,12 @@ def main():
         if not file_paths:
             print("No file selected. Exiting...")
             return
-        start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")).split(".")
+        start_times = askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")
         if start_times is None:
             print("Exiting... since start_times is None")
             return
+        start_times = remove_other(start_times).split(".")
+
         handling_end_times = custom_dialog(msg="Enter automatically a given number of seconds or FULL end times string?",title="Ending times",op1="Automatic",op2="FULL STRING")
         if handling_end_times is None:
             print("Exiting... since handling_end_times is None")
@@ -100,11 +102,14 @@ def main():
             end_times = addtopss(start_times,HHMMSS_or_frames="HHMMSS")
             print(end_times)
         elif handling_end_times == "FULL STRING":
-            end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
+            end_times = askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")
+            if end_times is None:
+                print("Exiting since end_times is None")
+                return
+            end_times = remove_other(end_times).split(".")
         if end_times is None:
             print("Exiting since end_times is None")
             return
-    
 
     start_times = list(
         map(format_time_colons,start_times) # format as HH:MM:SS
