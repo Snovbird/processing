@@ -15,7 +15,7 @@ def windowpath() -> str:
     window = win32gui.GetForegroundWindow()
     return str(win32gui.GetWindowText(window)).replace(' - File Explorer','').replace("\\\\","/")
 
-def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple|int = (300, 150)) -> str:
+def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple[int,int] = (300, 150)) -> str:
 
     class custom_dialog(wx.Dialog):
         def __init__(self, parent, title, message, option1="Proceed", option2="Skip",option3=None):
@@ -245,12 +245,12 @@ def select_anyfile(title="Select files",path='',specific_ext:list[str] | str=Non
     else:
         return pathDNE()
 
-def askint(msg="Enter an integer:", title="Integer Input", fill='0') -> int:
+def askint(msg:str="Enter an integer:", title:str="Integer Input", fill:str|int=0) -> int:
     
     
     """Open a dialog to ask for an integer, always on top."""
     app = wx.App(False)  # Create the wx.App instance
-    dlg = wx.TextEntryDialog(None, msg, title, value=str(fill), style=wx.OK | wx.CANCEL)
+    dlg = wx.TextEntryDialog(None, msg, title, value=f"{fill}", style=wx.OK | wx.CANCEL)
     dlg.Centre()
     
     if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
@@ -261,8 +261,7 @@ def askint(msg="Enter an integer:", title="Integer Input", fill='0') -> int:
             return result
         except ValueError:
             dlg.Destroy()
-            wx.MessageBox("Invalid input. Please enter a valid integer.", "Error", 
-                         wx.ICON_ERROR)
+            error(f"{fill} is not a valid default value. Please enter a valid integer.")
             app.Destroy()
             return askint(msg=msg, title=title, fill=fill)
     
@@ -386,6 +385,8 @@ def find_folder_path(foldername:str) -> str:
         jsondata = {"folder_dirs": {},"values":{}}
     
     def longfind():
+        if custom_dialog(f"Cannot find {foldername}, begin full search?","Long search") == "no":
+            return
         desktop_path = os.path.expanduser("~")
         for root, dirs, files in os.walk(desktop_path):
             if foldername in dirs:
@@ -724,3 +725,17 @@ def wrap(input_str:str,count:int=20,wrap:str="*",printq:bool=True):
         print(wrapped)
     return wrapped
     
+def avg(list_values: list[int | float]) -> str:
+    from fractions import Fraction
+    
+    if not list_values:
+        raise ValueError("Cannot calculate average of empty list")
+    
+    total = sum(list_values)
+    count = len(list_values)
+    
+    # Create fraction and it will automatically be reduced
+    average_fraction:Fraction = Fraction(total, count)
+
+    normal_float:float = total / count 
+    return average_fraction, normal_float
