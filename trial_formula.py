@@ -51,7 +51,15 @@ def trial_formula(plus_or_minus_first:str|None = None,extract_which:str|None=Non
     print(len([i for i in Cycle if i == "DS-"]),"DS- len")
     dspluslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS+"]
     dsminuslist = [list_of_timestamps[i] for i, ds in enumerate(Cycle) if ds == "DS-"]
-    ITIlist = [int(list_of_timestamps[i]+ 40*(1 if div(i% 2, i% 2) != 0 else -0.25)) for i in range(0,len(Cycle))]
+    # ITIlist = [int(list_of_timestamps[i]+ 40*(1 if div(i% 2, i% 2) != 0 else -0.25)) for i in range(0,len(Cycle))]
+
+    ITIstarts = [time + 45 for time in list_of_timestamps]
+
+    range_first = [range(0,len(ITIstarts))]
+    range_second = [range(1,len(ITIstarts))]
+    range_third = [range(2,len(ITIstarts))]
+
+    ITIends = [time+25 if n in range_first else time + 75 if n in range_second else time + 145 for n, time in enumerate(ITIstarts)]
     if not extract_which:
         extract_which = custom_dialog(msg="GET VALUES FOR WHICH CUE?\n This will give timestamps for: DS+, ITI or DS-",title="First trial",op1="DS+",op2="ITI",op3="DS-") # = "DS+" # Timestamps for which of the two cue lights (plus or minus) will be copied
 
@@ -61,10 +69,10 @@ def trial_formula(plus_or_minus_first:str|None = None,extract_which:str|None=Non
     elif extract_which == "ITI":
         ITIchoice =custom_dialog("start_times or end times","Timestamps","start","end") 
         if ITIchoice == "start":
-            return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(ITIlist) if number % 2 == 0])
+            return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(ITIstarts) if number % 2 == 0])
         
         elif ITIchoice == "end":
-            return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(ITIlist) if number % 2 != 0])
+            return ".".join([f'{hh//3600:01d}{(hh%3600)//60:02d}{hh%60:02d}' for number, hh in enumerate(ITIends) if number % 2 != 0])
         
     elif extract_which == "DS-":
         print("dsminus")
