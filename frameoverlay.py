@@ -60,7 +60,26 @@ def overlay_FRAMES(input_path,folder_path = None):
         return None
 
 def main():
-    startpath:str = windowpath()
+    import sys
+    # Check if a startpath was provided
+    if len(sys.argv) > 1:
+        path_arg = sys.argv[1]
+        # Check if the argument is a valid directory path
+        if os.path.isdir(path_arg):
+            startpath = path_arg
+        else:
+            # If not a full path, try to construct one from common locations
+            possible_paths = [
+                os.path.join(os.path.expanduser("~"), path_arg),      # User folder
+                os.path.join(os.path.expanduser("~"), "Desktop", path_arg), # Desktop
+                os.path.join("C:\\", path_arg)                       # Root drive
+            ]
+            for path in possible_paths:
+                if os.path.isdir(path):
+                    startpath = path
+                    break
+    else:
+        startpath = ''
 
     # Ask the user to select a video file
     file_paths = select_anyfile(
