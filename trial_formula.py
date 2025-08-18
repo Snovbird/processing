@@ -83,5 +83,7 @@ def main():
     pyperclip.copy(trial_formula())
 
 if __name__ == "__main__":
-    main()
+    print(trial_formula("DS+","ITI"))
+    
+    print(["00103.00423.00853.01403.01723.02153.02703.03023.03453.04003.04323.04753.05303.05623.10053".split(".")]
 

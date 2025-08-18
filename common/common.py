@@ -492,7 +492,9 @@ def dropdown(choices: list[str], title='', icon_name=None) -> str:
                 dialog.SetIcon(icon)
             except Exception as e:
                 print(f"Failed to load icon: {e}")
-    
+    else:
+        dialog = wx.Dialog(None, title=title, size=(315, 150))
+
     dialog.CenterOnScreen()
     
     panel = wx.Panel(dialog)
