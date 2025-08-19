@@ -1,5 +1,5 @@
 import pandas,os
-from .common import select_folder
+from .simplecommon import select_folder
 def export_excel(data_dict: dict[str, list[dict[str, str | int]]], output_path=None, filename="CORRECTED behavior data.xlsx"):
     """
     Create Excel file with separate sheets for each video.

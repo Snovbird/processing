@@ -10,10 +10,6 @@ JSON_PATH = os.path.join(COMMON_CURRENT_DIR, 'data.json')
 # no need to import modules present in __init__ (will be run first) # NOT SURE ABOUT THAT ACTUALLY
 # answer = CustomDialog(None, title="", message="", option1="", option2="")
 
-def windowpath() -> str:
-    import win32gui
-    window = win32gui.GetForegroundWindow()
-    return str(win32gui.GetWindowText(window)).replace(' - File Explorer','').replace("\\\\","/")
 
 def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple[int,int] = (300, 150)) -> str:
 
@@ -111,18 +107,6 @@ def select_folder(title="Choose a directory",path='') -> str:
             return pathDNE()
     else:
         return pathDNE()
-
-def clear_gpu_memory() -> bool:
-    import subprocess
-    try:
-        # Reset GPU clocks temporarily to help clear memory
-        subprocess.run(["nvidia-smi", "-lgc", "0,0"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        subprocess.run(["nvidia-smi", "-rgc"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("GPU memory cleanup attempted")
-        return True
-    except Exception as e:
-        print(f"GPU memory cleanup failed: {e}")
-        return False
     
 def select_video(title:str="Select videos",path:str='',avi:bool = False) -> list[str]:
     
@@ -318,48 +302,6 @@ def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,h
         # print(f"Created folder: {new_folder_path}")
     return new_folder_path
 
-def get_duration(video_path: str) -> tuple[float, str] | None:
-    """
-    Get the duration of a video file
-    
-    Args:
-        video_path: Path to the video file
-        
-    Returns:
-        A tuple containing (frames,seconds, formatted_time) or None if error
-    """
-    import os
-    import cv2
-    import datetime
-
-    # Check if file exists
-    if not os.path.isfile(video_path):
-        print(f"Error finding video duration: File '{video_path}' does not exist")
-        return None
-        
-    # Create video capture object
-    video = cv2.VideoCapture(video_path)
-    
-    # Check if video opened successfully
-    if not video.isOpened():
-        print(f"Error: Could not open video '{video_path}'")
-        return None
-    
-    # Count the number of frames
-    frames = video.get(cv2.CAP_PROP_FRAME_COUNT)
-    fps = video.get(cv2.CAP_PROP_FPS)
-    
-    # Calculate duration in seconds
-    seconds = frames / fps
-    
-    # Format time as HH:MM:SS (keep the colons!)
-    formatted_time = str(datetime.timedelta(seconds=int(seconds)))
-    
-    # Release the video object
-    video.release()
-    
-    return frames, seconds, formatted_time
-
 def msgbox(msg:str,title:str=' '):
     
 
@@ -374,252 +316,11 @@ def error(msg:str,title:str="ERROR"):
 
     wx.MessageBox(f"Error: {msg}", f"{title}", wx.OK | wx.ICON_ERROR)
 
-def find_folder_path(foldername:str) -> str:
-    import json
-
-    # First, read the JSON data
-    try:
-        with open(JSON_PATH, 'r') as j:
-            jsondata = json.load(j)
-    except FileNotFoundError:
-        jsondata = {"folder_dirs": {},"values":{}}
-    
-    def longfind():
-        if custom_dialog(f"Cannot find {foldername}, begin full search?","Long search") == "no":
-            return
-        desktop_path = os.path.expanduser("~")
-        for root, dirs, files in os.walk(desktop_path):
-            if foldername in dirs:
-                output_path = os.path.join(root, foldername)
-                # Update the JSON data in memory
-                if "folder_dirs" not in jsondata:
-                    jsondata["folder_dirs"] = {}
-                jsondata['folder_dirs'][foldername] = output_path
-                
-                # Write the updated JSON data back to the file
-                with open(JSON_PATH, 'w') as j:
-                    json.dump(jsondata, j,indent=4)
-                return output_path
-        error(f"No folder with the name {foldername}")
-        return None
-
-    try:
-        findfolder = jsondata['folder_dirs'][foldername]
-        if os.path.exists(findfolder):
-            return findfolder
-        else:
-            return longfind()
-    except KeyError:
-        return longfind()
-    
-def findval(valuename:str):
-    import json
-
-    # First, read the JSON data
-    try:
-        with open(JSON_PATH, 'r') as j:
-            jsondata = json.load(j)
-    except (FileNotFoundError, json.JSONDecodeError):
-        # If file doesn't exist or is empty/invalid, there's no value to find.
-        return 
-
-    if not isinstance(jsondata, dict):
-        return None
-
-    # Use .get() for safer access. Return None if 'values' or valuename doesn't exist.
-    return jsondata.get('values', {}).get(valuename, "DOES NOT EXIST")
-    # return jsondata.get('values', {}).get(valuename, None)
-
-# def findval(valuename:str) -> str:
-#     import json
-
-#     # First, read the JSON data
-#     try:
-#         with open(JSON_PATH, 'r') as j:
-#             jsondata = json.load(j)
-#     except FileNotFoundError:
-#         # Create default structure if file doesn't exist
-#         jsondata = {"folder_dirs": {},"values":{}}
-#         print("No folder with the given name")
-#         return "CANT FIND JSON"
-
-#     try:
-#         return jsondata['values'][valuename]
-#     except KeyError:
-#         print(f"The value {valuename} doesn't exist in 'values'")
-#         return "DOES NOT EXIST"
-#         # from common.common import askstring
-#         # jsondata['values'][valuename] = askstring(msg="Provide the value for this key:")
-#         # with open("common/data.json", 'w') as j:
-#         #     json.dump(jsondata,j)
-
-def assignval(valuename:str,value):
-    import json
-    try:
-        with open(JSON_PATH, 'r') as j:
-            jsondata = json.load(j)
-        jsondata['values'][valuename] = value
-        
-        with open(JSON_PATH, 'w') as j:
-            json.dump(jsondata,j,indent=4)
-    except Exception as e:
-        print(f"Failed to assign {value} to {valuename}.\nError: {e}")
-
-def dropdown(choices: list[str], title='', icon_name=None) -> str:
-    """
-    Args:
-    choices: list of string (options) to display in the dropdown
-    title: Title in the top left of the window
-    icon_name:  **`star`**, **`check`**
-    """
-
-    app = wx.GetApp()
-    if "MARKERS_TEMPLATES" in choices:
-        choices.remove("MARKERS_TEMPLATES")
-    if not app:
-        app = wx.App(False)
-        created_app = True
-    else:
-        created_app = False
-
-    # Create a dialog instead of a frame for modal behavior
-    if icon_name:
-        dialog = wx.Dialog(None, title=title, size=(315, 150))
-        icon_path = os.path.join(SCRIPTS_PATH,'icons',f"{icon_name}.ico")
-        if os.path.exists(icon_path):
-            try:
-                icon = wx.Icon(icon_path, wx.BITMAP_TYPE_ICO)
-                dialog.SetIcon(icon)
-            except Exception as e:
-                print(f"Failed to load icon: {e}")
-    else:
-        dialog = wx.Dialog(None, title=title, size=(315, 150))
-
-    dialog.CenterOnScreen()
-    
-    panel = wx.Panel(dialog)
-    dropdown_ctrl = wx.Choice(panel, choices=choices, pos=(50, 20), size=(200, -1))
-    dropdown_ctrl.SetSelection(0)
-    
-    selected_item = [None]
-    
-    button_width = 70
-    button_spacing = 10
-    total_button_width = (button_width * 2) + button_spacing
-    start_x = (300 - total_button_width) // 2
-    
-    ok_button = wx.Button(panel, label="OK", pos=(start_x, 70), size=(button_width, 30))
-    cancel_button = wx.Button(panel, label="Cancel", pos=(start_x + button_width + button_spacing, 70), size=(button_width, 30))
-    
-    def on_key_press(event):
-        if event.GetKeyCode() == wx.WXK_RETURN:
-            selected_item[0] = dropdown_ctrl.GetString(dropdown_ctrl.GetSelection())
-            dialog.EndModal(wx.ID_OK)
-        else:
-            event.Skip()
-    
-    def on_ok(event):
-        selected_item[0] = dropdown_ctrl.GetString(dropdown_ctrl.GetSelection())
-        dialog.EndModal(wx.ID_OK)
-    
-    def on_cancel(event):
-        selected_item[0] = None
-        dialog.EndModal(wx.ID_CANCEL)
-    
-    dialog.Bind(wx.EVT_CHAR_HOOK, on_key_press)
-    ok_button.Bind(wx.EVT_BUTTON, on_ok)
-    cancel_button.Bind(wx.EVT_BUTTON, on_cancel)
-    
-    # Always use ShowModal for dialogs
-    dialog.ShowModal()
-    dialog.Destroy()
-    
-    return selected_item[0]
-
-def hhmmss_to_seconds(time_str:str) -> int:
-    """Convert HHMMSS string to total seconds"""
-    # Ensure the string is 6 characters long (pad with leading zeros if needed)
-    if type(time_str) != str:
-        try:
-            str(time_str)
-        except Exception as e:
-            error("Error wrong input:", str(e))
-            return
-    
-    # runs anyway 
-    time_str = time_str.zfill(6)
-    
-    # Extract hours, minutes, seconds
-    hours = int(time_str[0:2])
-    minutes = int(time_str[2:4])
-    seconds = int(time_str[4:6])
-    
-    # Convert to total seconds
-    total_seconds = hours * 3600 + minutes * 60 + seconds
-    return total_seconds
-    
-def seconds_to_hhmmss(seconds:int) -> str:
-    """Convert seconds to HHMMSS string format"""
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    remaining_seconds = seconds % 60
-    
-    hhmmss_string = f"{hours:02d}{minutes:02d}{remaining_seconds:02d}".zfill(6)
-
-    return hhmmss_string
-
-def format_time_colons(time_input:str) -> str:
-    """
-    Format the time input to HH:MM:SS.
-    
-    Args:
-        time_input (str): The input time as a string without colons.
-    
-    Returns:
-        str: Formatted time as HH:MM:SS.
-    """
-    time_input = time_input.strip()
-    
-    if time_input.isdigit():
-        time_input = time_input.zfill(6) # or f"{time_input:06d}" would've also worked IF WE HAD AN INTEGER AND NOT A STRING
-        return f"{time_input[:-4]}:{time_input[-4:-2]}:{time_input[-2:]}"
-    else:
-        return time_input  # Return the original input if it's not valid
-    
 def wrap(text_input:str,text_to_wrap:str) -> str:
     '''
     To a *`string`*: appends on both sides of a 'text_input' another string 'text_to_wrap'
     '''
     return f"{text_to_wrap}{text_input}{text_to_wrap}"
-
-def remove_other(stringinput:str) -> str:
-    """
-    Cleans a *`string`* to remove characters that arent **PERIODS** or **NUMBERS**
-    """
-    clean_string = ""
-    for char in stringinput:
-        if char in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.']:
-            clean_string += char
-    return clean_string
-
-def group_from_end(data: list, chunk_size: int) -> list[list[str]]:
-    """
-    Groups a list into sublists of a given size, starting from the end.
-    The first sublist may be smaller if the total number of items is not
-    a multiple of chunk_size.
-
-    Example:
-    group_from_end(list(range(16)), 7)
-    >> [[0, 1], [2, 3, 4, 5, 6, 7, 8], [9, 10, 11, 12, 13, 14, 15]]
-    """
-    if not data:
-        return []
-    
-    # Reverse the list to group from the "start" (which is the original end)
-    reversed_list = data[::-1]
-    # Create chunks from the reversed list, then reverse the chunks and their contents
-    temp_chunks = [reversed_list[i:i + chunk_size] for i in range(0, len(reversed_list), chunk_size)]
-    return [chunk[::-1] for chunk in temp_chunks[::-1]]
 
 def is_dir(path:str) -> bool:
     try:
@@ -638,25 +339,6 @@ def path_exists(path:str) -> bool:
         return os.path.exists(path)
     except:
         return False
-
-def get_date_yyyymmdd() -> str:
-    """
-    Returns: 
-    Today's date formatted as MM-DD.
-    ## Also:
-    Assigns this date to the value "dates" in the json 
-    """
-    from datetime import date
-    # Get today's date
-    today = date.today()
-    # Format the date as MM-DD
-    formatted_date = today.strftime("%Y%m%d")
-    alldates = findval("dates")
-    if alldates[-1] != formatted_date:
-        alldates.append(formatted_date)
-        assignval("dates",alldates)
-        print(f"Added date: {formatted_date}")
-    return formatted_date
 
 def list_files(dir:str) -> list[str]:
     """
@@ -691,41 +373,6 @@ def list_folderspaths(dir:str) -> list[str]:
     ex: `C:/users/me/apples/, C:/users/me/banana/`
     """
     return [os.path.join(dir, folder) for folder in os.listdir(dir) if os.path.isdir(os.path.join(dir, folder))]
-
-def unhide_folder(dir:str):
-    import sys,subprocess
-    creationflags = 0
-    if sys.platform == 'win32':
-        creationflags = subprocess.CREATE_NO_WINDOW
-                
-    subprocess.run(['attrib', '-h', dir], check=True, creationflags=creationflags)
-
-def is_date(date_string:str) -> bool:
-    from datetime import datetime
-    """Simple date checker for most common formats"""
-    common_formats = ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%Y%m%d']
-    
-    for fmt in common_formats:
-        try:
-            datetime.strptime(date_string.strip(), fmt)
-            return True
-        except ValueError:
-            continue
-    return False
-
-def wrap(input_str:str,count:int=20,wrap:str="*",printq:bool=True):
-    """
-    Args:
-    input_str: the middle component of the string
-    count: the amount of characters on either side of the middle string
-    wrap: the character wrapping the input. Default is asterisk "*"
-    printq: yes or no? do we print the wrapped string. Default is yes
-    """
-    total = count *2 + len(input_str)
-    wrapped:str = f"{input_str:wrap^total}"
-    if printq:
-        print(wrapped)
-    return wrapped
     
 def avg(list_values: list[int | float]) -> str:
     from fractions import Fraction

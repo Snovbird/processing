@@ -2,7 +2,7 @@ from common.common import select_anyfile,msgbox,error,list_folders,select_folder
 import json, os
 import pandas
 from excel.writer_complex import writer_complex 
-from excel.general import fit_columns,excel_to_list
+from excel.general import fit_columns,excel_to_dict
 from excel.export import export_excel
 
 def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, int]]]:
@@ -107,7 +107,7 @@ def group_remove_2NA(list_of_behaviors_strings:list[str]):
     
     return result
 
-def find_missing_counts(list_of_grouped_behaviors:list[dict[str,str | int]]) -> tuple[list[dict], list[str]]:
+def find_missing_counts(list_of_grouped_behaviors:list[dict[str,str | int]]) -> tuple[list[dict[str, int]], list[str]]:
     behaviors_missed:dict[str, int] = {}
 
     cues = set()
@@ -213,17 +213,15 @@ def main():
         
         folder_of_detection = select_folder("Select folder containing detection result folders")
         #minimum_probability = askint("Enter required probability out of 100","Minimum probability")
-        video_names:list[str] = list_folders(os.path.dirname(xlsx_path))
-        columns_list_with_probabilities:list[ list[str] ] = excel_to_list(xlsx_path)
-        frame_times:list[str] = columns_list_with_probabilities.pop(0) # remove timestamps column
-        corrected_data: dict[str, dict [str, list[dict[str,str | int]]]] = {}
+        columns_dict_with_probabilities:dict[str, list[str, int] ] = excel_to_dict(xlsx_path)
+        frame_times:list[str] = columns_dict_with_probabilities.pop(0) # remove timestamps column
         # list_of_columns = [[behavior if float(probability) >= minimum_probability else "NA" 
         #              for behavior, probability in video_column] for video_column in columns_list_with_probabilities]
-        columns_list = [i[0] for i in columns_list_with_probabilities]
-        
+        columns_dict: dict[str, list[str]] = {header: behavior_and_prob[0] for header, behavior_and_prob in columns_dict_with_probabilities.items()}
+        corrected_data: dict[str, dict [str, list[dict[str,str | int]]]] = {}
 
 
-        for video_name, column in zip(video_names, columns_list):
+        for video_name, column in columns_dict.items():
             
             grouped:list[dict[str,str | int]] = group_remove_2NA(column)
 
@@ -236,14 +234,43 @@ def main():
             detection_excels = os.path.join(folder_of_detection,video_name)
 
             detection = {} 
-            for excel in list_files(detection_excels):
+            for det_excel in list_files(detection_excels):
                 
-                if excel.startswith("light") and excel.endswith(".xlsx"):
+                if det_excel.startswith("light") and det_excel.endswith(".xlsx"):
                     for cue in cues:
-                        if cue in excel: # usually DS+ or DS-. CS+ might be next
-                            detection.update(detector_excel_to_object_times(os.path.join(detection_excels,excel)))
+                        if cue in det_excel: # usually DS+ or DS-. CS+ might be next
+                            detection.update(detector_excel_to_object_times(os.path.join(detection_excels,det_excel)))
             
-            for object in detection:
+            evoked_behaviors = [behavior for behavior in NO_NA_list if behavior[-4:] in cues]
+
+            for behavior, properties in cd_list.items():
+                if behavior in evoked_behaviors:
+                    first_frames = properties['Latency']
+                    latencies = []
+                    for time in first_frames:
+                        for props in detection[behavior]:
+                            first = props['first_frame']
+                            last = props['last_frame']
+                            if first < time < last:
+                                latencies.append(time - first) # time to respond in frames (1/15th of a second)
+                    
+                    latency = avg(latencies)
+                    properties['Latency'] = latency # in number of frames
+        
+        cd_list.update(missing_counts)
+
+        corrected_data[video_name] = cd_list
+    
+    writer_complex(corrected_data,os.path.dirname(xlsx_path))
+
+
+        
+                    
+
+
+                    
+
+
                 
 
             
