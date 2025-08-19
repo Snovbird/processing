@@ -160,7 +160,7 @@ def emergency_overlay_maker(cage_number=None,room=None):
     
     first_project_path = shutil.copy(os.path.join(find_folder_path("MARKERS_TEMPLATES"),"template.xcf"),room_folder_path)
     # name example = cage6_20250616.png
-    project_path = os.path.join(room_folder_path,f"cage{cage_number}_{date}.xcf")
+    project_path = os.path.join(room_folder_path,f"cage{cage_number}-{date}.xcf")
     os.rename(first_project_path,project_path)
     msgbox("A file explorer window will open next. From the explorer, select a video from which an image will be extracted to align the markers.\nThis image will be automatically added to the opened folder.")
     times = 1
@@ -168,7 +168,7 @@ def emergency_overlay_maker(cage_number=None,room=None):
     while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
         os.remove(imgpath)
         times += 5
-        imgpath = extractpng(video=select_video("Select video from which an image will be extracted align the markers"),times=(times,),output_folder=room_folder_path)[0]
+        imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
     os.startfile(room_folder_path)
 
 

@@ -2,7 +2,7 @@ from common.common import select_anyfile,msgbox,error,list_folders,select_folder
 import json, os
 import pandas
 from excel.writer_complex import writer_complex 
-from excel.general import fit_columns,excel_to_dict
+from excel.general import fit_columns,excel_to_list
 from excel.export import export_excel
 
 def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, int]]]:
@@ -17,61 +17,54 @@ def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, 
         df = pandas.read_excel(excel_path, sheet_name=None)  # Read all sheets
         object_name = os.path.splitext(os.path.basename(excel_path))[0]
         
-        for sheet_name, sheet_df in df.items(): # only 1 iteration (sheet1)
-            # Assuming the sheet name is the video name NOT TRUE
-            # object_name = sheet_name
+        for sheet_df in df.values():
+            events = []
             
-            if 'start_frame' in sheet_df.columns and 'end_frame' in sheet_df.columns:
-                events = []
-                # Get column B (index 1) values
-                column_b_values = sheet_df.iloc[:, 1]  # Second column (index 1)
+            # Get column B (index 1) values
+            column_b_values = sheet_df.iloc[:, 1]  # Second column (index 1)
+            
+            # Track groups of consecutive non-blank values
+            current_group_start = None
+            
+            for idx, value in enumerate(column_b_values):
+                if pandas.notna(value) and str(value).strip() != '':  # Non-blank value
+                    if current_group_start is None:
+                        # Start of a new group
+                        current_group_start = idx + 1  # +1 because Excel rows are 1-indexed
+                else:  # Blank value or NaN
+                    if current_group_start is not None:
+                        # End of current group
+                        last_frame = idx  # idx is the last non-blank row (0-indexed, so no +1 needed)
+                        first_frame = current_group_start
+                        frame_duration = last_frame - first_frame + 1
+                        
+                        events.append({
+                            'first_frame': first_frame,
+                            'last_frame': last_frame,
+                            'frame_duration': frame_duration
+                        })
+                        
+                        current_group_start = None  # Reset for next group
+            
+            # Handle case where the last group extends to the end of the column
+            if current_group_start is not None:
+                last_frame = len(column_b_values)  # Last row index + 1 for Excel row numbering
+                first_frame = current_group_start
+                frame_duration = last_frame - first_frame + 1
                 
-                for idx, value in enumerate(column_b_values):
-                    if pandas.notna(value):  # Skip NaN/empty values
-                        try:
-                            # Assuming column B contains start_frame values
-                            start_frame = int(value)
-                            # You'll need to define how to get end_frame from column B
-                            # Option 1: If column B contains both start and end (e.g., "start-end")
-                            # Option 2: If you have a pattern to calculate end_frame
-                            end_frame = start_frame + 10  # Example: assuming 10 frame duration
-                            
-                            events.append({
-                                'first_frame': start_frame,
-                                'frame_duration': end_frame - start_frame + 1,
-                                'last_frame': end_frame
-                            })
-                        except (ValueError, TypeError):
-                            continue  # Skip invalid values
-                detector_data[object_name] = events
+                events.append({
+                    'first_frame': first_frame,
+                    'last_frame': last_frame,
+                    'frame_duration': frame_duration
+                })
+            
+            detector_data[object_name] = events
                 
-            elif 'first_frame' in sheet_df.columns and 'frame_duration' in sheet_df.columns:
-                events = []
-                # Get column B (index 1) values
-                column_b_values = sheet_df.iloc[:, 1]  # Second column (index 1)
-                
-                for idx, value in enumerate(column_b_values):
-                    if pandas.notna(value):  # Skip NaN/empty values
-                        try:
-                            # Assuming column B contains first_frame values
-                            first_frame = int(value)
-                            # You'll need to define how to get frame_duration
-                            frame_duration = 10  # Example: default duration
-                            
-                            events.append({
-                                'first_frame': first_frame,
-                                'frame_duration': frame_duration,
-                                'last_frame': first_frame + frame_duration - 1
-                            })
-                        except (ValueError, TypeError):
-                            continue  # Skip invalid values
-                detector_data[object_name] = events
-                
-            else:
-                print(f"Warning: Sheet '{sheet_name}' in '{excel_path}' does not contain expected columns for detector data.")
-                detector_data[object_name] = []
     except Exception as e:
-        error(f"Error: {e}")
+        error(f"Error processing detector Excel file '{excel_path}': {e}")
+        return {}
+    
+    return detector_data
 
 def group_remove_2NA(list_of_behaviors_strings:list[str]):
     """
@@ -182,6 +175,11 @@ def find_missing_counts(list_of_grouped_behaviors:list[dict[str,str | int]]) -> 
     return behaviors_missed,cues
 
 def get_countsandduration(grouped_list:list[dict[str,str | int]]) -> dict[str, dict[str,str | int]]:
+    """
+    Returns: 
+        {"behavior name": {"count": int, "duration": int, "latency": [int, int, ...] }, ... }}
+        Where latency is a list of the first frame of each behavior occurence
+    """
     cd_dict = {}
 
     for group in grouped_list:
@@ -211,23 +209,26 @@ def main():
 
     if os.path.basename(xlsx_path) == "all_events.xlsx":
         
-        folder_of_detection = select_folder("Select folder containing detection result folders")
+        video_names = list_folders(os.path.dirname(xlsx_path))
+        # folder_of_detection = select_folder("Select folder containing detection result folders")
+        folder_of_detection = os.path.dirname(xlsx_path)
+        
         #minimum_probability = askint("Enter required probability out of 100","Minimum probability")
-        columns_dict_with_probabilities:dict[str, list[str, int] ] = excel_to_dict(xlsx_path)
-        frame_times:list[str] = columns_dict_with_probabilities.pop(0) # remove timestamps column
+        columns_list_with_probabilities:list[ list[str, int] ] = excel_to_list(xlsx_path)
+        frame_times:list[str] = columns_list_with_probabilities.pop(0) # remove timestamps column
         # list_of_columns = [[behavior if float(probability) >= minimum_probability else "NA" 
         #              for behavior, probability in video_column] for video_column in columns_list_with_probabilities]
-        columns_dict: dict[str, list[str]] = {header: behavior_and_prob[0] for header, behavior_and_prob in columns_dict_with_probabilities.items()}
+        columns_list: list[str] = {header: behavior_and_prob[0] for header, behavior_and_prob in columns_list_with_probabilities.items()}
+        
+        
         corrected_data: dict[str, dict [str, list[dict[str,str | int]]]] = {}
-
-
-        for video_name, column in columns_dict.items():
+        for video_name, column in zip(video_names,columns_list):
             
             grouped:list[dict[str,str | int]] = group_remove_2NA(column)
 
             NO_NA_list = [group for group in grouped if group['behavior'] != "NA"]
             
-            cd_list = get_countsandduration(NO_NA_list)
+            cd_list:dict[str, dict[str, str | int] ] = get_countsandduration(NO_NA_list)
 
             missing_counts, cues = find_missing_counts(NO_NA_list)
 
@@ -243,14 +244,15 @@ def main():
             
             evoked_behaviors = [behavior for behavior in NO_NA_list if behavior[-4:] in cues]
 
+            # add latencies using 
             for behavior, properties in cd_list.items():
                 if behavior in evoked_behaviors:
-                    first_frames = properties['Latency']
-                    latencies = []
+                    first_frames:list[int] = properties['Latency'] # The first frame of each occurence 
+                    latencies:list[int] = []
                     for time in first_frames:
                         for props in detection[behavior]:
-                            first = props['first_frame']
-                            last = props['last_frame']
+                            first:int = props['first_frame']
+                            last:int = props['last_frame']
                             if first < time < last:
                                 latencies.append(time - first) # time to respond in frames (1/15th of a second)
                     
@@ -259,6 +261,7 @@ def main():
         
         cd_list.update(missing_counts)
 
+        msgbox(f"{video_name=}\n{cd_list=}")
         corrected_data[video_name] = cd_list
     
     writer_complex(corrected_data,os.path.dirname(xlsx_path))
