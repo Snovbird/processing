@@ -107,7 +107,7 @@ def group_remove_2NA(list_of_behaviors_strings:list[str]):
     
     return result
 
-def find_missing_counts(list_of_grouped_behaviors:list[dict[str,str | int]]) -> list[dict]:
+def find_missing_counts(list_of_grouped_behaviors:list[dict[str,str | int]]) -> tuple[list[dict], list[str]]:
     behaviors_missed:dict[str, int] = {}
 
     cues = set()
@@ -231,18 +231,20 @@ def main():
             
             cd_list = get_countsandduration(NO_NA_list)
 
-            missing_counts,cues = find_missing_counts(NO_NA_list)
+            missing_counts, cues = find_missing_counts(NO_NA_list)
 
             detection_excels = os.path.join(folder_of_detection,video_name)
 
-            detection = {}
+            detection = {} 
             for excel in list_files(detection_excels):
                 
                 if excel.startswith("light") and excel.endswith(".xlsx"):
                     for cue in cues:
-                        if cue in excel:
+                        if cue in excel: # usually DS+ or DS-. CS+ might be next
                             detection.update(detector_excel_to_object_times(os.path.join(detection_excels,excel)))
-                        
+            
+            for object in detection:
+                
 
             
             
