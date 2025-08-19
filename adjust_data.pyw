@@ -2,18 +2,8 @@ from common.common import select_anyfile,msgbox,error,list_folders,select_folder
 import json, os
 import pandas
 from excel.writer_complex import writer_complex 
-from excel.general import fit_columns
+from excel.general import fit_columns, excel_to_list
 
-def excel_to_list(file_path:str) -> list[list[int | str]]:
-    """One-liner version with proper string-to-list conversion"""
-    import ast
-    try:
-        df = pandas.read_excel(file_path, sheet_name=0)
-        return [[ast.literal_eval(item) if isinstance(item, str) else item # index 0 = behavior name. Index 1 = probability
-                for item in df[col].tolist()] for col in df.columns]
-    except Exception as e:
-        error(f"Cannot read '{file_path}'. Conversion to list failed: {e}")
-        return None
 
 def group_consecutive_elements(list_of_behaviors_strings:list[str]):
     """
@@ -149,6 +139,78 @@ def dict_to_excel_advanced_transposed(data_dict: dict[str, list[dict[str, str | 
     except Exception as e:
         print(f"Error creating Excel file: {str(e)}")
         return None
+    
+def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, int]]]:
+    """
+    {"Object_name": [
+        {"first_frame": ..., "frame_duration": ..., "last_frame": ...},
+        ...
+        ]}
+    """
+    detector_data = {}
+    try:
+        df = pandas.read_excel(excel_path, sheet_name=None)  # Read all sheets
+        object_name = os.path.splitext(os.path.basename(excel_path))[0]
+        
+        for sheet_name, sheet_df in df.items(): # only 1 iteration (sheet1)
+            # Assuming the sheet name is the video name NOT TRUE
+            # object_name = sheet_name
+            
+            if 'start_frame' in sheet_df.columns and 'end_frame' in sheet_df.columns:
+                events = []
+                # Get column B (index 1) values
+                column_b_values = sheet_df.iloc[:, 1]  # Second column (index 1)
+                
+                for idx, value in enumerate(column_b_values):
+                    if pandas.notna(value):  # Skip NaN/empty values
+                        try:
+                            # Assuming column B contains start_frame values
+                            start_frame = int(value)
+                            # You'll need to define how to get end_frame from column B
+                            # Option 1: If column B contains both start and end (e.g., "start-end")
+                            # Option 2: If you have a pattern to calculate end_frame
+                            end_frame = start_frame + 10  # Example: assuming 10 frame duration
+                            
+                            events.append({
+                                'first_frame': start_frame,
+                                'frame_duration': end_frame - start_frame + 1,
+                                'last_frame': end_frame
+                            })
+                        except (ValueError, TypeError):
+                            continue  # Skip invalid values
+                detector_data[object_name] = events
+                
+            elif 'first_frame' in sheet_df.columns and 'frame_duration' in sheet_df.columns:
+                events = []
+                # Get column B (index 1) values
+                column_b_values = sheet_df.iloc[:, 1]  # Second column (index 1)
+                
+                for idx, value in enumerate(column_b_values):
+                    if pandas.notna(value):  # Skip NaN/empty values
+                        try:
+                            # Assuming column B contains first_frame values
+                            first_frame = int(value)
+                            # You'll need to define how to get frame_duration
+                            frame_duration = 10  # Example: default duration
+                            
+                            events.append({
+                                'first_frame': first_frame,
+                                'frame_duration': frame_duration,
+                                'last_frame': first_frame + frame_duration - 1
+                            })
+                        except (ValueError, TypeError):
+                            continue  # Skip invalid values
+                detector_data[object_name] = events
+                
+            else:
+                print(f"Warning: Sheet '{sheet_name}' in '{excel_path}' does not contain expected columns for detector data.")
+                detector_data[object_name] = []
+    except Exception as e:
+        error(f"Error: {e}")
+
+
+
+
 
 def main():
 
@@ -305,24 +367,31 @@ def main():
             dict_counts_duration[video_name][behavior]["Duration"] = avg(dict_counts_duration[video_name][behavior]["Duration"])[1]
 
     final = {}
+    # dictionnary of video names for dictionnaries of objects for lists of dictionnaries of sets of object appearance
+    detection_results = {f"{os.path.basename(folder_name)}_{os.path.splitext(os.path.basename(excel))[0]}": detector_excel_to_object_times(excel) 
+     for folder_name in list_folderspaths(select_folder("Find folder containing subfolders of tests")) 
+     for excel in list_files(folder_name) 
+     if excel.startswith("light") and excel.endswith(".xlsx")}
 
     for video_name in dict_counts_duration:
         final[video_name] = {}
         for behavior in dict_counts_duration[video_name]:
-            final[video_name][behavior] = [
+            latency = avg(dict_counts_duration[video_name][behavior]["Latency"])[1]
+            cue_to_iterate = behavior[-4:] # ex FNCL
+            
+            detection_results[video_name]
+                  
+            final[video_name][behavior] = [ # "behavior" is the header (dict key)
                 "Count",
                 dict_counts_duration[video_name][behavior]["Count"],
                 "Duration", 
-                dict_counts_duration[video_name][behavior]["Duration"],  # Convert fraction to float
+                dict_counts_duration[video_name][behavior]["Duration"], 
                 "Latency",
-                dict_counts_duration[video_name][behavior]["Latency"]
+                latency
             ]    
         # with open(f"{os.path.dirname(xlsx_path)}/all_events_counts.json", "w") as f:
         #     json.dump(final, f, indent=2)
 
-            # for n, latency in enumerate(dict_counts_duration[video_name]["Latency"]):
-            #     for start_DSplus, end_DSplus in [(times['first_frame'], times['first_frame'] + times['frame_duration'] for times in detection_sets]
-            #         if start_DSplus < latency < end_DSplus:
     # msgbox(f"{}")
     for video in dict_counts_duration:        
         # Iterate over items in behaviors_not_quantified[video]
@@ -343,7 +412,6 @@ def main():
             while len(current_list) < max_length:
                 current_list.append("")  # Pad with empty strings
 
-    
 
     writer_complex(data=final,xlsx_path=os.path.join(os.path.dirname(xlsx_path),"all_events_counts.xlsx"))
     # dict_to_excel_advanced_transposed(data_dict=new_corrected_ordered_sets,output_path=os.path.dirname(xlsx_path))
