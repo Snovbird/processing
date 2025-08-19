@@ -1,8 +1,9 @@
 dump/links
+/1-test.py
+
 *.json
 *.txt
 *.xlsx
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
