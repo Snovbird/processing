@@ -233,7 +233,7 @@ def main():
             missing_counts, cues = find_missing_counts(NO_NA_list)
 
             detection_excels = os.path.join(folder_of_detection,video_name)
-
+            msgbox(f"{detection_excels=}\n{cues=}\n{NO_NA_list=}")
             detection = {} 
             for det_excel in list_files(detection_excels):
                 
@@ -242,8 +242,8 @@ def main():
                         if cue in det_excel: # usually DS+ or DS-. CS+ might be next
                             detection.update(detector_excel_to_object_times(os.path.join(detection_excels,det_excel)))
             
-            evoked_behaviors = [behavior for behavior in NO_NA_list if behavior[-4:] in cues]
-
+            evoked_behaviors = [properties['behavior'] for properties in NO_NA_list if properties['behavior'][-4:] in cues]
+            msgbox(f"{evoked_behaviors=}\n{detection=}")
             # add latencies using 
             for behavior, properties in cd_list.items():
                 if behavior in evoked_behaviors:
