@@ -1,5 +1,5 @@
 import pandas, os
-from excel.general import fit_columns
+from general import fit_columns
 
 path = "pandas_tutorial_output.xlsx" # This file will be created in the same directory as the script
 
