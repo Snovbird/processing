@@ -1,4 +1,10 @@
 import pandas
 from common.common import assignval
 
-assignval("apples",1)
+def add(integer):
+    integer += 5
+    return integer
+
+apples = add
+
+print("aFNCL"[-4:])
