@@ -12,7 +12,7 @@ def process_folder():
     """Process a videos of video recordings by naming cages and concatenating videos."""
     # Select the folder to process
     initial_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
-    if not initial_folder or os.path.basename(initial_folder) == "TEST_RECORDINGS":
+    if not initial_folder or os.path.basename(initial_folder) == "TEST-RECORDINGS":
         return
     # Check if files have already been moved
     if len(list_files(initial_folder)) == 0 and len(list_folders(initial_folder)) > 0:
@@ -158,7 +158,7 @@ def emergency_overlay_maker(cage_number=None,room=None):
         # ↓ alternative name needed | working path
         room_folder_path = makefolder(room_folder_path,f"cage{cage_number}_{date}",start_at_1=False)
     
-    first_project_path = shutil.copy(os.path.join(find_folder_path("MARKERS_TEMPLATES"),"template.xcf"),room_folder_path)
+    first_project_path = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),room_folder_path)
     # name example = cage6_20250616.png
     project_path = os.path.join(room_folder_path,f"cage{cage_number}-{date}.xcf")
     os.rename(first_project_path,project_path)

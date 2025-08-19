@@ -24,7 +24,7 @@ def apply_png_overlay(video_path, output_folder,room="OPTO-ROOM (12 cages)",cage
 
     if not date_to_provide: # If a date is inside of the video name,but today's date was not provided (date_today = today's date)
         
-        date_to_provide = video_name.split("_")[1]
+        date_to_provide = video_name.split("-")[1]
         if not is_date(date_to_provide):
             date_to_provide = findval("dates")[-1] # will loop through known dates
     #today's date was provided
@@ -123,12 +123,12 @@ def find_imgpath_overlay_date(date_provided,room,cage_number) -> str:
     if date_provided not in alldates:
         alldates = findval("dates")[::-1]
         for date in alldates:
-            imgpath = os.path.join(overlays_path, room,f"cage{cage_number}_{date}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
+            imgpath = os.path.join(overlays_path, room,f"cage{cage_number}-{date}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
             if os.path.exists(imgpath):
                 break
     else:
         for date_index in range(alldates.index(date_provided),len(alldates)):
-            imgpath = os.path.join(overlays_path, room,f"cage{cage_number}_{alldates[date_index]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
+            imgpath = os.path.join(overlays_path, room,f"cage{cage_number}-{alldates[date_index]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
             if os.path.exists(imgpath):
                 break
     return imgpath

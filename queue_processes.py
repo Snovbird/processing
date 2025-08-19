@@ -1,8 +1,8 @@
 # necessary
-from common.common import askint,select_video,select_folder,dropdown,custom_dialog,makefolder
+from common.common import askint,select_video,select_folder,dropdown,custom_dialog,makefolder,msgbox
 
 # Queue-able processes
-from concatenate import combine_videos_with_cuda
+from concatenate import concatenate
 from extractpng import extractpng
 from frameoverlay import overlay_FRAMES
 from markersquick import apply_png_overlay
@@ -18,17 +18,21 @@ def queue():
     videos = []
     selection = True
     while selection:
-        selection = select_video(f"Select videos. Cancel to stop loop")
+        selection = select_video(f"Select videos. Cancel to stop file explorer loop")
         if selection:
             videos.append(selection)
         # for function in range(how_many_functions):
         #     sel = dropdown(functions)
         #     selected_functions.append(sel)
         #     functions.remove(sel)
+    count = 0
     for group in videos:
         output_folder = makefolder(group[0],"Processed videos-")
         for vid in group:  
             exec(f"{sel}(vid, output_folder=r'{output_folder}')")
+            count +=1
+    return count,sel
             
 if __name__ == "__main__":
-    queue()
+    c,sel = queue()
+    msgbox(f"Successfully used {sel} on {c} videos")

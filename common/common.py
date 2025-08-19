@@ -741,3 +741,28 @@ def avg(list_values: list[int | float]) -> str:
 
     normal_float:float = total / count 
     return average_fraction, normal_float
+
+
+def simple_file_walk(folder,filefunc = None) -> tuple[ set[str],set[str]] | int:
+    """Simple version - just print all files"""
+    if filefunc:
+        count = 0
+        for root, dirs, files in os.walk(folder):
+            for file in files:
+                filefunc(os.path.join(root, file))
+                count +=1
+        return count
+    else:
+        filepaths = set()
+        dirspaths = set()
+
+        for root, dirs, files in os.walk(folder):
+            for file in files:
+                filepaths.add(os.path.join(root, file))
+            for dir in dirs:
+                dirspaths.add(os.path.join(root, dir))
+        return filepaths,dirspaths
+        
+    
+        
+            
