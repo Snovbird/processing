@@ -13,7 +13,7 @@ def main():
     filename, timestamps = fullname.split("-trim(")
     filename += os.path.splitext(os.path.basename(fullpath))[1]
     print(filename,timestamps)
-    start,end = timestamps.strip(")").split("-")
+    start,end,*_ = timestamps.strip(")").split("-")
     end = int(end) - 2
     original_path = os.path.join(r"C:\Users\samahalabo\Desktop\collected DS+\overlaid-1",filename)
     output_path = trim_frames(original_path,start,end,output_folder=find_folder_path("5-clips"),show_terminal=False)

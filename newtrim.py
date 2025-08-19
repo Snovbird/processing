@@ -39,7 +39,7 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
         "-i", input_path,
     ]
     for i, starttime in enumerate(start_times):
-        output_title = f"{base_name}_{count:03d}.mp4"
+        output_title = f"{base_name}-{count:03d}.mp4"
         output_path = os.path.join(output_folder, output_title)
         
         cmd.extend([

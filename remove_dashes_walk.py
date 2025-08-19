@@ -1,7 +1,7 @@
 import os, shutil
 from common.common import select_folder, msgbox,error
 
-def simple_file_walk_renamer(folder):
+def file_walk_renamer(folder):
     """
     walks through all files and directories in a folder
     """
@@ -55,7 +55,8 @@ def simple_file_walk_renamer(folder):
     return renamed
 
 # Usage
-folder_path = select_folder("Enter folder path: ").strip().strip('"\'')
-c = simple_file_walk_renamer(folder_path)
+if __name__ == "__main__":
+    folder_path = select_folder("Enter folder path: ").strip().strip('"\'')
+    c = file_walk_renamer(folder_path)
 
-msgbox(f"Renamed {c} items (files and directories)")
+    msgbox(f"Renamed {c} items (files and directories)")

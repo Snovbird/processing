@@ -84,7 +84,7 @@ def trim_timestamps(input_path:str, start_time:str|int, end_time:str|int,output_
     
     while os.path.exists(output_path):
         count += 1
-        output_name = f"{file_name}{count}.mp4"
+        output_name = f"{file_name}-{count:03d}.mp4"
         output_path = os.path.join(output_folder, output_name)        
     
     try:
