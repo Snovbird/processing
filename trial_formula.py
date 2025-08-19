@@ -16,7 +16,8 @@ def trial_formula(plus_or_minus_first:str|None = None,extract_which:str|None=Non
             list_of_timestamps.append(start_time)
     del list_of_timestamps[-1]
 
-
+    toprint = ".".join([f'{i//3600:01d}{(i%3600)//60:02d}{i%60:02d}' for i in list_of_timestamps])
+    print(toprint)
     # which_first = custom_dialog(msg="Which trial goes first?",title="First trial",op1="DS+",op2="DS-")
     if False:
         session_number = askint(msg="Enter session number:",title="Session number",fill=findval("session_number"))
@@ -55,7 +56,7 @@ def trial_formula(plus_or_minus_first:str|None = None,extract_which:str|None=Non
 
     ITIstarts = [time + 45 for time in list_of_timestamps]
 
-    ITIends = [time + (25 if n % 3 == 0 else 75 if n % 3 == 1 else 145) 
+    ITIends = [time + (20 if n % 3 == 0 else 50 if n % 3 == 1 else 120) 
            for n, time in enumerate(ITIstarts)]
 
     print(f"{ITIstarts=}\n{ITIends=}")    

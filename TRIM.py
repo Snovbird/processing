@@ -1,6 +1,6 @@
 import os
 import subprocess
-from common.common import custom_dialog,select_video,askstring,makefolder,error,format_time_colons,remove_other
+from common.common import custom_dialog,select_video,askstring,makefolder,error,format_time_colons,remove_other,path_exists,is_dir
 import sys
 from addtopss import addtopss
 from common.common import clear_gpu_memory
@@ -11,9 +11,10 @@ def trim_frames(input_path: str, start_time:str|int, end_time:str|int,output_fol
         return None
     file_name = os.path.splitext(os.path.basename(input_path))[0]
     output_name = f"{file_name}.mp4"
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder,exist_ok=True)
-    if output_folder:
+    if not path_exists(output_folder):
+        output_folder = os.path.dirname(input_path)
+        output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"
+    if is_dir(output_folder):
         output_path = os.path.join(output_folder, output_name)
     else:
         file_dir = os.path.dirname(input_path)
@@ -184,7 +185,7 @@ def main():
                     output_path = trim_timestamps(path, start_time, end_time, output_folder=output_folder, count=count)    
             elif unitoption == 'Frames':
                 for path in file_paths:
-                    output_path = trim_frames(path, start_time, end_time, output_folder=output_folder, count=count)
+                    output_path = trim_frames(path, start_time, end_time, output_folder=output_folder)
         all_processing_complete = clear_gpu_memory() # -> True
     else:
         print("ERROR", f"Must enter same # of start times as end times.\nStart times = {start_times}\nEnd times = {end_times}")

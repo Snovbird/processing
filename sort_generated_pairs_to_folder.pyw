@@ -1,4 +1,4 @@
-from common.common import select_folder,find_folder_path,msgbox,dropdown,list_files,list_folders,list_folderspaths
+from common.common import select_folder,find_folder_path,msgbox,dropdown,list_files,list_folders,list_folderspaths,path_exists,error
 import os
 import shutil
 
@@ -67,7 +67,10 @@ def move_files_in_subdir(parent_dir=None,dtn=None):
         return f"0 files to {os.path.basename(dtn)}"
     for list_of_files in list_of_lists_of_files:
         for file in list_of_files:
-            shutil.move(file,dtn)
+            if not path_exists(dtn):
+                shutil.move(file,dtn)
+            else:
+                error(f"{dtn}\nalready exists")
     shutil.rmtree(parent_dir)
     os.makedirs(parent_dir)
     moved:int = sum([len(sublist) for sublist in list_of_lists_of_files])

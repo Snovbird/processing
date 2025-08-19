@@ -9,7 +9,7 @@ pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
 $p::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-behavior video CLIPS\PressLeverFNCL"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\PressLeverFNCL"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
@@ -17,7 +17,7 @@ $p::
 $c::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-behavior video CLIPS\CheckMagazineFNCL"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\CheckMagazineFNCL"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
@@ -25,7 +25,7 @@ $c::
 $i::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-behavior video CLIPS\InteractionFNCL"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\InteractionFNCL"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
@@ -33,7 +33,7 @@ $i::
 $a::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-behavior video CLIPS\LeverApproach"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\LeverApproach"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
@@ -41,7 +41,15 @@ $a::
 $e::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-behavior video CLIPS\EnterMagazine"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\EnterMagazine"
+    command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
+    ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
+    Run, % command
+    return
+$o::
+    send, ^+{c} ; Send "Copy as path" command
+    send, {Right}
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\OrientFNCL"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
@@ -49,12 +57,12 @@ $e::
 ; $r::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-behavior video CLIPS\RetractedLeverInteraction"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\RetractedLeverInteraction"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
     return
-$o::
+$r::
     send, ^+{c} ; Send "Copy as path" command
     Run, pyw "%pythonScriptsDir%\remove_one.py"
     return
