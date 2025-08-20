@@ -58,7 +58,7 @@ def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, 
                     'frame_duration': frame_duration
                 })
             
-            detector_data[object_name] = events
+            detector_data[object_name.replace("_all_centers",'')] = events
                 
     except Exception as e:
         error(f"Error processing detector Excel file '{excel_path}': {e}")
@@ -100,7 +100,7 @@ def group_remove_2NA(list_of_behaviors_strings:list[str]):
     
     return result
 
-def find_missing_counts(list_of_grouped_behaviors:list[dict[str,str | int]]) -> tuple[list[dict[str, int]], list[str]]:
+def find_missing_counts(list_of_grouped_behaviors:list[dict[str,str | int]]) -> tuple[list[dict[str, list[str, int]]], list[str]]:
     behaviors_missed:dict[str, int] = {}
 
     cues = set()
@@ -120,29 +120,30 @@ def find_missing_counts(list_of_grouped_behaviors:list[dict[str,str | int]]) -> 
             if n > 0:
                 last = list_of_grouped_behaviors[n-1]['behavior']  
                 lastcue = last.replace("Interaction", "").replace("Approach", "").replace("Orient", "")
-                cues.add(lastcue)
+                
                 if not last.startswith('Approach') or cue != lastcue:  # different cues in case [n-1] was an approach but for a different cue => No approach before interaction "n"
                     approach_behavior_missed = f"Approach{cue} NOT QUANTIFIED"
                     
                     if approach_behavior_missed not in behaviors_missed:
-                        behaviors_missed[approach_behavior_missed] = 1
+                        behaviors_missed[approach_behavior_missed] =  ["Count",1]
                     else:
-                        behaviors_missed[approach_behavior_missed] += 1
+                        behaviors_missed[approach_behavior_missed][1] += 1
                     
                     # Check if we have a behavior two positions ago (n-2 exists)
                     if n > 1:
                         try: 
                             two_ago = list_of_grouped_behaviors[n-2]['behavior']  # n-3 because enumerate starts at 1
+
                             two_ago_cue = two_ago.replace("Orient", "").replace("Approach", "").replace("Interaction", "")
-                            cues.add(two_ago_cue)
+                            
 
                             # If only interaction (no approach nor OR)
                             if not two_ago.startswith('Orient') or two_ago_cue != cue:  # different cues in case [n-2] was an OR but different cue => No OR before approach "n-1"
                                 orient_behavior_missed = f"Orient{cue} NOT QUANTIFIED"
                                 if orient_behavior_missed not in behaviors_missed:
-                                    behaviors_missed[orient_behavior_missed] = 1
+                                    behaviors_missed[orient_behavior_missed] = ["Count",1]
                                 else:
-                                    behaviors_missed[orient_behavior_missed] += 1
+                                    behaviors_missed[orient_behavior_missed][1] += 1
                         except IndexError:
                             pass
             else:
@@ -160,17 +161,20 @@ def find_missing_counts(list_of_grouped_behaviors:list[dict[str,str | int]]) -> 
             if n > 0:
                 last = behaviors_missed[n-1]['behavior']  # n-2 because enumerate starts at 1
                 lastcue = last.replace("Approach", "").replace("Orient", "").replace("Interaction", "")
-                cues.add(lastcue)
                 if not last.startswith('Orient') or cue != lastcue:
                     orient_behavior_missed = f"Orient{cue} NOT QUANTIFIED"
                     if orient_behavior_missed not in behaviors_missed:
-                        behaviors_missed[orient_behavior_missed] = 1
+                        behaviors_missed[orient_behavior_missed] = ["Count", 1]
                     else:
-                        behaviors_missed[orient_behavior_missed] += 1
+                        behaviors_missed[orient_behavior_missed][1] += 1
             else:
                 # First behavior is an approach, so orient is missing
                 orient_behavior_missed = f"Orient{cue} NOT QUANTIFIED"
                 behaviors_missed[orient_behavior_missed] = behaviors_missed.get(orient_behavior_missed, 0) + 1
+        elif behavior.startswith("Orient"):
+            cue = behavior.replace("Orient", "")
+            cues.add(cue)
+
 
     return behaviors_missed,cues
 
@@ -210,17 +214,15 @@ def main():
     if os.path.basename(xlsx_path) == "all_events.xlsx":
         
         video_names = list_folders(os.path.dirname(xlsx_path))
-        # folder_of_detection = select_folder("Select folder containing detection result folders")
-        folder_of_detection = os.path.dirname(xlsx_path)
+        folder_of_detection = select_folder("Select folder containing detection result folders")
+        # folder_of_detection = os.path.dirname(xlsx_path)
         
         #minimum_probability = askint("Enter required probability out of 100","Minimum probability")
         columns_list_with_probabilities:list[ list[str, int] ] = excel_to_list(xlsx_path)
-        frame_times:list[str] = columns_list_with_probabilities.pop(0) # remove timestamps column
+        columns_list_with_probabilities.pop(0) # remove timestamps column
         # list_of_columns = [[behavior if float(probability) >= minimum_probability else "NA" 
         #              for behavior, probability in video_column] for video_column in columns_list_with_probabilities]
-        columns_list: list[str] = {header: behavior_and_prob[0] for header, behavior_and_prob in columns_list_with_probabilities.items()}
-        
-        
+        columns_list: list[str] = [[behavior_and_prob[0] for behavior_and_prob in col] for col in columns_list_with_probabilities] # only behaviors, remove probabilities
         corrected_data: dict[str, dict [str, list[dict[str,str | int]]]] = {}
         for video_name, column in zip(video_names,columns_list):
             
@@ -233,38 +235,76 @@ def main():
             missing_counts, cues = find_missing_counts(NO_NA_list)
 
             detection_excels = os.path.join(folder_of_detection,video_name)
-            msgbox(f"{detection_excels=}\n{cues=}\n{NO_NA_list=}")
             detection = {} 
+
             for det_excel in list_files(detection_excels):
-                
-                if det_excel.startswith("light") and det_excel.endswith(".xlsx"):
-                    for cue in cues:
-                        if cue in det_excel: # usually DS+ or DS-. CS+ might be next
-                            detection.update(detector_excel_to_object_times(os.path.join(detection_excels,det_excel)))
+                if det_excel.endswith(".xlsx") and det_excel.split("_")[0] in cues: # is the name "FNCL_all_centers.xlsx" for example
+                    detection.update(detector_excel_to_object_times(os.path.join(detection_excels,det_excel)))
             
-            evoked_behaviors = [properties['behavior'] for properties in NO_NA_list if properties['behavior'][-4:] in cues]
-            msgbox(f"{evoked_behaviors=}\n{detection=}")
+            evoked_behaviors = {properties['behavior']: properties['behavior'][-4:] for properties in NO_NA_list if properties['behavior'][-4:] in cues}
             # add latencies using 
             for behavior, properties in cd_list.items():
                 if behavior in evoked_behaviors:
                     first_frames:list[int] = properties['Latency'] # The first frame of each occurence 
                     latencies:list[int] = []
+                    cue = evoked_behaviors[behavior]
                     for time in first_frames:
-                        for props in detection[behavior]:
+                        for props in detection.get(cue,[]):
                             first:int = props['first_frame']
                             last:int = props['last_frame']
                             if first < time < last:
                                 latencies.append(time - first) # time to respond in frames (1/15th of a second)
                     
-                    latency = avg(latencies)
+                    latency = avg(latencies)[1]
                     properties['Latency'] = latency # in number of frames
-        
-        cd_list.update(missing_counts)
+                else:
+                    del properties["Latency"] # no latency if not evoked
+            print(f"{cd_list=}")
+            clean = {}
+            for behavior, properties in cd_list.items():
+                if properties.get("Latency"):
+                    clean[behavior] = [
+                        "Count",
+                        properties["Count"],
+                        "Duration",
+                        properties["Duration"],
+                        "Latency",
+                        properties["Latency"]
+                    ]
+                else:  # non-evoked by cue
+                    clean[behavior] = [
+                        "Count",
+                        properties["Count"],
+                        "Duration",
+                        properties["Duration"]
+                    ]
+                
+            # with open(f"{os.path.dirname(xlsx_path)}/all_events_counts.json", "w") as f:
+                #     json.dump(final, f, indent=2)
 
-        msgbox(f"{video_name=}\n{cd_list=}")
-        corrected_data[video_name] = cd_list
-    
-    writer_complex(corrected_data,os.path.dirname(xlsx_path))
+            # Before calling writer_complex, normalize all list lengths using empty strings (different lengths = error)
+            clean.update(missing_counts)
+
+            msgbox(f"{video_name=}\n{clean=}")
+        
+            corrected_data[video_name] = clean
+
+        msgbox(f"{corrected_data=}")
+        for video_name in corrected_data:
+            max_length = max(len(behavior_list) for behavior_list in corrected_data[video_name].values()) # a generator object IS an iterable (for max fct)
+            for behavior_name in corrected_data[video_name]:
+                current_list = corrected_data[video_name][behavior_name]
+                while len(current_list) < max_length:
+                    current_list.append("")  # Pad with empty strings
+
+
+
+    msgbox(f"{corrected_data=}")
+
+
+    writer_complex(corrected_data,os.path.join(os.path.dirname(xlsx_path),"CORRECTED DATA.xlsx"))
+
+    os.startfile(os.path.dirname(xlsx_path))
 
 
         

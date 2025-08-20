@@ -26,8 +26,8 @@ def excel_to_list(file_path: str) -> list[ list[int | str]]:
     import ast
     try:
         df = pandas.read_excel(file_path, sheet_name=0)
-        return {col: [ast.literal_eval(item) if isinstance(item, str) else item
- for item in df[col].tolist()] for col in df.columns}
+        return [ [ast.literal_eval(item) if isinstance(item, str) else item
+ for item in df[col].tolist()] for col in df.columns]
     except Exception as e:
         error(f"Cannot read '{file_path}'. Conversion to dict failed: {e}")
         return None
