@@ -7,7 +7,7 @@ from common.common import clear_gpu_memory
 
 def trim_frames(input_path: str, start_time:str|int, end_time:str|int,output_folder:str = None,show_terminal:bool = True):
     if not os.path.isfile(input_path):
-        print(f"Error: The file '{input_path}' does not exist.")
+        error(f"Error: The file '{input_path}' does not exist.")
         return None
     file_name = os.path.splitext(os.path.basename(input_path))[0]
     output_name = f"{file_name}.mp4"
@@ -65,6 +65,7 @@ def trim_frames(input_path: str, start_time:str|int, end_time:str|int,output_fol
     except FileNotFoundError:
         error("Error: FFmpeg not on PATH.")
         return None
+    
 
 def trim_timestamps(input_path:str, start_time:str|int, end_time:str|int,output_folder:str = None, count:int = 1, ):
     # startforname = start_time.replace(":", "")

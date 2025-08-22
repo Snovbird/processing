@@ -3,7 +3,7 @@ import subprocess
 import platform
 from common.common import clear_gpu_memory,select_video,makefolder,custom_dialog,windowpath,select_anyfile
 
-def overlay_FRAMES(input_path,folder_path = None):
+def overlay_FRAMES(input_path,folder_path = None,center=False):
     """
     Resize a video proportionally using FFmpeg with NVIDIA GPU acceleration.
     
@@ -25,9 +25,6 @@ def overlay_FRAMES(input_path,folder_path = None):
         file_dir = os.path.dirname(input_path)
         file_name = os.path.splitext(os.path.basename(input_path))[0]
         output_path = os.path.join(file_dir, f"{file_name}-overlaid.mp4")
-
-    center = True
-    center = False
     
     if center:
         drawtext = "drawtext=fontfile=Arial.ttf:text=%{n}:x=(w-tw)/2:y=(h-th)/2:fontcolor=white:box=1:boxcolor=0x00000000:fontsize=h*16/768"
@@ -91,22 +88,26 @@ def main():
         return
     answer = None
     if len(file_paths) > 1:
-        answer = custom_dialog("Question", "Create New Folder?")
+        answer = custom_dialog("Create New Folder?","Output location")
         if answer == 'yes':
             folder_path = makefolder(file_paths[0],foldername='overlaid')
     # overlay frame number
+
+    center = True if custom_dialog("Center the frame number?","Overlay location") == 'yes' else False
+    
+
     if answer == 'yes':
         for i, path in enumerate(file_paths):
             if i > 0:
                 # Clear GPU memory between files
                 pass
-            output_path = overlay_FRAMES(path, folder_path)
+            output_path = overlay_FRAMES(path, folder_path,center=center)
     else:
         for i, path in enumerate(file_paths):
             if i > 0:
                 # Clear GPU memory between files
                 pass
-            output_path = overlay_FRAMES(path)
+            output_path = overlay_FRAMES(path,center=center)
     clear_gpu_memory()
     # Open the folder containing the resized video
     if output_path:

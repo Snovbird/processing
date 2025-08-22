@@ -1,5 +1,7 @@
 #NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
 #SingleInstance, force
+#MaxHotkeysPerInterval, 1
+#HotkeyInterval, 700
 ; #Warn  ; Enable warnings to assist with detecting common errors.
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
@@ -9,7 +11,7 @@ pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
 $p::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-clips\PressLeverFNCL"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\Press Lever FNCL"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
@@ -17,7 +19,7 @@ $p::
 $c::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-clips\CheckMagazineFNCL"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\Check Magazine FNCL"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
@@ -25,7 +27,7 @@ $c::
 $i::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-clips\InteractionFNCL"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\Interaction FNCL"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
@@ -33,7 +35,7 @@ $i::
 $a::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-clips\LeverApproach"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\Lever Approach"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
@@ -41,7 +43,7 @@ $a::
 $e::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-clips\EnterMagazine"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\Enter Magazine BNCL"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command
@@ -49,7 +51,7 @@ $e::
 $o::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
-    fullpath := "C:\Users\samahalabo\Desktop\5-clips\OrientFNCL"
+    fullpath := "C:\Users\samahalabo\Desktop\5-clips\Orient FNCL"
     command := "py -3.10 """ A_ScriptDir "\move_on_key.py"" """ fullPath """"
     ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
     Run, % command

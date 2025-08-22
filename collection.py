@@ -16,7 +16,7 @@ else:
     # Per the request, get the last item from the clipboard
     path_to_move = paths[-1]
 
-    new_folder = r"C:\Users\samahalabo\Desktop\collected DS+"
+    new_folder = r"C:\Users\samahalabo\Desktop\collected DS-"
 
     # 1. Ensure the destination folder exists, create it if it doesn't
     os.makedirs(new_folder, exist_ok=True)
