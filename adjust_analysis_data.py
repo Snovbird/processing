@@ -284,10 +284,12 @@ def main():
                 if det_excel.endswith(".xlsx") and det_excel.split("_")[0] in cues: # is the name "FNCL_all_centers.xlsx" for example
                     detection.update(detector_excel_to_object_times(os.path.join(detection_excels,det_excel)))
             
+            msgbox(f"{detection=}")
+
             evoked_behaviors = {properties['behavior']: properties['behavior'][-4:] for properties in NO_NA_list if properties['behavior'][-4:] in cues}
             # add latencies using 
             add_and_remove_latencies_in_dict(cd_list,detection,evoked_behaviors)
-
+            msgbox(f"AFTER add_and_remove_latencies_in_dict:\n{corrected_data=}")
             print(f"{cd_list=}")
             clean = {}
             for behavior, properties in cd_list.items():
@@ -316,20 +318,22 @@ def main():
         
             corrected_data[video_name] = clean
 
-            
+        final = {}
         # Before calling writer_complex, normalize all list lengths using empty strings (different lengths = error)
         for video_name in corrected_data:
             max_length = max(len(behavior_list) for behavior_list in corrected_data[video_name].values()) # a generator object IS an iterable (for max fct)
             first_col = {'': '' if i < 4 else f"Trial {i+1}:" for i in range(max_length)}
+            final[video_name] = {}
+            final[video_name].update(first_col)
+            
             for behavior_name in corrected_data[video_name]:
                 current_list = corrected_data[video_name][behavior_name]
                 while len(current_list) < max_length:
                     current_list.append("")  # Pad with empty strings
-        
+            final[video_name].update(corrected_data[video_name])
 
-    final = first_col.copy()
-    final.update(corrected_data)
-
+            msgbox(f"{final=}")
+            
     msgbox(f"{corrected_data=}")
 
     writer_complex(corrected_data,os.path.join(os.path.dirname(xlsx_path),"CORRECTED DATA.xlsx"))
