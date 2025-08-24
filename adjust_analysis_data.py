@@ -25,30 +25,56 @@ def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, 
             
             # Track groups of consecutive non-blank values
             current_group_start = None
+            blank_space_start = None
+            blank_space_count = 0
             
             for idx, value in enumerate(column_b_values):
                 if pandas.notna(value) and str(value).strip() != '':  # Non-blank value
                     if current_group_start is None:
                         # Start of a new group
                         current_group_start = idx + 1  # +1 because Excel rows are 1-indexed
+                        blank_space_start = None
+                        blank_space_count = 0
+                    elif blank_space_start is not None:
+                        # We were in a blank space, check if it's less than 2
+                        if blank_space_count < 2:
+                            # Merge with previous group - continue the current group
+                            blank_space_start = None
+                            blank_space_count = 0
+                        else:
+                            # Blank space is 2 or more, end previous group and start new one
+                            last_frame = blank_space_start - 1  # Last non-blank before the blank space
+                            first_frame = current_group_start
+                            frame_duration = last_frame - first_frame + 1
+                            
+                            events.append({
+                                'first_frame': first_frame,
+                                'last_frame': last_frame,
+                                'frame_duration': frame_duration
+                            })
+                            
+                            # Start new group
+                            current_group_start = idx + 1
+                            blank_space_start = None
+                            blank_space_count = 0
                 else:  # Blank value or NaN
-                    if current_group_start is not None:
-                        # End of current group
-                        last_frame = idx  # idx is the last non-blank row (0-indexed, so no +1 needed)
-                        first_frame = current_group_start
-                        frame_duration = last_frame - first_frame + 1
-                        
-                        events.append({
-                            'first_frame': first_frame,
-                            'last_frame': last_frame,
-                            'frame_duration': frame_duration
-                        })
-                        
-                        current_group_start = None  # Reset for next group
+                    if current_group_start is not None and blank_space_start is None:
+                        # Start counting blank space
+                        blank_space_start = idx + 1  # +1 for Excel row numbering
+                        blank_space_count = 1
+                    elif blank_space_start is not None:
+                        # Continue counting blank space
+                        blank_space_count += 1
             
             # Handle case where the last group extends to the end of the column
             if current_group_start is not None:
-                last_frame = len(column_b_values)  # Last row index + 1 for Excel row numbering
+                if blank_space_start is not None and blank_space_count >= 200:
+                    # End the group before the blank space
+                    last_frame = blank_space_start - 1
+                else:
+                    # Include everything up to the end
+                    last_frame = len(column_b_values)
+                
                 first_frame = current_group_start
                 frame_duration = last_frame - first_frame + 1
                 
@@ -65,7 +91,6 @@ def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, 
         return {}
     
     return detector_data
-
 def group_remove_2NA(list_of_behaviors_strings:list[str]):
     """
     Group consecutive identical elements and removes consecutive 2 "NA"
@@ -100,89 +125,79 @@ def group_remove_2NA(list_of_behaviors_strings:list[str]):
     
     return result
 
-def find_missing_counts(list_of_grouped_behaviors:list[dict[str,str | int]]) -> tuple[list[dict[str, list[str, int]]], list[str]]:
-    behaviors_missed:dict[str, int] = {}
-
+def find_missing_counts(list_of_grouped_behaviors: list[dict[str, str | int]]) -> tuple[dict[str, list[str, int]], set[str]]:
+    behaviors_missed: dict[str, list[str, int]] = {}
     cues = set()
+    
     for n, bv_set in enumerate(list_of_grouped_behaviors):
         behavior = bv_set['behavior']
         
-
-        #                   2 possibilities: 
-        # 1) Interaction alone (no approach or orient)
-        # 2) Interaction with OR before (still no approach)
-        if behavior.startswith("Interaction"):
-
-            cue: str = behavior.replace("Interaction", "")
-            cues.add(cue)
-            
-            # Check if we have a previous behavior (n-1 exists)
-            if n > 0:
-                last = list_of_grouped_behaviors[n-1]['behavior']  
-                lastcue = last.replace("Interaction", "").replace("Approach", "").replace("Orient", "")
-                
-                if not last.startswith('Approach') or cue != lastcue:  # different cues in case [n-1] was an approach but for a different cue => No approach before interaction "n"
-                    approach_behavior_missed = f"Approach{cue} NOT QUANTIFIED"
-                    
-                    if approach_behavior_missed not in behaviors_missed:
-                        behaviors_missed[approach_behavior_missed] =  ["Count",1]
-                    else:
-                        behaviors_missed[approach_behavior_missed][1] += 1
-                    
-                    # Check if we have a behavior two positions ago (n-2 exists)
-                    if n > 1:
-                        try: 
-                            two_ago = list_of_grouped_behaviors[n-2]['behavior']  # n-3 because enumerate starts at 1
-
-                            two_ago_cue = two_ago.replace("Orient", "").replace("Approach", "").replace("Interaction", "")
-                            
-
-                            # If only interaction (no approach nor OR)
-                            if not two_ago.startswith('Orient') or two_ago_cue != cue:  # different cues in case [n-2] was an OR but different cue => No OR before approach "n-1"
-                                orient_behavior_missed = f"Orient{cue} NOT QUANTIFIED"
-                                if orient_behavior_missed not in behaviors_missed:
-                                    behaviors_missed[orient_behavior_missed] = ["Count",1]
-                                else:
-                                    behaviors_missed[orient_behavior_missed][1] += 1
-                        except IndexError:
-                            pass
-            else:
-                # First behavior is an interaction, so both approach and orient are missing
-                approach_behavior_missed = f"Approach{cue} NOT QUANTIFIED"
-                orient_behavior_missed = f"Orient{cue} NOT QUANTIFIED"
-                behaviors_missed[approach_behavior_missed] = behaviors_missed.get(approach_behavior_missed, 0) + 1 # increment if already exists
-                behaviors_missed[orient_behavior_missed] = behaviors_missed.get(orient_behavior_missed, 0) + 1
+        # Extract cue from any behavior type
+        for behavior_type in ["Interaction", "Approach", "Orient"]:
+            if behavior.startswith(behavior_type):
+                cue = behavior.replace(behavior_type, "")
+                cues.add(cue)
+                break
+        else:
+            continue  # Skip if behavior doesn't match any type
         
-        # If [n] is approach but [n-1] is not orient/orient for different cue
-        elif behavior.startswith("Approach"):
-            cue = behavior.replace("Approach", "")
-            cues.add(cue)
-            # Check if we have a previous behavior
+        # Process Interaction behaviors
+        if behavior.startswith("Interaction"):
+            missing_behaviors = []
+            
+            # Check for missing Approach
             if n > 0:
-                last = behaviors_missed[n-1]['behavior']  # n-2 because enumerate starts at 1
-                lastcue = last.replace("Approach", "").replace("Orient", "").replace("Interaction", "")
-                if not last.startswith('Orient') or cue != lastcue:
-                    orient_behavior_missed = f"Orient{cue} NOT QUANTIFIED"
-                    if orient_behavior_missed not in behaviors_missed:
-                        behaviors_missed[orient_behavior_missed] = ["Count", 1]
-                    else:
-                        behaviors_missed[orient_behavior_missed][1] += 1
+                last_behavior = list_of_grouped_behaviors[n-1]['behavior']
+                last_cue = last_behavior.replace("Interaction", "").replace("Approach", "").replace("Orient", "")
+                
+                if not last_behavior.startswith('Approach') or cue != last_cue:
+                    missing_behaviors.append(f"Approach{cue} NOT QUANTIFIED")
+                    
+                    # Check for missing Orient (two positions ago)
+                    if n > 1:
+                        two_ago_behavior = list_of_grouped_behaviors[n-2]['behavior']
+                        two_ago_cue = two_ago_behavior.replace("Orient", "").replace("Approach", "").replace("Interaction", "")
+                        
+                        if not two_ago_behavior.startswith('Orient') or two_ago_cue != cue:
+                            missing_behaviors.append(f"Orient{cue} NOT QUANTIFIED")
             else:
-                # First behavior is an approach, so orient is missing
-                orient_behavior_missed = f"Orient{cue} NOT QUANTIFIED"
-                behaviors_missed[orient_behavior_missed] = behaviors_missed.get(orient_behavior_missed, 0) + 1
-        elif behavior.startswith("Orient"):
-            cue = behavior.replace("Orient", "")
-            cues.add(cue)
+                # First behavior is interaction - both approach and orient are missing since no cues BEFORE
+                missing_behaviors.extend([f"Approach{cue} NOT QUANTIFIED", f"Orient{cue} NOT QUANTIFIED"])
+            
+            # Add missing behaviors to the count
+            for missing_behavior in missing_behaviors:
+                if missing_behavior not in behaviors_missed:
+                    behaviors_missed[missing_behavior] = ["Count", 1]
+                else:
+                    behaviors_missed[missing_behavior][1] += 1
+        
+        # Process Approach behaviors
+        elif behavior.startswith("Approach"):
+            if n > 0:
+                last_behavior = list_of_grouped_behaviors[n-1]['behavior']
+                last_cue = last_behavior.replace("Approach", "").replace("Orient", "").replace("Interaction", "")
+                
+                if not last_behavior.startswith('Orient') or cue != last_cue:
+                    missing_behavior = f"Orient{cue} NOT QUANTIFIED"
+                    if missing_behavior not in behaviors_missed:
+                        behaviors_missed[missing_behavior] = ["Count", 1]
+                    else:
+                        behaviors_missed[missing_behavior][1] += 1
+            else:
+                # First behavior is approach - orient is missing
+                missing_behavior = f"Orient{cue} NOT QUANTIFIED"
+                if missing_behavior not in behaviors_missed:
+                    behaviors_missed[missing_behavior] = ["Count", 1]
+                else:
+                    behaviors_missed[missing_behavior][1] += 1
 
-
-    return behaviors_missed,cues
+    return behaviors_missed, cues
 
 def get_countsandduration(grouped_list:list[dict[str,str | int]]) -> dict[str, dict[str,str | int]]:
     """
     Returns: 
-        {"behavior name": {"count": int, "duration": int, "latency": [int, int, ...] }, ... }}
-        Where latency is a list of the first frame of each behavior occurence
+        {"behavior name": {"count": int, "duration": int, "latencies": [int, int, ...] }, ... }}
+        Where 'Latencies' is a list of the first frame of each behavior occurence
     """
     cd_dict = {}
 
@@ -192,15 +207,41 @@ def get_countsandduration(grouped_list:list[dict[str,str | int]]) -> dict[str, d
         else:
             cd_dict[group['behavior']]['Count'] += 1
             cd_dict[group['behavior']]['Duration'].append(group['frame_duration'])
-            cd_dict[group['behavior']]['Latency'].append(group['first_frame'])
+            cd_dict[group['behavior']]['Latencies'].append(group['first_frame'])
     
     for behavior in cd_dict:
         cd_dict[behavior]['Duration'] = avg(cd_dict[behavior]['Duration'])[1] # behavior average durations
 
     return cd_dict
 
+def add_and_remove_latencies_in_dict(cd_list:dict[str, dict[str, str | int | dict[str,int]]],detection, evoked_behaviors:list[str]):
+    """
+    Updates the 'cd_list' dictionnary to add latencies for evoked behaviors. 
+    
+    **Returns None**
+    """
+    done_latency_behaviors:dict[str, int] = {}
+    for behavior, properties in cd_list.items():
+        if behavior in evoked_behaviors:
+            first_frames:list[int] = properties['Latencies'] # The first frame of each occurence 
+            latencies:list[int] = []
+            cue = evoked_behaviors[behavior]
+            for time in first_frames:
+                for trial_number, props in enumerate(detection.get(cue,[])): # assuming each "group" 
+                    first:int = props['first_frame']
+                    last:int = props['last_frame']
+                    if trial_number != done_latency_behaviors.get(behavior): # first encounter with behavior for this trial
+                        if first < time < last:
+                            latencies.append({"trial":trial_number,"Latency":time - first}) # time to respond in frames (1/15th of a second)
+                            done_latency_behaviors[behavior] = trial_number
+
+            properties['Latencies'] = latencies
+        else:
+            del properties['Latencies'] # no latency if not evoked
+
+
 def main():
-    while True:
+    while True: # find right excel sheet
         xlsx_path:str = select_anyfile("Find the excel file containing data", specific_ext="xlsx")[0]
         if not xlsx_path:
             return
@@ -223,7 +264,9 @@ def main():
         # list_of_columns = [[behavior if float(probability) >= minimum_probability else "NA" 
         #              for behavior, probability in video_column] for video_column in columns_list_with_probabilities]
         columns_list: list[str] = [[behavior_and_prob[0] for behavior_and_prob in col] for col in columns_list_with_probabilities] # only behaviors, remove probabilities
+        
         corrected_data: dict[str, dict [str, list[dict[str,str | int]]]] = {}
+
         for video_name, column in zip(video_names,columns_list):
             
             grouped:list[dict[str,str | int]] = group_remove_2NA(column)
@@ -235,7 +278,7 @@ def main():
             missing_counts, cues = find_missing_counts(NO_NA_list)
 
             detection_excels = os.path.join(folder_of_detection,video_name)
-            detection = {} 
+            detection:dict[str, list[dict[str,int]]] = {} 
 
             for det_excel in list_files(detection_excels):
                 if det_excel.endswith(".xlsx") and det_excel.split("_")[0] in cues: # is the name "FNCL_all_centers.xlsx" for example
@@ -243,35 +286,25 @@ def main():
             
             evoked_behaviors = {properties['behavior']: properties['behavior'][-4:] for properties in NO_NA_list if properties['behavior'][-4:] in cues}
             # add latencies using 
-            for behavior, properties in cd_list.items():
-                if behavior in evoked_behaviors:
-                    first_frames:list[int] = properties['Latency'] # The first frame of each occurence 
-                    latencies:list[int] = []
-                    cue = evoked_behaviors[behavior]
-                    for time in first_frames:
-                        for props in detection.get(cue,[]):
-                            first:int = props['first_frame']
-                            last:int = props['last_frame']
-                            if first < time < last:
-                                latencies.append(time - first) # time to respond in frames (1/15th of a second)
-                    
-                    latency = avg(latencies)[1]
-                    properties['Latency'] = latency # in number of frames
-                else:
-                    del properties["Latency"] # no latency if not evoked
+            add_and_remove_latencies_in_dict(cd_list,detection,evoked_behaviors)
+
             print(f"{cd_list=}")
             clean = {}
             for behavior, properties in cd_list.items():
-                if properties.get("Latency"):
+                if properties.get('Latencies'):
+
+                    trials = [{props['trial']:props['Latency']} for props in properties['Latencies']]
+                    latencies = [properties['Latencies']['Latency'] if i in trials.keys() else '' for i in range(trials[-1]['trial'])]
+
                     clean[behavior] = [
                         "Count",
                         properties["Count"],
-                        "Duration",
-                        properties["Duration"],
-                        "Latency",
-                        properties["Latency"]
-                    ]
-                else:  # non-evoked by cue
+                        "Duration (s)",
+                        properties["Duration"] / 15,
+                        "Latencies (s)" ,
+                        latencies
+                    ].extend()
+                else:  # non-evoked by cue (ex: grooming)
                     clean[behavior] = [
                         "Count",
                         properties["Count"],
@@ -279,47 +312,29 @@ def main():
                         properties["Duration"]
                     ]
                 
-            # with open(f"{os.path.dirname(xlsx_path)}/all_events_counts.json", "w") as f:
-                #     json.dump(final, f, indent=2)
-
-            # Before calling writer_complex, normalize all list lengths using empty strings (different lengths = error)
             clean.update(missing_counts)
-
-            msgbox(f"{video_name=}\n{clean=}")
         
             corrected_data[video_name] = clean
 
-        msgbox(f"{corrected_data=}")
+            
+        # Before calling writer_complex, normalize all list lengths using empty strings (different lengths = error)
         for video_name in corrected_data:
             max_length = max(len(behavior_list) for behavior_list in corrected_data[video_name].values()) # a generator object IS an iterable (for max fct)
+            first_col = {'': '' if i < 4 else f"Trial {i+1}:" for i in range(max_length)}
             for behavior_name in corrected_data[video_name]:
                 current_list = corrected_data[video_name][behavior_name]
                 while len(current_list) < max_length:
                     current_list.append("")  # Pad with empty strings
+        
 
-
+    final = first_col.copy()
+    final.update(corrected_data)
 
     msgbox(f"{corrected_data=}")
-
 
     writer_complex(corrected_data,os.path.join(os.path.dirname(xlsx_path),"CORRECTED DATA.xlsx"))
 
     os.startfile(os.path.dirname(xlsx_path))
 
-
-        
-                    
-
-
-                    
-
-
-                
-
-            
-            
- 
-
-
-
-main()
+if __name__ == "__main__":
+    main()
