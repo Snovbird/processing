@@ -1,6 +1,5 @@
+import json, os, pandas
 from common.common import select_anyfile,msgbox,error,list_folders,select_folder,askint,list_folderspaths,avg,list_files
-import json, os
-import pandas
 from excel.writer_complex import writer_complex 
 from excel.general import fit_columns,excel_to_list
 from excel.export import export_excel
@@ -91,18 +90,23 @@ def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, 
         return {}
     
     return detector_data
+
 def group_remove_2NA(list_of_behaviors_strings:list[str]):
     """
     Group consecutive identical elements and removes consecutive 2 "NA"
+
+    [
+    {"behavior": "name", "frame_duration": int, "first_frame": int}, ...
+    ]
+    
     
     Args:
         list_of_behaviors_strings: Input list of consecutive behavior names
+
     
     Returns:
         List of dictionaries 
     """
-    if not list_of_behaviors_strings:
-        return []
     result = []
     current_item:str = list_of_behaviors_strings[0]
     current_count = 1
@@ -216,7 +220,10 @@ def get_countsandduration(grouped_list:list[dict[str,str | int]]) -> dict[str, d
 
 def add_and_remove_latencies_in_dict(cd_list:dict[str, dict[str, str | int | dict[str,int]]],detection, evoked_behaviors:list[str]):
     """
-    Updates the 'cd_list' dictionnary to add latencies for evoked behaviors. 
+    updates dictionnary.
+
+    
+
     
     **Returns None**
     """
