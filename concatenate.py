@@ -163,10 +163,9 @@ def main():
     display_string = "\n\n".join([", ".join(group) for group in toconcat])
     check = custom_dialog(msg=f"Are these the expected groups: \n\n{display_string}",title="Verification",dimensions=(500,600))
     toconcat = [[os.path.join(startpath,file) for file in group] for group in toconcat]
-
     
     if check != 'yes':
-        return
+        return manually_select_concatenation(startpath=startpath)
     output_folder = makefolder(toconcat[0][0],foldername='concat')
     for setofvids in toconcat:
         ready = concatenate(setofvids,output_folder)
@@ -209,6 +208,18 @@ def group_files_by_digits(file_paths: list[str]) -> list[list[str]]:
     # We only need the lists of grouped files, not the keys themselves.
     # We also filter out any "groups" that only contain a single file.
     return [group for group in grouped_files.values() if len(group) > 1]
+
+def manually_select_concatenation(startpath):
+    toconcat: list[list[str]] = [select_video(title="select videos to concatenate first",path=startpath) for c in range(askint("How many concatenations?","Total Outputs"))]
+
+    for group in toconcat:
+        ready:str = concatenate(group)
+    if ready:
+        clear_gpu_memory()
+        os.startfile(os.path.dirname(ready))
+
+    
+
 
 # Example usage
 if __name__ == "__main__":

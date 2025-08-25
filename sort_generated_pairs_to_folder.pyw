@@ -25,7 +25,7 @@ def main():
 
 def move_files_in_subdir(parent_dir=None,dtn=None):
     if not dtn:
-        bv_clips_dir:str = find_folder_path("5-clips")
+        bv_clips_dir:str = os.path.join(find_folder_path("5-clips"),"DS+")
         destinations:list[str] = list_folders(bv_clips_dir)
         dtn:str = dropdown(choices=destinations,title=f"Choose destination for {os.path.basename(parent_dir)}")
         sorted_dir7 = find_folder_path("7-SORTED")
@@ -67,10 +67,10 @@ def move_files_in_subdir(parent_dir=None,dtn=None):
         return f"0 files to {os.path.basename(dtn)}"
     for list_of_files in list_of_lists_of_files:
         for file in list_of_files:
-            if not path_exists(dtn):
+            if not path_exists(os.path.join(dtn,os.path.basename(file))):
                 shutil.move(file,dtn)
             else:
-                error(f"{dtn}\nalready exists")
+                error(f"{os.path.join(dtn,os.path.basename(file))}\nalready exists")
     shutil.rmtree(parent_dir)
     os.makedirs(parent_dir)
     moved:int = sum([len(sublist) for sublist in list_of_lists_of_files])

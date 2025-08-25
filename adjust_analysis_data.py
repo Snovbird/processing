@@ -207,7 +207,7 @@ def get_countsandduration(grouped_list:list[dict[str,str | int]]) -> dict[str, d
 
     for group in grouped_list:
         if not cd_dict.get(group['behavior']):
-            cd_dict[group['behavior']] = {"Count":1,"Duration": [group['frame_duration']],"Latency":[group['first_frame']]}
+            cd_dict[group['behavior']] = {"Count":1,"Duration": [group['frame_duration']],"Latencies":[group['first_frame']]}
         else:
             cd_dict[group['behavior']]['Count'] += 1
             cd_dict[group['behavior']]['Duration'].append(group['frame_duration'])
@@ -295,8 +295,9 @@ def main():
 
             evoked_behaviors = {properties['behavior']: properties['behavior'][-4:] for properties in NO_NA_list if properties['behavior'][-4:] in cues}
             # add latencies using 
+
             add_and_remove_latencies_in_dict(cd_list,detection,evoked_behaviors)
-            msgbox(f"AFTER add_and_remove_latencies_in_dict:\n{corrected_data=}")
+            msgbox(f"AFTER add_and_remove_latencies_in_dict:\n{cd_list=}")
             print(f"{cd_list=}")
             clean = {}
             for behavior, properties in cd_list.items():

@@ -29,7 +29,7 @@ def process_folder():
     # Move all videos in a folder named with date (ex:20250619)
         dates_dict = {}
         for file in [os.path.join(initial_folder, file) for file in os.listdir(initial_folder) if os.path.isfile(os.path.join(initial_folder, file))]:
-            date_to_investigate = os.path.splitext(os.path.basename(file))[0].split("_")[1]
+            date_to_investigate = os.path.splitext(os.path.basename(file))[0].split("-")[1]
             a_date_folder = dates_dict.get(date_to_investigate, None) 
             if not a_date_folder:
                 a_date_folder = makefolder(initial_folder,foldername=date_to_investigate,start_at_1=False)
@@ -66,7 +66,7 @@ def process_folder():
         combined_output_folder = makefolder(png_outputs, foldername='combined')
         for group in grouped_files:
             bg_imgpath = extractpng(group[0],times=[1],output_folder=png_outputs)[0]
-            date_for_group = os.path.splitext(os.path.basename(group[0]))[0].split("_")[1]
+            date_for_group = os.path.splitext(os.path.basename(group[0]))[0].split("-")[1]
             cage_number = ''.join(char for char in os.path.splitext(os.path.basename(group[0]))[0][0:2] if char.isdigit()) # extract digits from first two filename characters to get cage number
             overlay_imgpath = find_imgpath_overlay_date(date_provided=date_for_group,room=room,cage_number=cage_number)
             combined_outputpath = combine_and_resize_images(bg_imgpath,overlay_imgpath,output_folder=combined_output_folder)
@@ -143,7 +143,7 @@ def emergency_overlay_maker(cage_number=None,room=None):
     marker_overlays_path = find_folder_path("2-MARKERS")
     date = askstring("Please enter the date as YYYYMMDD for this overlay. \nDefault is today's date.",fill=get_date_yyyymmdd())
     if not room:
-        room = dropdown(list_folders(marker_overlays_path) + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_name="star")
+        room = dropdown(list_folders(marker_overlays_path) + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_name="star",hide=("MARKERS-TEMPLATES",))
         
     room_folder_path = os.path.join(marker_overlays_path,room)
     if not cage_number:

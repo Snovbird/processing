@@ -11,6 +11,7 @@ run, py "%pythonScriptsDir%\trim_loop.py"
 
 #IfWinActive, ahk_exe explorer.exe
 $c::
+F7::
     send, ^+{c} ; Send "Copy as path" command
     send, {Right}
     

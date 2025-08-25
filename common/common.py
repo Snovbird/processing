@@ -465,7 +465,7 @@ def assignval(valuename:str,value):
     except Exception as e:
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
-def dropdown(choices: list[str], title='', icon_name=None) -> str:
+def dropdown(choices: list[str], title='', icon_name=None,hide:tuple[str]=(None,)) -> str:
     """
     Args:
     choices: list of string (options) to display in the dropdown
@@ -474,8 +474,10 @@ def dropdown(choices: list[str], title='', icon_name=None) -> str:
     """
 
     app = wx.GetApp()
-    if "MARKERS_TEMPLATES" in choices:
-        choices.remove("MARKERS_TEMPLATES")
+    if hide[0]:
+        for obj in hide:
+            if obj in choices:
+                choices.remove(obj)
     if not app:
         app = wx.App(False)
         created_app = True
