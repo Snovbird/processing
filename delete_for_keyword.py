@@ -1,14 +1,15 @@
 import os
 from common.common import select_folder,windowpath,askstring,list_folderspaths,custom_dialog,list_files,msgbox
 
-def delete_files(folder_path,stringtodelete,count = {}):
+def delete_files(folder_path,stringtodelete):
+    count = 0
     for i in list_files(folder_path):
         currentfile = os.path.join(folder_path,i)
         # if len(i.split('_')) > 2 and os.path.isfile(currentfile):
         #     os.remove(currentfile)
         if stringtodelete in i:
             os.remove(currentfile)
-            count[os.path.basename(folder_path)] = count.get(os.path.basename(folder_path),0) + 1
+            count +=1
     return count
 
 def main():
@@ -23,11 +24,11 @@ def main():
     successes = []
     if select == "subfolder":
         for folder in list_folderspaths(folder_path):
-            foldername, count = delete_files(folder,stringtodelete).items()
-            successes.append(f"{count} files deleted from {foldername}")
+            count:int = delete_files(folder,stringtodelete)
+            successes.append(f"{count} files deleted from {os.path.basename(folder)}")
     elif select == "same folder":
-        foldername, count = delete_files(folder_path,stringtodelete).items()
-        successes.append(f"{count} files deleted from {foldername}")
+        count:int = delete_files(folder_path,stringtodelete)
+        successes.append(f"{count} files deleted from {folder_path}")
 
     msgbox("Processes completed:\n\n"+"\n".join(successes),"Success")
 

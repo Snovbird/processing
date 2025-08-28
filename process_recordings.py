@@ -40,7 +40,7 @@ def process_folder():
     processed_path_dir3 = find_folder_path("3-PROCESSED")
     overlays_path = find_folder_path("2-MARKERS")
     room_options = list_folders(overlays_path)
-    room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_name="star")
+    room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_name="star",hide=("MARKERS-TEMPLATES",))
     if room == "ENTER NEW ROOM NAME":
         return emergency_overlay_maker()
     

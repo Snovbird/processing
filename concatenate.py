@@ -40,7 +40,7 @@ def concatenate(input_files:list[str], output_folder:str):
                 concat_list_txt = temp.name
             
             basename,ext = os.path.splitext(os.path.basename(input_files[0]))
-            date = basename.split("_")[1]
+            date = basename.split("-")[1]
             output_name = f"{''.join(char for char in basename[0:2] if char.isdigit())}_{date}{ext}" # Output should be named after the cage number
             output_path = os.path.join(output_folder, output_name)
             
