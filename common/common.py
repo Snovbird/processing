@@ -766,5 +766,17 @@ def simple_file_walk(folder,filefunc = None) -> tuple[ set[str],set[str]] | int:
         return filepaths,dirspaths
         
     
-        
-            
+def letter(text:str) -> str:
+    """
+    Remove all non-letter characters
+    """
+    return ''.join(char for char in text if char.isalpha())
+
+def check(options:list[str],msg:str="Choose options",title:str="Selections") -> list[str]:
+
+    app = wx.App(False)
+    
+    dialog1=wx.MultiChoiceDialog(None,message=msg,caption=title,choices=options)
+    if dialog1.ShowModal()==wx.ID_OK:
+        indexes:list[int] = dialog1.GetSelections() # returns indexes such as [0,1]
+        return [options[index] for index in indexes]

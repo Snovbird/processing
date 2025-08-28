@@ -1,5 +1,5 @@
 import json, os, pandas
-from common.common import select_anyfile,msgbox,error,list_folders,select_folder,askint,list_folderspaths,avg,list_files
+from common.common import select_anyfile,msgbox,error,list_folders,select_folder,list_folderspaths,avg,list_files,letter,check,path_exists
 from excel.writer_complex import writer_complex 
 from excel.general import fit_columns,excel_to_list
 from excel.export import export_excel
@@ -67,7 +67,7 @@ def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, 
             
             # Handle case where the last group extends to the end of the column
             if current_group_start is not None:
-                if blank_space_start is not None and blank_space_count >= 200:
+                if blank_space_start is not None and blank_space_count >= 2:  # ISSUE right now: when rat covers CL: considered as two different trials when no longer covers vs before covering (when it is the same in actuality)
                     # End the group before the blank space
                     last_frame = blank_space_start - 1
                 else:
@@ -77,14 +77,15 @@ def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, 
                 first_frame = current_group_start
                 frame_duration = last_frame - first_frame + 1
                 
-                events.append({
-                    'first_frame': first_frame,
-                    'last_frame': last_frame,
-                    'frame_duration': frame_duration
-                })
-            
+                # Only add if frame_duration is positive
+                if frame_duration > 0:
+                    events.append({
+                        'first_frame': first_frame,
+                        'last_frame': last_frame,
+                        'frame_duration': frame_duration
+                    })            
             detector_data[object_name.replace("_all_centers",'')] = events
-                
+
     except Exception as e:
         error(f"Error processing detector Excel file '{excel_path}': {e}")
         return {}
@@ -222,9 +223,6 @@ def add_and_remove_latencies_in_dict(cd_list:dict[str, dict[str, str | int | dic
     """
     updates dictionnary.
 
-    
-
-    
     **Returns None**
     """
     done_latency_behaviors:dict[str, int] = {}
@@ -246,9 +244,44 @@ def add_and_remove_latencies_in_dict(cd_list:dict[str, dict[str, str | int | dic
         else:
             del properties['Latencies'] # no latency if not evoked
 
+def lists_for_export(cd_list:dict,behaviors_in_final_output:list[str]) -> dict[str,list[str | float | int]]:
+    clean = {}
+    for behavior, properties in cd_list.items():
+        if behavior in behaviors_in_final_output: # filter out unwanted behaviors
+            if properties.get('Latencies'):
+                trials:dict[int,int] = {}
+                current_trial:int = None
+                max_trial = 0
+
+                for props in properties['Latencies']:
+                    if current_trial != props['trial']:
+                        trials.update({props['trial']:props['Latency']})
+                        current_trial = props['trial']
+
+                    if max_trial < props['trial']: # number of rows needed for latencies
+                        max_trial = props['trial']
+                # pad with empty strings trials without any occurence of the evoked behavior
+                latencies:list[int] = [trials.get(row,'') for row in range(max_trial+1)]
+                clean[behavior] = [
+                    "Count",
+                    properties["Count"],
+                    "Duration (s)",
+                    properties["Duration"] / 15,
+                    "Latencies (s)" 
+                ]
+                clean[behavior].extend(latencies)
+            else:  # non-evoked by cue (ex: grooming)
+                clean[behavior] = [
+                    "Count",
+                    properties["Count"],
+                    "Duration",
+                    properties["Duration"]
+                ]
+    return clean
+
 
 def main():
-    while True: # find right excel sheet
+    while False: # find right excel sheet
         xlsx_path:str = select_anyfile("Find the excel file containing data", specific_ext="xlsx")[0]
         if not xlsx_path:
             return
@@ -258,20 +291,22 @@ def main():
             pass # different treatment since data in column 2 ( [1] ) is formatted with strings like "['behavior','probability']" # future implementation
         else:
             error(f"'{os.path.basename(xlsx_path)}' is not the correct file.\nSelect 'all_events.xlsx' or '1_RAT_all_event_probability.xlsx'")
-
+    xlsx_path = r"C:\Users\matts\Downloads\zsubtest\all_events.xlsx"
     if os.path.basename(xlsx_path) == "all_events.xlsx":
         
         video_names = list_folders(os.path.dirname(xlsx_path))
-        folder_of_detection = select_folder("Select folder containing detection result folders")
-        # folder_of_detection = os.path.dirname(xlsx_path)
-        
+        # folder_of_detection = select_folder("Select folder containing detection result folders")
+        folder_of_detection = r"C:\Users\matts\Downloads\detector"   
+        if not folder_of_detection:
+            return 
         #minimum_probability = askint("Enter required probability out of 100","Minimum probability")
         columns_list_with_probabilities:list[ list[str, int] ] = excel_to_list(xlsx_path)
         columns_list_with_probabilities.pop(0) # remove timestamps column
         # list_of_columns = [[behavior if float(probability) >= minimum_probability else "NA" 
         #              for behavior, probability in video_column] for video_column in columns_list_with_probabilities]
         columns_list: list[str] = [[behavior_and_prob[0] for behavior_and_prob in col] for col in columns_list_with_probabilities] # only behaviors, remove probabilities
-        
+        behaviors:list[str] = list_folders(list_folderspaths(os.path.dirname(xlsx_path))[0])
+        behaviors_in_final_output = check(behaviors,"Select behaviors to obtain count, duration and latencies (if evoked by cue presence)","Behaviors of interest")
         corrected_data: dict[str, dict [str, list[dict[str,str | int]]]] = {}
 
         for video_name, column in zip(video_names,columns_list):
@@ -281,56 +316,29 @@ def main():
             NO_NA_list = [group for group in grouped if group['behavior'] != "NA"]
             
             cd_list:dict[str, dict[str, str | int] ] = get_countsandduration(NO_NA_list)
-
             missing_counts, cues = find_missing_counts(NO_NA_list)
+            cues = list(map(letter,cues)) # remove spaces from cue names
 
             detection_excels = os.path.join(folder_of_detection,video_name)
             detection:dict[str, list[dict[str,int]]] = {} 
-
             for det_excel in list_files(detection_excels):
+
                 if det_excel.endswith(".xlsx") and det_excel.split("_")[0] in cues: # is the name "FNCL_all_centers.xlsx" for example
                     detection.update(detector_excel_to_object_times(os.path.join(detection_excels,det_excel)))
             
-            msgbox(f"{detection=}")
-
-            evoked_behaviors = {properties['behavior']: properties['behavior'][-4:] for properties in NO_NA_list if properties['behavior'][-4:] in cues}
+            evoked_behaviors = {properties['behavior']: properties['behavior'].split()[-1] for properties in NO_NA_list if properties['behavior'].split()[-1] in cues}
             # add latencies using 
 
             add_and_remove_latencies_in_dict(cd_list,detection,evoked_behaviors)
-            msgbox(f"AFTER add_and_remove_latencies_in_dict:\n{cd_list=}")
-            print(f"{cd_list=}")
-            clean = {}
-            for behavior, properties in cd_list.items():
-                if properties.get('Latencies'):
 
-                    trials = [{props['trial']:props['Latency']} for props in properties['Latencies']]
-                    latencies = [properties['Latencies']['Latency'] if i in trials.keys() else '' for i in range(trials[-1]['trial'])]
-
-                    clean[behavior] = [
-                        "Count",
-                        properties["Count"],
-                        "Duration (s)",
-                        properties["Duration"] / 15,
-                        "Latencies (s)" ,
-                        latencies
-                    ].extend()
-                else:  # non-evoked by cue (ex: grooming)
-                    clean[behavior] = [
-                        "Count",
-                        properties["Count"],
-                        "Duration",
-                        properties["Duration"]
-                    ]
-                
-            clean.update(missing_counts)
+            corrected_data[video_name] = lists_for_export(cd_list,behaviors_in_final_output)
+            corrected_data[video_name].update(missing_counts)
         
-            corrected_data[video_name] = clean
-
         final = {}
         # Before calling writer_complex, normalize all list lengths using empty strings (different lengths = error)
         for video_name in corrected_data:
             max_length = max(len(behavior_list) for behavior_list in corrected_data[video_name].values()) # a generator object IS an iterable (for max fct)
-            first_col = {'': '' if i < 4 else f"Trial {i+1}:" for i in range(max_length)}
+            first_col = {'': ['' if i <= 4 else f"Trial {i -5 +1}:" for i in range(max_length)]}
             final[video_name] = {}
             final[video_name].update(first_col)
             
@@ -340,13 +348,16 @@ def main():
                     current_list.append("")  # Pad with empty strings
             final[video_name].update(corrected_data[video_name])
 
-            msgbox(f"{final=}")
-            
-    msgbox(f"{corrected_data=}")
+    outpath = os.path.join(os.path.dirname(xlsx_path),"CORRECTED DATA.xlsx")
+    c = 1
+    while path_exists(outpath):
+        c+= 1
+        outpath = os.path.join(os.path.dirname(xlsx_path),f"CORRECTED DATA-{c}.xlsx")
 
-    writer_complex(corrected_data,os.path.join(os.path.dirname(xlsx_path),"CORRECTED DATA.xlsx"))
+    writer_complex(final,outpath)
 
     os.startfile(os.path.dirname(xlsx_path))
 
 if __name__ == "__main__":
     main()
+ 
