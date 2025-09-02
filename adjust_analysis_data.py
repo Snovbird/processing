@@ -222,7 +222,8 @@ def get_countsandduration(grouped_list:list[dict[str,str | int]]) -> dict[str, d
 def add_and_remove_latencies_in_dict(cd_list:dict[str, dict[str, str | int | dict[str,int]]],detection, evoked_behaviors:list[str]):
     """
     updates dictionnary.
-
+    Args:
+        cd_list: {"behavior name": {}}
     **Returns None**
     """
     done_latency_behaviors:dict[str, int] = {}
