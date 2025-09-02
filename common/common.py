@@ -15,7 +15,7 @@ def windowpath() -> str:
     window = win32gui.GetForegroundWindow()
     return str(win32gui.GetWindowText(window)).replace(' - File Explorer','').replace("\\\\","/")
 
-def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple[int,int] = (300, 150)) -> str:
+def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple[int,int] = (300, 150)) -> str|None:
 
     class custom_dialog(wx.Dialog):
         def __init__(self, parent, title, message, option1="Proceed", option2="Skip",option3=None):
@@ -87,7 +87,7 @@ def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple[i
         dialog.Destroy()  # Clean up the dialog
         return dialog.result
 
-def select_folder(title="Choose a directory",path='') -> str:
+def select_folder(title="Choose a directory",path='') -> str|None:
     """Show folder selection dialog and return selected path"""
     
     app = wx.App(False)
@@ -99,8 +99,6 @@ def select_folder(title="Choose a directory",path='') -> str:
                 folder_path = dlg.GetPath()
                 return folder_path
             return None
-    # Create wildcard string for mp4 files only
-    wildcard = "Video Files (*.mp4)|*.mp4" #"Video files (*.mp4;*.avi)|*.mp4;*.avi" #"Video Files (*.mp4)|*.mp4" #"Video Files (*.mp4;*.avi;*.mov;*.mkv;*.webm)|*.mp4;*.avi;*.mov;*.mkv;*.webm"
     if path:
         try:
             with wx.DirDialog(None, title, defaultPath=path,style=wx.DD_DEFAULT_STYLE) as dlg:
