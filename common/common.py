@@ -780,3 +780,85 @@ def check(options:list[str],msg:str="Choose options",title:str="Selections") -> 
     if dialog1.ShowModal()==wx.ID_OK:
         indexes:list[int] = dialog1.GetSelections() # returns indexes such as [0,1]
         return [options[index] for index in indexes]
+
+def hex_to_rgb(hex_color:str):
+    
+    hex_color = hex_color.lstrip('#')
+    rgb = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+    return rgb
+
+def rgb_to_hex(rgb:tuple[int,int,int]):
+
+    hex = '#' + ''.join(f'{c:02x}' for c in rgb)
+    return hex
+
+def color_tuple_generator():
+    """
+    Generator that yields RGB color tuples starting with extreme values (0, 255),
+    then progressively adding intermediate values by halving intervals.
+    
+    Level 1: {0, 255} combinations
+    Level 2: {0, 127, 255} combinations  
+    Level 3: {0, 63, 127, 191, 255} combinations
+    And so on...
+    
+    Yields: RGB tuples like (0,0,255), (255,255,0), then (0,0,127), etc.
+    """
+    used_colors = set()
+    
+    # Start with extreme values
+    current_values = [0, 255]
+    
+    while len(current_values) <= 32:  # Reasonable limit to prevent excessive computation
+        # Generate all RGB combinations for current set of values
+        level_colors = []
+        
+        for r in current_values:
+            for g in current_values:
+                for b in current_values:
+                    color = (r, g, b)
+                    if color not in used_colors:
+                        level_colors.append(color)
+                        used_colors.add(color)
+        
+        # Yield colors from this level
+        for color in level_colors:
+            yield color
+        
+        # Generate next level by adding midpoints between adjacent values
+        next_values = list(current_values)
+        
+        for i in range(len(current_values) - 1):
+            midpoint = (current_values[i] + current_values[i + 1]) // 2
+            if midpoint not in next_values:
+                next_values.append(midpoint)
+        
+        # Sort values for next iteration
+        next_values.sort()
+        
+        # If no new values were added, we're done
+        if len(next_values) == len(current_values):
+            break
+            
+        current_values = next_values
+
+def get_extreme_colors(n):
+    """
+    Get the first n extreme colors.
+    
+    Args:
+        n (int): Number of colors to generate
+        
+    Returns:
+        list: List of RGB tuples
+    """
+    colors = []
+    generator = color_tuple_generator()
+    
+    for _ in range(n):
+        try:
+            colors.append(next(generator))
+        except StopIteration:
+            break
+    
+    return colors

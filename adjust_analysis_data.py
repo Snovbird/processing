@@ -281,7 +281,7 @@ def lists_for_export(cd_list:dict,behaviors_in_final_output:list[str]) -> dict[s
 
 
 def main():
-    while False: # find right excel sheet
+    while True: # find right excel sheet
         xlsx_path:str = select_anyfile("Find the excel file containing data", specific_ext="xlsx")[0]
         if not xlsx_path:
             return
@@ -291,12 +291,12 @@ def main():
             pass # different treatment since data in column 2 ( [1] ) is formatted with strings like "['behavior','probability']" # future implementation
         else:
             error(f"'{os.path.basename(xlsx_path)}' is not the correct file.\nSelect 'all_events.xlsx' or '1_RAT_all_event_probability.xlsx'")
-    xlsx_path = r"C:\Users\matts\Downloads\zsubtest\all_events.xlsx"
+
     if os.path.basename(xlsx_path) == "all_events.xlsx":
         
         video_names = list_folders(os.path.dirname(xlsx_path))
-        # folder_of_detection = select_folder("Select folder containing detection result folders")
-        folder_of_detection = r"C:\Users\matts\Downloads\detector"   
+        folder_of_detection = select_folder("Select folder containing detection result folders")
+
         if not folder_of_detection:
             return 
         #minimum_probability = askint("Enter required probability out of 100","Minimum probability")
