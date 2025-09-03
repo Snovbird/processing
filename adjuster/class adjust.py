@@ -1,10 +1,10 @@
 import json, os, pandas
-from dependencies import select_anyfile,msgbox,error,list_folders,select_folder,list_folderspaths,avg,list_files,letter,check,path_exists,custom_dialog
+from dependencies import *
 from excel.writer_complex import writer_complex 
 from excel.general import fit_columns,excel_to_list
 from excel.export import export_excel
 
-class AdjustedData:
+class AdjustedData: # useless cuz cant do one step (ex: extract detector)
     def __init__(self, analysis_data_path: str=None,detector_data_path: str=None):
         self.analysis_data_path = analysis_data_path # default: None
         self.behaviors_of_interest = [] # behaviors selected by the user. Included in output.
@@ -19,16 +19,17 @@ class AdjustedData:
         '''
         msgbox("Select the excel file named 'all_events.xlsx' containing the analysis data")
         while not self.analysis_data_path: # find right excel sheet
-            xlsx_path:str = select_anyfile("Find the excel file containing analysis data", specific_ext="xlsx")[0]
-            
-            if os.path.basename(xlsx_path) == "all_events.xlsx":
-                return xlsx_path
+            self.analysis_data_path:str = file_explorer("Find the excel file containing analysis data", specific_ext="xlsx")[0]
+            if not self.analysis_data_path:
+                return
+            if os.path.basename(self.analysis_data_path) == "all_events.xlsx":
+                return self.analysis_data_path
             else:
-                error(f"'{os.path.basename(xlsx_path)}' is not the correct file.\nSelect 'all_events.xlsx' or '1_RAT_all_event_probability.xlsx'")
-            
-        import ast
+                error(f"'{os.path.basename(self.analysis_data_path)}' is not the correct file.\nSelect 'all_events.xlsx' or '1_RAT_all_event_probability.xlsx'")
+        
 
-        df = pandas.read_excel(file_path, sheet_name=0)
+        import ast
+        df = pandas.read_excel(xlsx_path, sheet_name=0)
         return [ [ast.literal_eval(item) if isinstance(item, str) else item for item in df[col].tolist()] for col in df.columns]
 
                 
@@ -52,7 +53,8 @@ class AdjustedData:
                         error("Please select a repository that contains detection data FOLDERS")
 
                 
-    def process_detector_data(self,)
+    def process_detector_data(self,):
+        pass
         
 
         
