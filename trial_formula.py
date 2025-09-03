@@ -18,7 +18,7 @@ def trial_formula(plus_or_minus_first:str|None = None,extract_which:str|None=Non
 
     toprint = ".".join([f'{i//3600:01d}{(i%3600)//60:02d}{i%60:02d}' for i in list_of_timestamps])
     print(toprint)
-    # which_first = custom_dialog(msg="Which trial goes first?",title="First trial",op1="DS+",op2="DS-")
+    # which_first = custom_dialog(msg="Which trial goes first?",title="First trial",op1="DS+",of2="DS-")
     if False:
         session_number = askint(msg="Enter session number:",title="Session number",fill=findval("session_number"))
 

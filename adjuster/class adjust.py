@@ -1,8 +1,61 @@
 import json, os, pandas
-from common.common import select_anyfile,msgbox,error,list_folders,select_folder,list_folderspaths,avg,list_files,letter,check,path_exists
+from dependencies import select_anyfile,msgbox,error,list_folders,select_folder,list_folderspaths,avg,list_files,letter,check,path_exists,custom_dialog
 from excel.writer_complex import writer_complex 
 from excel.general import fit_columns,excel_to_list
 from excel.export import export_excel
+
+class AdjustedData:
+    def __init__(self, analysis_data_path: str=None,detector_data_path: str=None):
+        self.analysis_data_path = analysis_data_path # default: None
+        self.behaviors_of_interest = [] # behaviors selected by the user. Included in output.
+        self.cues = None # 
+        self.corrected_data = {}
+        self.detector_data_path = detector_data_path # default: None
+        self.detector_data = {}
+
+    def get_analysis_data(self):
+        '''
+        file explorer for analysis data
+        '''
+        msgbox("Select the excel file named 'all_events.xlsx' containing the analysis data")
+        while not self.analysis_data_path: # find right excel sheet
+            xlsx_path:str = select_anyfile("Find the excel file containing analysis data", specific_ext="xlsx")[0]
+            
+            if os.path.basename(xlsx_path) == "all_events.xlsx":
+                return xlsx_path
+            else:
+                error(f"'{os.path.basename(xlsx_path)}' is not the correct file.\nSelect 'all_events.xlsx' or '1_RAT_all_event_probability.xlsx'")
+            
+        import ast
+
+        df = pandas.read_excel(file_path, sheet_name=0)
+        return [ [ast.literal_eval(item) if isinstance(item, str) else item for item in df[col].tolist()] for col in df.columns]
+
+                
+    def get_detector_data(self,):
+        '''
+        folder explorer for detection data
+        '''
+        msgbox("Select a folder containing subfolders with detection data.\nClick 'Select Folder' after clicking once on the folder")
+        while not self.detector_data_path: # find right excel sheet
+            self.detector_data_path:str = select_anyfile("Find the excel file containing analysis data", specific_ext="xlsx")[0]
+            if not self.detector_data_path:
+                return
+            else:
+                if len(list_files(self.detector_data_path)) > 0: # picked the "wrong" folder inside 
+
+                    if 'Analysis log.txt' in list_files(self.detector_data_path) and len(): 
+                        
+                        
+                        self.detector_data_path = os.path.dirname(self.detector_data_path)
+                    else:
+                        error("Please select a repository that contains detection data FOLDERS")
+
+                
+    def process_detector_data(self,)
+        
+
+        
 
 def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, int]]]:
     """
@@ -20,7 +73,7 @@ def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, 
             events = []
             
             # Get column B (index 1) values
-            column_b_values = sheet_df.iloc[:, 1] 
+            column_b_values = sheet_df.iloc[:, 1]  # Second column (index 1)
             
             # Track groups of consecutive non-blank values
             current_group_start = None
@@ -280,18 +333,39 @@ def lists_for_export(cd_list:dict,behaviors_in_final_output:list[str]) -> dict[s
                 ]
     return clean
 
+def export_excel(data:dict[str , dict[str,list[str|int]]],xlsx_path:str="output.xlsx"):
+    """
+    Args:
+    data: {"Sheet Name": {"Column Name": [ data, data] } }.
+    xlsx_path: Full or relative path ending by `.xlsx`
+    You can also alternate "str" title and int data to have data in same column
+    """
+    with pandas.ExcelWriter(xlsx_path, engine='openpyxl') as writer:
+        
+        for sheet_name, columns_data in data.items():
+
+            columns_data:dict[str, list[str|int]]
+
+            dataframe = pandas.DataFrame(columns_data)
+
+            dataframe.to_excel(writer, sheet_name=sheet_name, index=False,header=True)
+
+            fit_columns(writer.sheets[sheet_name])
+    
+    return xlsx_path
+
+if __name__ == "__main__":
+
+    test_data = {f"Sheet {i}": {f"column {i}":[i for i in range(10)] for i in range(6)} for i in range (3)}
+
+    os.startfile(
+        writer_complex(test_data)
+        )        
+    except Exception as e:
+        print(f"Error creating Excel file: {str(e)}")
+        return None
 
 def main():
-    while True: # find right excel sheet
-        xlsx_path:str = select_anyfile("Find the excel file containing data", specific_ext="xlsx")[0]
-        if not xlsx_path:
-            return
-        if os.path.basename(xlsx_path) == "all_events.xlsx":
-            break
-        elif os.path.basename(xlsx_path) == "1_RAT_all_event_probability.xlsx":
-            pass # different treatment since data in column 2 ( [1] ) is formatted with strings like "['behavior','probability']" # future implementation
-        else:
-            error(f"'{os.path.basename(xlsx_path)}' is not the correct file.\nSelect 'all_events.xlsx' or '1_RAT_all_event_probability.xlsx'")
 
     if os.path.basename(xlsx_path) == "all_events.xlsx":
         
@@ -358,10 +432,6 @@ def main():
     writer_complex(final,outpath)
 
     os.startfile(os.path.dirname(xlsx_path))
-
-def main():
-    msgbox(detector_excel_to_object_times(r"C:\Users\matts\Downloads\testdetect.xlsx"))
-
 
 if __name__ == "__main__":
     main()
