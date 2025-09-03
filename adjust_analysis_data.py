@@ -20,7 +20,7 @@ def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, 
             events = []
             
             # Get column B (index 1) values
-            column_b_values = sheet_df.iloc[:, 1]  # Second column (index 1)
+            column_b_values = sheet_df.iloc[:, 1] 
             
             # Track groups of consecutive non-blank values
             current_group_start = None
@@ -358,6 +358,10 @@ def main():
     writer_complex(final,outpath)
 
     os.startfile(os.path.dirname(xlsx_path))
+
+def main():
+    msgbox(detector_excel_to_object_times(r"C:\Users\matts\Downloads\testdetect.xlsx"))
+
 
 if __name__ == "__main__":
     main()
