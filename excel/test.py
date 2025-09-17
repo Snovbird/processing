@@ -1,3 +1,4 @@
+a = []
 
-print("a a".split())
-
+if not a:
+    print("a")

@@ -660,21 +660,17 @@ def get_date_yyyymmdd() -> str:
 
 def list_files(dir:str) -> list[str]:
     """
-    returns:
-    the NAMES of files in a directory
-
-    ex: `apples.mp4,banana.mp4`
+    files names (ex: ['apples.mp4', 'banana.mp4'])
     """
-    return [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))]
+    if os.path.isdir(dir):
+        return [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))]
 
 def list_folders(dir:str) -> list[str]:
     """
-    returns:
-    the NAMES of folders in a directory
-
-    ex: `apples,banana`
+    folder names (ex: ['apples', 'banana'])
     """
-    return [folder for folder in os.listdir(dir) if os.path.isdir(os.path.join(dir, folder))]
+    if os.path.isdir(dir):
+        return [folder for folder in os.listdir(dir) if os.path.isdir(os.path.join(dir, folder))]
 
 def list_filespaths(dir:str) -> list[str]:
     """

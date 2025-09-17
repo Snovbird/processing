@@ -1,4 +1,4 @@
-import pandas, wx
+import pandas, wx,os
 def fit_columns(worksheet):
     for column in worksheet.columns:
         max_length = 0
@@ -60,9 +60,13 @@ def folder_explorer(title:str) -> str|None:
             folder_path = dlg.GetPath()
             return folder_path
 
-def file_explorer(title:str) -> list[str]|None:
+def file_explorer(title:str,xlsx_only = False) -> list[str]|None:
     app = wx.App(False)
-    with wx.FileDialog(None,message=title,wildcard="Any files (*.*)|*.*",style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE) as file_dialog:
+    if xlsx_only:
+        files = "Excel files (*.xlsx)|*.xlsx"
+    else:
+        files = "Any files (*.*)|*.*)"
+    with wx.FileDialog(None,message=title,wildcard=files,style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE) as file_dialog:
         if file_dialog.ShowModal() == wx.ID_CANCEL:
             return []
         video_paths = file_dialog.GetPaths()
@@ -76,7 +80,7 @@ def error(msg:str,title:str="ERROR"):
     app = wx.App(False)
     wx.MessageBox(f"Error: {msg}", f"{title}", wx.OK | wx.ICON_ERROR)
 
-def dropdown(choices: list[str], title='', icon_name=None,hide:tuple[str]=(None,)) -> str:
+def dropdown(choices: list[str], title='') -> str:
     """
     Args:
     choices: list of string (options) to display in the dropdown
@@ -85,28 +89,8 @@ def dropdown(choices: list[str], title='', icon_name=None,hide:tuple[str]=(None,
     """
 
     app = wx.GetApp()
-    if hide[0]:
-        for obj in hide:
-            if obj in choices:
-                choices.remove(obj)
-    if not app:
-        app = wx.App(False)
-        created_app = True
-    else:
-        created_app = False
 
-    # Create a dialog instead of a frame for modal behavior
-    if icon_name:
-        dialog = wx.Dialog(None, title=title, size=(315, 150))
-        icon_path = os.path.join(SCRIPTS_PATH,'icons',f"{icon_name}.ico")
-        if os.path.exists(icon_path):
-            try:
-                icon = wx.Icon(icon_path, wx.BITMAP_TYPE_ICO)
-                dialog.SetIcon(icon)
-            except Exception as e:
-                print(f"Failed to load icon: {e}")
-    else:
-        dialog = wx.Dialog(None, title=title, size=(315, 150))
+    dialog = wx.Dialog(None, title=title, size=(315, 150))
 
     dialog.CenterOnScreen()
     
@@ -148,4 +132,45 @@ def dropdown(choices: list[str], title='', icon_name=None,hide:tuple[str]=(None,
     dialog.Destroy()
     
     return selected_item[0]
+
+def list_files(dir:str) -> list[str]:
+    """
+    files names (ex: ['apples.mp4', 'banana.mp4'])
+    """
+    if os.path.isdir(dir):
+        return [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))]
+
+def list_folders(dir:str) -> list[str]:
+    """
+    folder names (ex: ['apples', 'banana'])
+    """
+    if os.path.isdir(dir):
+        return [folder for folder in os.listdir(dir) if os.path.isdir(os.path.join(dir, folder))]
+
+def list_filespaths(dir:str) -> list[str]:
+    """
+    returns: the FULL path of files in a directory
+
+    ex: `C:/users/me/apples.mp4, C:/users/me/banana.mp4`
+    """
+    return [os.path.join(dir, file) for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))]
+
+def list_folderspaths(dir:str) -> list[str]:
+    """
+    returns: the FULL path of folders in a directory
+
+    ex: `C:/users/me/apples/, C:/users/me/banana/`
+    """
+    return [os.path.join(dir, folder) for folder in os.listdir(dir) if os.path.isdir(os.path.join(dir, folder))]
+
+def checkbox_dialog(options:list[str]|set,msg:str="Choose options",title:str="Selections") -> list[str]:
+
+    app = wx.App(False)
+    if isinstance(options,set):
+        options = list(options)
+    dialog1=wx.MultiChoiceDialog(None,message=msg,caption=title,choices=options)
+
+    if dialog1.ShowModal()==wx.ID_OK:
+        indexes:list[int] = dialog1.GetSelections() # returns indexes such as [0,1]
+        return [options[index] for index in indexes]
 
