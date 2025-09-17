@@ -302,7 +302,7 @@ def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,h
     if not start_at_1 and count == 1:
         new_folder_name = f"{foldername if foldername != '' else '-'}"
     else:
-        if foldername is '':
+        if foldername == '':
             new_folder_name = f"{count}"
         else:
             new_folder_name = f"{foldername.replace('-','')}-{count}"
@@ -869,17 +869,15 @@ def get_extreme_colors(n):
 
 import wx
 
-def simple_dropdown(choices,return_index = False):
+def simple_dropdown(choices,msg='',title='',return_index = False):
     """Simple dropdown function using wx.SingleChoiceDialog"""
-    app = wx.App()
-    
-    # Define choices
-    
+    app = wx.App(False)
+
     # Create dropdown dialog
     dialog = wx.SingleChoiceDialog(
         None,
-        message="Choose your favorite programming language:",
-        caption="Language Selection",
+        message=msg,
+        caption=title,
         choices=choices
     )
     
