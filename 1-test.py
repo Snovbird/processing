@@ -1,6 +1,5 @@
 import pandas,os,wx
 from common.common import *
+a = select_video
 
-
-a = {1:2,2:3}
-print(a.values()[0])
+print(str(a))

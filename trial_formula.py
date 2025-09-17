@@ -5,9 +5,13 @@ def div(arg1,arg2):
         return arg1 / arg2
     except ZeroDivisionError:
         return 0
-def trial_formula(plus_or_minus_first:str|None = None,extract_which:str|None=None):
-    
-    start_time = askint(msg="Enter Start start time:",title="Start time",fill=findval("start_time"))
+def trial_formula(plus_or_minus_first:str|None = None,extract_which:str|None=None,start_time:int|None=None):
+    """
+    Returns: (str)
+        `HHMMSS.HHMMSS.HHMMSS`
+    """
+    if not start_time:
+        start_time = askint(msg="Enter Start start time:",title="Start time",fill=findval("start_time"))
     assignval("start_time",start_time)
     list_of_timestamps = [start_time]
     for i in range(10): # 10*3 = 30 times to go through

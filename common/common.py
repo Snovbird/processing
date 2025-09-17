@@ -280,6 +280,16 @@ def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
     return None
 
 def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,hide:bool=False,count:int=1,) -> str:
+    """
+    Args:
+        file_or_folder_path (str): The path to the file or folder.
+        foldername (str): The name of the created folder. Default is empty. If start_at_1 is False, first folder will be named `-`. Subsequent folders will be named after their count value  
+        start_at_1 (bool): if False, first unique created folder in dir does not have "-1" in its name. If exists, will have `-2` appended. Default is `True`.
+        hide (bool): created folder will be hidden. Default is `False`.
+        count (int): Initial count for folder. If start_at_1 is false,  first `-count` will be hidden, but following will keep this sequence start. Default is `-1`.
+    
+    """
+    
     import os
     # Get directory containing the file
     if os.path.isdir(file_or_folder_path):
@@ -290,10 +300,12 @@ def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,h
     
     # Create folder name
     if not start_at_1 and count == 1:
-        new_folder_name = f"{foldername}"
+        new_folder_name = f"{foldername if foldername != '' else '-'}"
     else:
-        new_folder_name = f"{foldername.replace('-','')}-{count}"
-
+        if foldername is '':
+            new_folder_name = f"{count}"
+        else:
+            new_folder_name = f"{foldername.replace('-','')}-{count}"
     # Create full path to new folder
     new_folder_path = os.path.join(folder_path, new_folder_name)
     # Check if folder exists and print debug info
@@ -359,8 +371,6 @@ def get_duration(video_path: str) -> tuple[float, str] | None:
     return frames, seconds, formatted_time
 
 def msgbox(msg:str,title:str=' '):
-    
-
     app = wx.App(False)  # Create the wx.App instance
 
     wx.MessageBox(f"{msg}", f"{title}", wx.OK | wx.ICON_INFORMATION)
@@ -463,7 +473,7 @@ def assignval(valuename:str,value):
     except Exception as e:
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
-def dropdown(choices: list[str], title='', icon_name=None,hide:tuple[str]=(None,)) -> str:
+def dropdown(choices: list[str], title='', icon_name=None,hide:tuple[str]=(None,),return_index:bool=False) -> str:
     """
     Args:
     choices: list of string (options) to display in the dropdown

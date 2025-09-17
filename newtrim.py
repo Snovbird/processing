@@ -17,12 +17,13 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
         input_path (str): Path to the input video file.
         start_times (list[str]): A list of start timestamps for the clips,
             formatted as "HH:MM:SS".
-        end_times (list[str]): A list of end timestamps for the clips,
+        end_times (list[str]): A list of end timestamps for the ,
             formatted as "HH:MM:SS". Must be the same length as start_times.
         output_folder (str): The directory where the output video clips
             will be saved.
         count (int, optional): The starting number for the output file naming
             sequence (e.g., `basename_001.mp4`). Defaults to 1.
+            Necessary since a same video might need to be batch trimmed twice due to the batch limit of 7 (memory limitation of GPU), so the count will be 7
 
     Returns:
         bool: True if the FFmpeg command executes successfully. Raises a
@@ -111,6 +112,12 @@ def main():
             print("Exiting since end_times is None")
             return
 
+    output_folder,all_processing_complete = process_from_start(file_paths,start_times,end_times)    
+    # Only open the directory once all processing is complete and multiple files were selected
+    if all_processing_complete and output_folder:
+        os.startfile(output_folder)
+
+def process_from_start(file_paths,start_times,end_times,output_folder = None,batch_size = None):
     start_times = list(
         map(format_time_colons,start_times) # format as HH:MM:SS
     )
@@ -121,16 +128,14 @@ def main():
     start_times_list = group_from_end(start_times, batch_size)
     print(f"{start_times_list=}",)
 
-
     end_times = list(
         map(format_time_colons,end_times) # format as HH:MM:SS
     )
     end_times_list = group_from_end(end_times, batch_size)
     print(f"{end_times_list=}")
 
-
     if len(start_times) > 1 and len(file_paths) == 1 or len(file_paths) > 1:  # folder needed if multiple trims for one file
-        output_folder = makefolder(file_paths[0],foldername="trimmed-")
+        output_folder = makefolder(file_paths[0],foldername=output_folder if output_folder else "trimmed")
     else: # same folder if only one single trim output
         output_folder = os.path.dirname(file_paths[0])
     all_processing_complete = False
@@ -150,10 +155,37 @@ def main():
         all_processing_complete = clear_gpu_memory() # -> True
     else:
         error(f"Must enter same # of start times as end times.\{start_times=}\nEnd times = {end_times=}")
-    
-    # Only open the directory once all processing is complete and multiple files were selected
-    if all_processing_complete and output_folder:
-        os.startfile(output_folder)
+    return output_folder,all_processing_complete
+
+def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE"):
+    """
+    Args:
+        video (str): path to video
+        which (str, optional): options = `DS+`, `DS-`,`ALL IN ONE` or `BOTH SEPARATE`
+    """
+    okay = ["DS+", "DS-"] if which == "BOTH SEPARATE" else [which]
+    from trial_formula import trial_formula
+    from addtopss import addtopss
+    first = os.path.basename(os.path.dirname(file_paths[0])).split(" ")[-1]
+    start_time = 18
+    if first == "DS+":
+        if "DS+" in okay:
+            DS_plus_plusfirst_start = trial_formula(plus_or_minus_first="DS+",extract_which="DS+",start_time=start_time)
+            DS_plus_plusfirst_end = addtopss(DS_plus_plusfirst_start, toadd=55, HHMMSS_or_frames="HHMMSS")
+            process_from_start(file_paths,DS_plus_plusfirst_start,DS_plus_plusfirst_end,output_folder="DS+")
+        if "DS-" in okay:
+            DS_minus_plusfirst_start = trial_formula(plus_or_minus_first="DS+",extract_which="DS-",start_time=start_time)
+            DS_minus_plusfirst_end = addtopss(DS_minus_plusfirst_start, toadd=55, HHMMSS_or_frames="HHMMSS")
+            process_from_start(file_paths,DS_minus_plusfirst_start,DS_minus_plusfirst_end,output_folder="DS-")
+    elif first == "DS-":
+        if "DS+" in okay:
+            DS_plus_minusfirst_start = trial_formula(plus_or_minus_first="DS+",extract_which="DS-",start_time=start_time)
+            DS_plus_minusfirst_end = addtopss(DS_plus_minusfirst_start, toadd=55, HHMMSS_or_frames="HHMMSS")
+            process_from_start(file_paths,DS_plus_minusfirst_start,DS_plus_minusfirst_end,output_folder="DS+")
+        if "DS-" in okay:
+            DS_minus_minusfirst_start = trial_formula(plus_or_minus_first="DS-",extract_which="DS-",start_time=start_time)
+            DS_minus_minusfirst_end = addtopss(DS_minus_minusfirst_start, toadd=55, HHMMSS_or_frames="HHMMSS")
+            process_from_start(file_paths,DS_minus_minusfirst_start,DS_minus_minusfirst_end,output_folder="DS-")
 
 if __name__ == "__main__":
     main()
