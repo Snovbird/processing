@@ -866,3 +866,31 @@ def get_extreme_colors(n):
             break
     
     return colors
+
+import wx
+
+def simple_dropdown(choices,return_index = False):
+    """Simple dropdown function using wx.SingleChoiceDialog"""
+    app = wx.App()
+    
+    # Define choices
+    
+    # Create dropdown dialog
+    dialog = wx.SingleChoiceDialog(
+        None,
+        message="Choose your favorite programming language:",
+        caption="Language Selection",
+        choices=choices
+    )
+    
+    # Show dialog and get result
+    if dialog.ShowModal() == wx.ID_OK:
+        if return_index:
+            selection:int = dialog.GetSelection() 
+        else:
+            selection:str = dialog.GetStringSelection()
+            
+    dialog.Destroy()
+    app.Destroy()
+    return selection
+
