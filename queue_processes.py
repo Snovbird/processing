@@ -1,5 +1,5 @@
 # necessary
-from common.common import askint,select_video,select_folder,simple_dropdown,custom_dialog,makefolder,msgbox,list_filespaths
+from common.common import askint,select_video,select_folder,simple_dropdown,custom_dialog,makefolder,msgbox,list_files_ext
 import wx,os
 # Queue-able processes
 from concatenate import concatenate
@@ -18,7 +18,7 @@ def queue():
     sel = functions[ind]
     sel_name = functions_str[ind]
     if not sel:
-        return
+        return 
     # choice= custom_dialog("Select different videos for each process or select same videos for all?","Input Handling",op1="DIFF vids",op2="SAME vids")
     videos = []
     folder_or_file_explorer = custom_dialog("Select files or folders?","Input Handling",op1="Files",op2="Folders")
@@ -28,7 +28,7 @@ def queue():
             selection = select_folder(f"Select folder. Cancel to stop file explorer loop",path=os.path.dirname(selection) if isinstance(selection,str) else False)
             if selection:
                 print(f"{selection=}")
-                videos.append(list_filespaths(selection))
+                videos.append(list_files_ext(selection,ext=".mp4"))
     elif folder_or_file_explorer == "Files":
         while selection:
             selection = select_video(f"Select videos. Cancel to stop file explorer loop")
@@ -43,13 +43,14 @@ def queue():
         which = simple_dropdown(["DS+","DS-","ALL IN ONE","BOTH SEPARATE"])
         for group in videos:
             sel(group,which=which)
+            count += len(group)
     else:
         for group in videos:
             output_folder = makefolder(group[0],"Processed videos-")
             for vid in group:  
                 exec(f"{sel}(vid,output_folder=r'{output_folder}')")
                 count +=1
-        return count,sel_name
+    return count,sel_name
             
 if __name__ == "__main__":
     c,sel_name = queue()

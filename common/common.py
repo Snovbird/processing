@@ -892,3 +892,9 @@ def simple_dropdown(choices,msg='',title='',return_index = False):
     app.Destroy()
     return selection
 
+def list_files_ext(dir:str,ext:str) -> list[str]:
+    """
+    files names (ex: ['apples.mp4', 'banana.mp4'])
+    """
+    if os.path.isdir(dir):
+        return [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file)) and file.lower().endswith(ext.lower())]
