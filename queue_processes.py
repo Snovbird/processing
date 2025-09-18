@@ -38,11 +38,12 @@ def queue():
             #     sel = dropdown(functions)
             #     selected_functions.append(sel)
             #     functions.remove(sel)
+    msgbox(videos)
     count = 0
     if sel_name == "trim_DS_auto":
         which = simple_dropdown(["DS+","DS-","ALL IN ONE","BOTH SEPARATE"])
         for group in videos:
-            sel(group,which=which)
+            trim_DS_auto(group,which=which)
             count += len(group)
     else:
         for group in videos:
