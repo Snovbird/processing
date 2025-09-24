@@ -1,5 +1,5 @@
 # necessary
-from common.common import askint,select_video,select_folder,simple_dropdown,custom_dialog,makefolder,msgbox,list_files_ext
+from common.common import askint,select_video,select_folder,simple_dropdown,custom_dialog,makefolder,msgbox,list_files_ext,assignval,findval
 import wx,os
 # Queue-able processes
 from concatenate import concatenate
@@ -17,28 +17,33 @@ def queue():
         return
     sel = functions[ind]
     sel_name = functions_str[ind]
-    if not sel:
-        return 
-    # choice= custom_dialog("Select different videos for each process or select same videos for all?","Input Handling",op1="DIFF vids",op2="SAME vids")
+
     videos = []
-    folder_or_file_explorer = custom_dialog("Select files or folders?","Input Handling",op1="Files",op2="Folders")
-    selection = True
-    if folder_or_file_explorer == "Folders":
-        while selection:
-            selection = select_folder(f"Select folder. Cancel to stop file explorer loop",path=os.path.dirname(selection) if isinstance(selection,str) else False)
-            if selection:
-                print(f"{selection=}")
-                videos.append(list_files_ext(selection,ext=".mp4"))
-    elif folder_or_file_explorer == "Files":
-        while selection:
-            selection = select_video(f"Select videos. Cancel to stop file explorer loop")
-            if selection:
-                videos.append(selection)
-            # for function in range(how_many_functions):
-            #     sel = dropdown(functions)
-            #     selected_functions.append(sel)
-            #     functions.remove(sel)
-    msgbox(videos)
+    if custom_dialog("Use last input videos?","Input",op1="Yes",op2="No") == "Yes":
+        videos = findval("last_input_videos")
+    else:
+        folder_or_file_explorer = custom_dialog("Select files or folders?","Input Handling",op1="Files",op2="Folders")
+        selection = True
+        
+        if folder_or_file_explorer == "Folders":
+            while selection:
+                selection = select_folder(f"Select folder. Cancel to stop file explorer loop",path=os.path.dirname(selection) if isinstance(selection,str) else False)
+                if selection:
+                    print(f"{selection=}")
+                    videos.append([os.path.join(selection,filename) for filename in list_files_ext(selection,ext=".mp4")])
+            
+        elif folder_or_file_explorer == "Files":
+            while selection:
+                selection = select_video(f"Select videos. Cancel to stop file explorer loop")
+                if selection:
+                    videos.append(selection)
+                # for function in range(how_many_functions):
+                #     sel = dropdown(functions)
+                #     selected_functions.append(sel)
+                #     functions.remove(sel)
+        assignval("last_input_videos",videos)
+
+
     count = 0
     if sel_name == "trim_DS_auto":
         which = simple_dropdown(["DS+","DS-","ALL IN ONE","BOTH SEPARATE"])
