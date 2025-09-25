@@ -172,20 +172,17 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
             return
     msgbox(f"emergency {videos=}\n\n{cage_numbers=}\n\n{room=}\n\n{date=}")
     for video,cage_number in zip(videos,cage_numbers):
-        if not room:
+        if not room: # 2-MARKERS/ NEWROOMNAME /
             room = askstring("Provide the name of the new room:","New room name",fill="ROOMNAME (numberofcages)")
             project_folderpath = makefolder(marker_overlays_path,foldername=room,start_at_1=False)
-        else:
-            # ↓ alternative name needed | working path
-            project_folderpath = makefolder(room_folder_path,f"cage{cage_number}_{date}",start_at_1=False)
+        else: # 2-MARKERS/OPTO-ROOM/cage2_20250806/
+            project_folderpath = makefolder(room_folder_path,f"cage{cage_number}-{date}",start_at_1=False)
         
-        first_project_folderpath = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),project_path)
-        # name example = cage6_20250616.png
-        project_path = os.path.join(room_folder_path,f"cage{cage_number}-{date}.xcf")
-        os.rename(first_project_path,project_path)
+        unnamed_project_folderpath = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),project_folderpath)
+        renamed_project_path = os.path.join(room_folder_path,f"cage{cage_number}-{date}.xcf")
+        os.rename(unnamed_project_folderpath,renamed_project_path)
         times = 1
         imgpath = extractpng(video=video,times=(times,),output_folder=room_folder_path)[0]
-        
         
         # while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
         #     os.remove(imgpath)
