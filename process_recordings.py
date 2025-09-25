@@ -79,7 +79,7 @@ def process_folder():
                 continue
             combined_outputpath = combine_and_resize_images(bg_imgpath,overlay_imgpath,output_folder=combined_output_folder)
             ready_combined_imgs_paths[combined_outputpath] = cage_number 
-
+    print(f"{problematic=}")
     if problematic:
         date, cages = problematic.items()
         emergency_overlay_maker(cage_numbers=cages,room=room,date=date)
