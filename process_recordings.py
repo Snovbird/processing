@@ -64,7 +64,8 @@ def process_folder():
         png_outputs = makefolder(concatenation_output_folder, foldername='png')
         init_folderpaths.append(concatenation_output_folder)
         combined_output_folder = makefolder(png_outputs, foldername='combined')
-        problematic:dict[str,str] = {}
+
+        make_overlays:dict[str,list[str]] = {}
         for group in grouped_files:
             bg_imgpath = extractpng(group[0],times=[1],output_folder=png_outputs)[0]
             date_for_group = os.path.splitext(os.path.basename(group[0]))[0].split("-")[1]
@@ -72,16 +73,17 @@ def process_folder():
             try:
                 overlay_imgpath = find_imgpath_overlay_date(date_provided=date_for_group,room=room,cage_number=cage_number)
             except ImageNotFoundError:
-                if problematic.get(date_for_group):
-                    problematic[date_for_group].append(cage_number)
+                if make_overlays.get(date_for_group):
+                    make_overlays[date_for_group].append(cage_number)
                 else:
-                    problematic[date_for_group] = [cage_number]
+                    make_overlays[date_for_group] = [cage_number]
                 continue
             combined_outputpath = combine_and_resize_images(bg_imgpath,overlay_imgpath,output_folder=combined_output_folder)
             ready_combined_imgs_paths[combined_outputpath] = cage_number 
-    print(f"{problematic=}")
-    if problematic:
-        date, cages = problematic.items()
+
+    if make_overlays:
+        date, cages = list(make_overlays.items())
+
         emergency_overlay_maker(cage_numbers=cages,room=room,date=date)
         return
     # do a carroussel of all images at once

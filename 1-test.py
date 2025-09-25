@@ -15,8 +15,7 @@ import timeit
 # print(f"append {time1=}")
 # print(f"add {time2=}")
 
-for item in [0,1,2,3]:
-    if item == 1:
-        continue
-    else:
-        print(item)
+a = {"aa":[1,2,3]}
+base, uuu = a.items
+print(base)
+print(uuu)
