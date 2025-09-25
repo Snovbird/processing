@@ -121,17 +121,24 @@ def find_imgpath_overlay_date(date_provided,room,cage_number) -> str:
     overlays_path = find_folder_path("2-markers")
     alldates = findval("dates")[::-1] # invert it to loop from latest dates first then to earlier ones
     if date_provided not in alldates:
-        alldates = findval("dates")[::-1]
-        for date in alldates:
+        for date in alldates: # get img from last date
             imgpath = os.path.join(overlays_path, room,f"cage{cage_number}-{date}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
             if os.path.exists(imgpath):
                 break
+        else:
+            raise ImageNotFoundError(f"No overlays for cage {cage_number} on {date_provided} in room {room}")
     else:
         for date_index in range(alldates.index(date_provided),len(alldates)):
             imgpath = os.path.join(overlays_path, room,f"cage{cage_number}-{alldates[date_index]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
             if os.path.exists(imgpath):
                 break
+        else:
+            raise ImageNotFoundError(f"No overlays for cage {cage_number} on {date_provided} in room {room}")
     return imgpath
+
+class ImageNotFoundError(Exception):
+    """when no overlay image is found."""
+    pass
 
 if __name__ == "__main__":
     main()

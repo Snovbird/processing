@@ -2,7 +2,7 @@ import os, shutil, subprocess
 from cagename import name_cages
 from concatenate import concatenate,group_files_by_digits
 from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,askstring,dropdown,list_files,list_folders,list_folderspaths,list_filespaths,list_files,is_date
-from markersquick import apply_png_overlay, find_imgpath_overlay_date
+from markersquick import apply_png_overlay, find_imgpath_overlay_date, ImageNotFoundError
 from frameoverlay import overlay_FRAMES
 from photo_carrousel import photo_carrousel
 from image_combine import combine_and_resize_images
@@ -68,7 +68,11 @@ def process_folder():
             bg_imgpath = extractpng(group[0],times=[1],output_folder=png_outputs)[0]
             date_for_group = os.path.splitext(os.path.basename(group[0]))[0].split("-")[1]
             cage_number = ''.join(char for char in os.path.splitext(os.path.basename(group[0]))[0][0:2] if char.isdigit()) # extract digits from first two filename characters to get cage number
-            overlay_imgpath = find_imgpath_overlay_date(date_provided=date_for_group,room=room,cage_number=cage_number)
+            try:
+                overlay_imgpath = find_imgpath_overlay_date(date_provided=date_for_group,room=room,cage_number=cage_number)
+            except ImageNotFoundError:
+                return emergency_overlay_maker(cage_number=cage_number,room=room,date=date_for_group)
+
             combined_outputpath = combine_and_resize_images(bg_imgpath,overlay_imgpath,output_folder=combined_output_folder)
             ready_combined_imgs_paths[combined_outputpath] = cage_number 
     # do a carroussel of all images at once
@@ -138,10 +142,11 @@ def process_folder():
         os.startfile(os.path.dirname(final_output_path)) # folder specific
 
 
-def emergency_overlay_maker(cage_number=None,room=None):
+def emergency_overlay_maker(cage_number=None,room=None,date=None):
     from common.common import get_date_yyyymmdd,select_video,askint
     marker_overlays_path = find_folder_path("2-MARKERS")
-    date = askstring("Please enter the date as YYYYMMDD for this overlay. \nDefault is today's date.",fill=get_date_yyyymmdd())
+    if not date:
+        date = askstring("Please enter the date as YYYYMMDD for this overlay. \nDefault is today's date.",fill=get_date_yyyymmdd())
     if not room:
         room = dropdown(list_folders(marker_overlays_path) + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_name="star",hide=("MARKERS-TEMPLATES",))
         
@@ -165,10 +170,17 @@ def emergency_overlay_maker(cage_number=None,room=None):
     msgbox("A file explorer window will open next. From the explorer, select a video from which an image will be extracted to align the markers.\nThis image will be automatically added to the opened folder.")
     times = 1
     imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
+    
+    
     while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
         os.remove(imgpath)
         times += 5
         imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
+    
+    dates:list[str] = findval("dates")
+    dates.append(date)
+    assignval("dates",dates)
+
     os.startfile(room_folder_path)
 
 

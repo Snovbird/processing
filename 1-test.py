@@ -1,5 +1,16 @@
 import pandas,os,wx
 from common.common import *
-a = select_video
+import timeit
 
-print(os.listdir(r"C:\Users\samahalabo\Desktop\0-RECORDINGS\20250620 DS+\DS-2"))
+dates = list(range(100))
+
+# append() - much faster
+time1 = timeit.timeit(lambda: dates.append(1001), number=100000)
+
+# concatenation - slower
+time2 = timeit.timeit(lambda: dates + [1001], number=100000)
+
+# append() is typically 10-50x faster
+
+print(f"append {time1=}")
+print(f"add {time2=}")
