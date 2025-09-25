@@ -136,6 +136,7 @@ def select_video(title:str="Select videos",path:str='',avi:bool = False) -> list
             
             # Show the dialog and check if user clicked OK
             if file_dialog.ShowModal() == wx.ID_CANCEL:
+                
                 return []  # Return empty list if canceled
                 
             # Get the selected paths
