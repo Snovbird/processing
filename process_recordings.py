@@ -179,7 +179,7 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
             project_folderpath = makefolder(room_folder_path,f"cage{cage_number}-{date}",start_at_1=False)
         
         unnamed_project_folderpath = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),project_folderpath)
-        renamed_project_path = os.path.join(room_folder_path,f"cage{cage_number}-{date}.xcf")
+        renamed_project_path = os.path.join(project_folderpath,f"cage{cage_number}-{date}.xcf")
         os.rename(unnamed_project_folderpath,renamed_project_path)
         times = 1
         imgpath = extractpng(video=video,times=(times,),output_folder=room_folder_path)[0]
