@@ -16,6 +16,8 @@ import timeit
 # print(f"add {time2=}")
 
 a = {"aa":[1,2,3]}
-base, uuu = a.items
+msgbox(list(a.items))
+base, uuu = list(a.items)
+
 print(base)
 print(uuu)

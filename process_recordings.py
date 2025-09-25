@@ -80,10 +80,10 @@ def process_folder():
                 continue
             combined_outputpath = combine_and_resize_images(bg_imgpath,overlay_imgpath,output_folder=combined_output_folder)
             ready_combined_imgs_paths[combined_outputpath] = cage_number 
-
+    msgbox(list(make_overlays.items()))
     if make_overlays:
         date, cages = list(make_overlays.items())
-
+        
         emergency_overlay_maker(cage_numbers=cages,room=room,date=date)
         return
     # do a carroussel of all images at once
