@@ -74,18 +74,17 @@ def process_folder():
                 overlay_imgpath = find_imgpath_overlay_date(date_provided=date_for_group,room=room,cage_number=cage_number)
             except ImageNotFoundError:
                 if make_overlays.get(date_for_group):
-                    make_overlays[date_for_group].append(cage_number)
+                    make_overlays[date_for_group]["numbers"].append(cage_number)
+                    make_overlays[date_for_group]["videos"].append(group[0])
                 else:
-                    make_overlays[date_for_group] = [cage_number]
+                    make_overlays[date_for_group] = {"numbers":[cage_number],"videos":[group[0]]}
                 continue
             combined_outputpath = combine_and_resize_images(bg_imgpath,overlay_imgpath,output_folder=combined_output_folder)
             ready_combined_imgs_paths[combined_outputpath] = cage_number 
-    msgbox(list(make_overlays.items()))
     if make_overlays:
-        date, cages = list(make_overlays.items())
-        
-        emergency_overlay_maker(cage_numbers=cages,room=room,date=date)
-        return
+        for date,info in make_overlays.items():        
+            emergency_overlay_maker(cage_numbers=info["numbers"],room=room,date=date,videos=info["videos"])
+            return
     # do a carroussel of all images at once
     for imgpath, number in ready_combined_imgs_paths.items():
         if photo_carrousel(imgpath) == 'STOP markers NOT aligned':
@@ -153,7 +152,7 @@ def process_folder():
         os.startfile(os.path.dirname(final_output_path)) # folder specific
 
 
-def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None):
+def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,videos=None):
     from common.common import get_date_yyyymmdd,select_video,askint
     marker_overlays_path = find_folder_path("2-MARKERS")
     if not date:
@@ -166,27 +165,32 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None):
         cage_numbers:list[int] = [ askint("Enter the cage number:","Cage number") ]
         if not cage_numbers:
             return
-    for cage_number in cage_numbers:
+    if not videos:
+        msgbox("A file explorer window will open next. From the explorer, select a video from which an image will be extracted to align the markers.\nThis image will be automatically added to the opened folder.")
+        videos:str = select_video("Select video from which an image will be extracted. It will be used to align the markers")
+        if not videos:
+            return
+    msgbox(f"emergency {videos=}\n\n{cage_numbers=}\n\n{room=}\n\n{date=}")
+    for video,cage_number in zip(videos,cage_numbers):
         if not room:
             room = askstring("Provide the name of the new room:","New room name",fill="ROOMNAME (numberofcages)")
-            room_folder_path = makefolder(marker_overlays_path,foldername=room,start_at_1=False)
+            project_folderpath = makefolder(marker_overlays_path,foldername=room,start_at_1=False)
         else:
             # ↓ alternative name needed | working path
-            room_folder_path = makefolder(room_folder_path,f"cage{cage_number}_{date}",start_at_1=False)
+            project_folderpath = makefolder(room_folder_path,f"cage{cage_number}_{date}",start_at_1=False)
         
-        first_project_path = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),room_folder_path)
+        first_project_folderpath = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),project_path)
         # name example = cage6_20250616.png
         project_path = os.path.join(room_folder_path,f"cage{cage_number}-{date}.xcf")
         os.rename(first_project_path,project_path)
-        msgbox("A file explorer window will open next. From the explorer, select a video from which an image will be extracted to align the markers.\nThis image will be automatically added to the opened folder.")
         times = 1
-        imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
+        imgpath = extractpng(video=video,times=(times,),output_folder=room_folder_path)[0]
         
         
-        while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
-            os.remove(imgpath)
-            times += 5
-            imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
+        # while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
+        #     os.remove(imgpath)
+        #     times += 5
+        #     imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
         
         dates:list[str] = findval("dates")
         dates.append(date)
