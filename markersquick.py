@@ -24,7 +24,7 @@ def apply_png_overlay(video_path, output_folder,room="OPTO-ROOM (12 cages)",cage
 
     if not date_to_provide: # If a date is inside of the video name,but today's date was not provided (date_today = today's date)
         
-        date_to_provide = video_name.split("-")[1]
+        date_to_provide = video_name.split("_")[1]
         if not is_date(date_to_provide):
             date_to_provide = findval("dates")[-1] # will loop through known dates
     #today's date was provided
