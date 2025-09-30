@@ -2,7 +2,8 @@ import os, shutil, subprocess
 from cagename import name_cages
 from concatenate import concatenate,group_files_by_digits
 from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,askstring,dropdown,list_files,list_folders,list_folderspaths,list_filespaths,list_files,is_date
-from markersquick import apply_png_overlay, find_imgpath_overlay_date, ImageNotFoundError
+from markersquick import apply_png_overlay, find_imgpath_overlay_date
+from common.exceptions import ImageNotFoundError
 from frameoverlay import overlay_FRAMES
 from photo_carrousel import photo_carrousel
 from image_combine import combine_and_resize_images
@@ -190,8 +191,9 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         #     imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
         
         dates:list[str] = findval("dates")
-        dates.append(date)
-        assignval("dates",dates)
+        if date not in dates:
+            dates.append(date)
+            assignval("dates",dates)
 
     os.startfile(room_folder_path)
 

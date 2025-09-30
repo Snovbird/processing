@@ -2,6 +2,7 @@ import os
 import subprocess
 from common.common import clear_gpu_memory,askstring,select_video,find_folder_path,findval,error,assignval,makefolder,is_date
 import sys
+from common.exceptions import *
 def apply_png_overlay(video_path, output_folder,room="OPTO-ROOM (12 cages)",cage_number=None,date_to_provide=None):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
@@ -24,7 +25,7 @@ def apply_png_overlay(video_path, output_folder,room="OPTO-ROOM (12 cages)",cage
 
     if not date_to_provide: # If a date is inside of the video name,but today's date was not provided (date_today = today's date)
         
-        date_to_provide = video_name.split("_")[1]
+        date_to_provide = video_name.split("-")[1]
         if not is_date(date_to_provide):
             date_to_provide = findval("dates")[-1] # will loop through known dates
     #today's date was provided
@@ -121,10 +122,11 @@ def find_imgpath_overlay_date(date_provided,room,cage_number) -> str:
     overlays_path = find_folder_path("2-markers")
     alldates = findval("dates")[::-1] # invert it to loop from latest dates first then to earlier ones
     if date_provided not in alldates:
-        for date in alldates: # get img from last date
-            imgpath = os.path.join(overlays_path, room,f"cage{cage_number}-{date}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
-            if os.path.exists(imgpath):
-                break
+        for date in alldates: 
+            if int(date) < int(date_provided): #get img from date right before
+                imgpath = os.path.join(overlays_path, room, f"cage{cage_number}-{date}.png")
+                if os.path.exists(imgpath):
+                    break
         else:
             raise ImageNotFoundError(f"No overlays for cage {cage_number} on {date_provided} in room {room}")
     else:
@@ -135,10 +137,6 @@ def find_imgpath_overlay_date(date_provided,room,cage_number) -> str:
         else:
             raise ImageNotFoundError(f"No overlays for cage {cage_number} on {date_provided} in room {room}")
     return imgpath
-
-class ImageNotFoundError(Exception):
-    """when no overlay image is found."""
-    pass
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,8 @@
 import os
 import wx
+
+if __name__ == "__main__":
+    from exceptions import *
 # Get the absolute path to the directory containing this file (common.py)
 COMMON_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_PATH = os.path.dirname(COMMON_CURRENT_DIR)

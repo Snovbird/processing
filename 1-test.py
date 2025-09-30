@@ -1,6 +1,6 @@
 import pandas,os,wx
 from common.common import *
-import timeit
+import timeit,pyperclip
 
 # dates = list(range(100))
 
@@ -15,7 +15,4 @@ import timeit
 # print(f"append {time1=}")
 # print(f"add {time2=}")
 
-a = {"aa":[1,2,3]}
-for base,uuu in a.items():
-    print(base)
-    print(uuu)
+print(["20250611","20250612","20250613","20250616","20250618","20250623","20250625","20250626","20250627","20250804","20250808","20250811","20250923"][::-1])
