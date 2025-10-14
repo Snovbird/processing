@@ -54,13 +54,25 @@ def custom_dialog(msg,title='',op1="yes",op2="No") -> str | None:
         return dialog.result
 
 def folder_explorer(title:str) -> str|None:
+    """
+    Explorer to select a folder.
+    
+    Raises `QuitExplorer` exception if no folder is selected.
+    """
     app = wx.App(False)
-    with wx.DirDialog(None, title,style=wx.DD_DEFAULT_STYLE) as dlg:
-        if dlg.ShowModal() == wx.ID_OK:
-            folder_path = dlg.GetPath()
+    with wx.DirDialog(None, title,style=wx.DD_DEFAULT_STYLE) as folder_dialog:
+        if folder_dialog.ShowModal() == wx.ID_CANCEL:
+            raise QuitExplorer("No folder selected")
+        if folder_dialog.ShowModal() == wx.ID_OK:
+            folder_path = folder_dialog.GetPath()
             return folder_path
 
-def file_explorer(title:str,xlsx_only = False) -> list[str]|None:
+def file_explorer(title:str="",xlsx_only = False) -> list[str]|None:
+    """
+    Explorer to select one or more files.
+
+    Raises `QuitExplorer` exception if no file is selected.
+    """
     app = wx.App(False)
     if xlsx_only:
         files = "Excel files (*.xlsx)|*.xlsx"
@@ -68,9 +80,11 @@ def file_explorer(title:str,xlsx_only = False) -> list[str]|None:
         files = "Any files (*.*)|*.*)"
     with wx.FileDialog(None,message=title,wildcard=files,style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST | wx.FD_MULTIPLE) as file_dialog:
         if file_dialog.ShowModal() == wx.ID_CANCEL:
-            return []
-        video_paths = file_dialog.GetPaths()
+            raise QuitExplorer("No file selected")
+        if file_dialog.ShowModal() == wx.ID_OK:
+            video_paths = file_dialog.GetPaths()
         return video_paths
+
 
 def msgbox(msg:str,title:str=' '):
     app = wx.App(False)
@@ -174,3 +188,8 @@ def checkbox_dialog(options:list[str]|set,msg:str="Choose options",title:str="Se
         indexes:list[int] = dialog1.GetSelections() # returns indexes such as [0,1]
         return [options[index] for index in indexes]
 
+class QuitExplorer(Exception):
+    """
+    Ended file or folder explorer without a selection
+    """
+    pass

@@ -3,8 +3,14 @@ from dependencies import *
 
 class AdjustData: 
     def __init__(self, analysis_data_path: str=None,detector_data_dir: str=None):
-        self.analysis_data_path = analysis_data_path # default: None | excel file path for categorized behaviors for 1 or more videos
-        self.detector_data_dir = detector_data_dir # default: None | folder path containing subfolders each containing detection data for 1 or more videos
+        if not analysis_data_path:
+            self.analysis_data_path = self.get_analysis_data()
+        else:
+            self.analysis_data_path = analysis_data_path # default: None | excel file path for categorized behaviors for 1 or more videos
+        if not detector_data_dir:
+            self.detector_data_dir = self.get_detector_xlsx()
+        else:
+            self.detector_data_dir = detector_data_dir # default: None | folder path containing subfolders each containing detection data for 1 or more videos
         self.analysis_data = {}
         self.detector_files = {}
         self.behaviors_of_interest = [] # behaviors selected by the user. Included in output.
@@ -20,65 +26,56 @@ class AdjustData:
         msgbox("Select the excel file named 'all_events.xlsx' containing the analysis data")
         while not self.analysis_data_path: # find right excel sheet
             self.analysis_data_path:str = file_explorer("Find the excel file containing analysis data", xlsx_only=True)[0]
-            if not self.analysis_data_path:
-                return
-            
+
             if not os.path.basename(self.analysis_data_path) == "all_events.xlsx":
                 error(f"'{os.path.basename(self.analysis_data_path)}' is not the correct file.\nSelect 'all_events.xlsx'")
         
         return self.analysis_data_path
                 
-    def get_detector_xlsx(self):
+    def get_detector_xlsx(self): 
         '''
-        folder explorer for detection data
+        **Folder** explorer for detection data
         '''
-        if not self.analysis_data_path and False:
-            if not self.get_analysis_data():
-                return
-        if not self.detector_data_dir:
-            msgbox("Select a folder containing subfolders with detection data.\nClick 'Select Folder' after clicking once on the folder")
-        while not self.detector_data_dir: # find right excel sheet
+        while not self.detector_data_dir: # start explorer again if wrong excel seleted
             self.detector_data_dir:str = folder_explorer("Find the parent directory containing detection data folders")
-            if not self.detector_data_dir:
-                return
-            else:
-                if list_files(self.detector_data_dir): # picked the "wrong" folder inside (should be otherwise None)
+            
+            if list_files(self.detector_data_dir): # picked the "wrong" folder inside (should be otherwise None)
 
-                    if 'Analysis log.txt' in list_files(self.detector_data_dir): 
-                        self.detector_data_dir = os.path.dirname(self.detector_data_dir)
-                    else:
-                        error("Please select a repository that contains detection data FOLDERS")
-
+                if 'Analysis log.txt' in list_files(self.detector_data_dir): 
+                    self.detector_data_dir = os.path.dirname(self.detector_data_dir)
+                else:
+                    error("Please select a repository that contains detection data FOLDERS")
+        
         self.detector_files:dict[str, list[str]] =  {video_name:[file for file in list_filespaths(dirpath) if file.endswith("_all_centers.xlsx")] for dirpath, video_name in zip(list_folderspaths(self.detector_data_dir),list_folders(self.detector_data_dir))}
         
         return self.detector_files
 
     def get_cues(self):
         if not self.detector_files:
-            if not self.get_detector_xlsx():
-                return
+            self.get_detector_xlsx()
             
         for group in self.detector_files.values():
             for xlsx in group:
                 self.cues_in_detector.add(os.path.basename(xlsx).replace("_all_centers.xlsx",""))
         self.cues_in_detector.remove("1-Rat")
         self.cues_of_interest = checkbox_dialog(self.cues_in_detector,"Select cues that evoke behaviors, for which latencies will be extracted:","Cues of interest")              
+        
         return self.cues_of_interest
     
-    def process_detector_data(self,minimum_detection_frames=None,minimum_blank_frames=None):
+    def process_detector_data(self,minimum_detection_frames=10,minimum_blank_frames=0):
         '''
-        **Inputs:**
+        Inputs**:**
             cues_of_interest: list of objects in the cage that will evoke behaviors. These behaviors will have latencies
-            minimum_detection_frames: minimum duration in frames  
+            minimum_detection_frames: minimum duration in frames 
+
+        Args:
+            minimum_blank_frames: minimum duration in frames of a blank space to separate two detection groups
+            if 0, any blank space will separate two detection groups
+            minimum_detection_frames: minimum duration in frames for a detection group to be considered valid, 
+
         '''
         if not self.cues_of_interest:
-            if not self.get_cues():
-                return
-
-        if not minimum_detection_frames:
-            minimum_detection_frames = 10
-        if not minimum_blank_frames:
-            minimum_blank_frames = 0
+            self.get_cues()
 
         for video, xlsx_files in self.detector_files.items():
             self.detector_data[video] = {}
@@ -133,9 +130,6 @@ class AdjustData:
         # Each column is made of behavior names and its probability for each frame for one video (except first col). ex: "['behavior_name',0.842304238]"
         self.analysis_data:list[list[ list[str|float] ]] = [ [ast.literal_eval(item) if isinstance(item, str) else item for item in df[col].tolist()] for col in df.columns]
     
-
-    
-
 
 if __name__ == "__main__":
     result = AdjustData(detector_data_dir=r"C:\Users\matts\Downloads\detector").process_detector_data(minimum_detection_frames=2,minimum_blank_frames=0)
