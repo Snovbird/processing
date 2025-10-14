@@ -1,6 +1,6 @@
 import os, shutil, subprocess
 from cagename import name_cages
-from concatenate import concatenate
+from concatenate import concatenate,group_files_by_digits
 from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,askstring,dropdown,list_files,list_folders,list_folderspaths,list_filespaths,list_files,is_date
 from markersquick import apply_png_overlay, find_imgpath_overlay_date
 from common.exceptions import ImageNotFoundError
@@ -9,32 +9,32 @@ from photo_carrousel import photo_carrousel
 from image_combine import combine_and_resize_images
 from extractpng import extractpng
 
-def group_files_by_digits(file_paths: list[str], separate_at=None) -> list[list[str]]:
-    from collections import defaultdict
-    output:list[defaultdict[list[str]]] = []
-    # A defaultdict makes it easy to append to lists without checking if the key exists.
-    grouped_files = defaultdict(list)
+# def group_files_by_digits(file_paths: list[str], separate_at=None) -> list[list[str]]:
+#     from collections import defaultdict
+#     output:list[defaultdict[list[str]]] = []
+#     # A defaultdict makes it easy to append to lists without checking if the key exists.
+#     grouped_files = defaultdict(list)
 
-    for file_path in file_paths:
-        # Get just the filename from the full path
-        filename = os.path.basename(file_path)
+#     for file_path in file_paths:
+#         # Get just the filename from the full path
+#         filename = os.path.basename(file_path)
         
-        # Extract the filename without the extension
-        name_without_ext = os.path.splitext(filename)[0]
+#         # Extract the filename without the extension
+#         name_without_ext = os.path.splitext(filename)[0]
         
-        # This is your provided logic to create the grouping key
-        digit_key = ''.join([char for char in name_without_ext if char.isdigit()])
-        digit_letter = ''.join([char for char in name_without_ext if char.isalpha()])
-        if digit_letter.lower() == separate_at.lower():
-            output.append([group for group in grouped_files.values() if len(group) > 1])
-            grouped_files = defaultdict(list) # reset
-        # Add the full file path to the list for this key
-        grouped_files[digit_key].append(file_path)
-    else:
-        output.append([group for group in grouped_files.values() if len(group) > 1])
-    # We only need the lists of grouped files, not the keys themselves.
-    # We also filter out any "groups" that only contain a single file.
-    return output
+#         # This is your provided logic to create the grouping key
+#         digit_key = ''.join([char for char in name_without_ext if char.isdigit()])
+#         digit_letter = ''.join([char for char in name_without_ext if char.isalpha()])
+#         if digit_letter.lower() == separate_at.lower():
+#             output.append([group for group in grouped_files.values() if len(group) > 1])
+#             grouped_files = defaultdict(list) # reset
+#         # Add the full file path to the list for this key
+#         grouped_files[digit_key].append(file_path)
+#     else:
+#         output.append([group for group in grouped_files.values() if len(group) > 1])
+#     # We only need the lists of grouped files, not the keys themselves.
+#     # We also filter out any "groups" that only contain a single file.
+#     return output
 
 
 def process_folder():
@@ -59,8 +59,8 @@ def process_folder():
         for file in [os.path.join(initial_folder, file) for file in os.listdir(initial_folder) if os.path.isfile(os.path.join(initial_folder, file))]:
             date_to_investigate = os.path.splitext(os.path.basename(file))[0].split("-")[1]
             a_date_folder = dates_dict.get(date_to_investigate, None) 
-            if not a_date_folder:
-                a_date_folder = makefolder(initial_folder,foldername=date_to_investigate,start_at_1=False)
+            if not a_date_folder or file[1].lower() == "d" and a_date_folder.endswith("1"):
+                a_date_folder = makefolder(initial_folder,foldername=f"{date_to_investigate}-EXPERIMENT",start_at_1=True)
                 dates_dict[date_to_investigate] = a_date_folder
             shutil.move(file,a_date_folder)
     
