@@ -37,4 +37,6 @@ $m::
     return
 #IfWinActive
 
-$q::ExitApp
+$q::
+run, py "%A_ScriptDir%\reset_cue.pyw"
+ExitApp

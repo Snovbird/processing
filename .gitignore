@@ -1,6 +1,6 @@
 dump/links
 1-test.py
-
+no-sync/
 *.json
 *.txt
 *.xlsx
