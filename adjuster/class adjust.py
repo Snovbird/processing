@@ -69,9 +69,9 @@ class AdjustData:
             minimum_detection_frames: minimum duration in frames 
 
         Args:
-            minimum_blank_frames: minimum duration in frames of a blank space to separate two detection groups
-            if 0, any blank space will separate two detection groups
             minimum_detection_frames: minimum duration in frames for a detection group to be considered valid, 
+            minimum_blank_frames: minimum duration in frames of a blank space to separate two detection groups
+            if 0, blank space of any length will separate two detection groups
 
         '''
         if not self.cues_of_interest:
@@ -128,8 +128,11 @@ class AdjustData:
         import ast
         df = pandas.read_excel(self.analysis_data_path, sheet_name=0)
         # Each column is made of behavior names and its probability for each frame for one video (except first col). ex: "['behavior_name',0.842304238]"
+        lambda column
         self.analysis_data:list[list[ list[str|float] ]] = [ [ast.literal_eval(item) if isinstance(item, str) else item for item in df[col].tolist()] for col in df.columns]
-    
+        # list:videos [ list:cell data [ str:behavior name, float:probability ] ]
+        
+        
 
 if __name__ == "__main__":
     result = AdjustData(detector_data_dir=r"C:\Users\matts\Downloads\detector").process_detector_data(minimum_detection_frames=2,minimum_blank_frames=0)

@@ -37,7 +37,6 @@ def group_files_by_digits(file_paths: list[str], separate_at=None) -> list[list[
     return output
 
 
-
 def process_folder():
     """Process a videos of video recordings by naming cages and concatenating videos."""
     # Select the folder to process

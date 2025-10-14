@@ -1,6 +1,6 @@
 import pandas,os,wx
 from common.common import *
-import timeit,pyperclip
+import timeit
 
 # dates = list(range(100))
 
@@ -14,5 +14,10 @@ import timeit,pyperclip
 
 # print(f"append {time1=}")
 # print(f"add {time2=}")
+def test():
+    a  = lambda x: x + 4 if x == 2 else x
 
-print(["20250611","20250612","20250613","20250616","20250618","20250623","20250625","20250626","20250627","20250804","20250808","20250811","20250923"][::-1])
+    b = [1,2,3]
+
+    print(list(map(a,b)))
+
