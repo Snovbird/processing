@@ -56,13 +56,31 @@ def process_folder():
             pass
     # Move all videos in a folder named with date and experiment #(ex:20250619-EXPERIMENT1)
         dates_dict = {}
+        letter_to_experiment = {
+    'a': 1, 'b': 1, 'c': 1,  # a,b,c go to EXPERIMENT1
+    'd': 2, 'e': 2, 'f': 2   # d,e,f go to EXPERIMENT2
+}
+
         for file in [os.path.join(initial_folder, file) for file in os.listdir(initial_folder) if os.path.isfile(os.path.join(initial_folder, file))]:
-            date_to_investigate = os.path.splitext(os.path.basename(file))[0].split("-")[1]
-            experiment_folder = dates_dict.get([date_to_investigate,experiment], None) 
+            filename = os.path.splitext(os.path.basename(file))[0]
+            parts = filename.split("-")
+            
+            # Extract date and letter
+            date_to_investigate = parts[1]  # "20250101"
+            letter = parts[0][-1]  # Last character: "a", "b", "c", etc.
+            
+            # Get experiment number from letter
+            experiment = letter_to_experiment.get(letter.lower(), 1)  # Default to 1 if letter not found
+            
+            # Create unique key for date-experiment combination
+            folder_key = f"{date_to_investigate}-{experiment}"
+            
+            experiment_folder = dates_dict.get(folder_key, None)
             if not experiment_folder:
-                experiment_folder = makefolder(initial_folder,foldername=f"{date_to_investigate}-EXPERIMENT",start_at_1=True)
-                dates_dict[date_to_investigate] = experiment_folder
-            shutil.move(file,experiment_folder)
+                experiment_folder = makefolder(initial_folder, foldername=f"{date_to_investigate}-EXPERIMENT{experiment}", start_at_1=True)
+                dates_dict[folder_key] = experiment_folder
+            
+            shutil.move(file, experiment_folder)
     
     processed_path_dir3 = find_folder_path("3-PROCESSED")
     overlays_path = find_folder_path("2-MARKERS")
