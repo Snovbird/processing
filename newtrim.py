@@ -1,5 +1,5 @@
 from pathlib import Path
-from common.common import select_video,format_time_colons,remove_other,makefolder,clear_gpu_memory,error,askstring,custom_dialog,group_from_end,findval,assignval,askint
+from common.common import *
 from addtopss import addtopss
 import subprocess
 import os, sys
@@ -158,7 +158,7 @@ def process_from_start(file_paths,start_times,end_times,output_folder = None,bat
                 return
         all_processing_complete = clear_gpu_memory() # -> True
     else:
-        error(f"Must enter same # of start times as end times.\{start_times=}\nEnd times = {end_times=}")
+        error(f"Must enter same # of start times as end times.\n{start_times=}\nEnd times = {end_times=}")
     return output_folder,all_processing_complete
 
 def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE"):
@@ -193,4 +193,8 @@ def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE"):
             process_from_start(file_paths,DS_minus_minusfirst_start.split("."),DS_minus_minusfirst_end,output_folder="DS-",batch_size=batch_size)
 
 if __name__ == "__main__":
-    main()
+    folder = select_folder()
+    if folder:
+        video_files = [os.path.join(folder, f) for f in list_files_ext(folder, ext=".mp4")]
+        trim_DS_auto(video_files, which="BOTH SEPARATE")
+
