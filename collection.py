@@ -20,8 +20,10 @@ def main():
             if not cue:
                 return
             assignval("which_DS", cue)
-        else:
-            new_folder = find_folder_path(f"collected {findval('which_DS')}")
+
+        new_folder = os.path.join(
+            find_folder_path(f"collected {findval('which_DS')}"),
+            "originals")
         
         # 1. Ensure the destination folder exists, create it if it doesn't
         os.makedirs(new_folder, exist_ok=True)

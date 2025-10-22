@@ -1,7 +1,7 @@
 import os, shutil, subprocess
 from cagename import name_cages
 from concatenate import concatenate,group_files_by_digits
-from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,askstring,dropdown,list_files,list_folders,list_folderspaths,list_filespaths,list_files,is_date
+from common.common import select_folder,clear_gpu_memory,find_folder_path,findval,assignval,msgbox,makefolder,error,askstring,dropdown,list_files,list_folders,list_folderspaths,list_filespaths,list_files,is_date,remove_other
 from markersquick import apply_png_overlay, find_imgpath_overlay_date
 from common.exceptions import ImageNotFoundError
 from frameoverlay import overlay_FRAMES
@@ -77,7 +77,7 @@ def process_folder():
             
             experiment_folder = dates_dict.get(folder_key, None)
             if not experiment_folder:
-                experiment_folder = makefolder(initial_folder, foldername=f"{date_to_investigate}-EXPERIMENT{experiment}", start_at_1=True)
+                experiment_folder = makefolder(initial_folder, foldername=f"{date_to_investigate}_{experiment}", start_at_1=False)
                 dates_dict[folder_key] = experiment_folder
             
             shutil.move(file, experiment_folder)
@@ -137,9 +137,9 @@ def process_folder():
         
     
     # Loop through each date-named folder (usually initial_folder should only have vids for one day but this is necessary in case videos over multiple dates are present 
-    for order,folder_date in enumerate(list_folders(initial_folder)):
+    for order,folder_date_experiment in enumerate(list_folders(initial_folder)):
         concatenation_output_folder = init_folderpaths[order] # get paths to folders made during photo carrousel step
-        folder_path = os.path.join(initial_folder, folder_date) # folder path for each date
+        folder_path = os.path.join(initial_folder, folder_date_experiment) # folder path for each date
         files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
 
         # Group files by their digit sequences for concatenation
@@ -150,6 +150,13 @@ def process_folder():
                 
         # Concatenate each group of videos
         for group in grouped_files:
+            if len(group) == 1:
+                basename = os.path.basename(group[0])
+                basename = remove_other(basename,allowed=["-","_"]) 
+                newnamepath = os.path.join(concatenation_output_folder,)
+                os.rename(group[0],newnamepath) # move to concatenation folder so that all output videos are in same folder for next steps
+                shutil.move(group[0], concatenation_output_folder)
+                continue
             concatenate(group, concatenation_output_folder)
             clear_gpu_memory()
 
@@ -175,7 +182,7 @@ def process_folder():
                 error(f"Overlay error for:\n{marked_vid_path}\ninto {frameoverlay_output_folder}\n\nTerminating process. Please delete the folder {concatenation_output_folder}") # error if does not return output path
                 return
             clear_gpu_memory()
-        processed_outputfolder = makefolder(processed_path_dir3,foldername=f"{folder_date} {room.split(' ')[0]}",start_at_1=False)    
+        processed_outputfolder = makefolder(processed_path_dir3,foldername=f"{folder_date_experiment} {room.split(' ')[0]}",start_at_1=False)    
         for file in [os.path.join(frameoverlay_output_folder, basename) for basename in sorted(os.listdir(frameoverlay_output_folder)) if os.path.isfile(os.path.join(frameoverlay_output_folder, basename))]:
             final_output_path = shutil.move(file,processed_outputfolder)
         import time

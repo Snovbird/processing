@@ -3,7 +3,7 @@ import subprocess
 import platform
 from common.common import clear_gpu_memory,select_video,makefolder,custom_dialog,windowpath,select_anyfile
 
-def overlay_FRAMES(input_path,folder_path = None,center=False):
+def overlay_FRAMES(input_path,folder_path = None,center=False,append_to_name= "-overlaid"):
     """
     Resize a video proportionally using FFmpeg with NVIDIA GPU acceleration.
     
@@ -20,11 +20,11 @@ def overlay_FRAMES(input_path,folder_path = None,center=False):
         return None
     if folder_path:
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(folder_path, f"{file_name}-overlaid.mp4")
+        output_path = os.path.join(folder_path, f"{file_name}{append_to_name}.mp4")
     else:
         file_dir = os.path.dirname(input_path)
         file_name = os.path.splitext(os.path.basename(input_path))[0]
-        output_path = os.path.join(file_dir, f"{file_name}-overlaid.mp4")
+        output_path = os.path.join(file_dir, f"{file_name}{append_to_name}.mp4")
     
     if center:
         drawtext = "drawtext=fontfile=Arial.ttf:text=%{n}:x=(w-tw)/2:y=(h-th)/2:fontcolor=white:box=1:boxcolor=0x00000000:fontsize=h*16/768"
@@ -45,7 +45,7 @@ def overlay_FRAMES(input_path,folder_path = None,center=False):
         
         print("Starting video resizing...")
         subprocess.run(cmd, check=True)
-        print(f"Resizing completed successfully! Resized video saved to: {output_path}")
+        print(f"Overlay completed successfully! Resized video saved to: {output_path}")
         
         return output_path
     

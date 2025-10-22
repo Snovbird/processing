@@ -1,15 +1,22 @@
-import time
-from common.common import clear_gpu_memory,assignval,findval,find_folder_path
+import time,shutil,os
+from common.common import clear_gpu_memory,assignval,findval,find_folder_path,msgbox,list_folderspaths
 from TRIM import trim_frames
 while True:
     time.sleep(4)
     queue:list = findval("trim_queue")
     if queue:
         first_item:dict = queue.pop(0)
+        if first_item.get("done"):
+            for i in list_folderspaths(os.path.dirname(first_item["input_path"])):
+                if "done" in i.lower():
+                    donepath = i
+            shutil.move(first_item["input_path"],donepath)
+            assignval("trim_queue",queue)
+            continue
         # pyperclip.copy(f"""path = {first_item["input_path"]}\nstart_time = {first_item["start_time"]}\nend_time = {first_item["end_time"]}""")
         assignval("trim_queue",queue)
-
-        trim_frames(first_item["input_path"],first_item["start_time"],int(first_item["end_time"])+1,find_folder_path("5-clips"),show_terminal=False)
+        outpath = first_item.get("output_path",find_folder_path("5-clips"))
+        trim_frames(first_item["input_path"],first_item["start_time"],int(first_item["end_time"])+1,outpath,show_terminal=False)
         clear_gpu_memory()
         
         # 1. Get the current 'trim_done' data.

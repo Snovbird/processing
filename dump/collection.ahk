@@ -18,23 +18,23 @@ F7::
     Run, pyw "%pythonScriptsDir%\collection.py"
     return
 
-$t::
-vk6B:: ; Numpad "+"
-    send, ^+{c} ; Send "Copy as path" command
-    ; send, {Enter}
-    send, {Right}
-    Run, pyw "%pythonScriptsDir%\trim_collect.py"
-    return
-$n::
-    send, ^+{c} ; Send "Copy as path" command
-    send, {Right}
-    Run, pyw "%pythonScriptsDir%\sort_name.py"
-    return
+; $t::
+; vk6B:: ; Numpad "+"
+;     send, ^+{c} ; Send "Copy as path" command
+;     ; send, {Enter}
+;     send, {Right}
+;     Run, pyw "%pythonScriptsDir%\trim_collect.py"
+;     return
+; $n::
+;     send, ^+{c} ; Send "Copy as path" command
+;     send, {Right}
+;     Run, pyw "%pythonScriptsDir%\sort_name.py"
+;     return
 
-$m::
-    send, ^+{c} ; Send "Copy as path" command
-    Run, pyw "%pythonScriptsDir%\remove_one.py"
-    return
+; $m::
+;     send, ^+{c} ; Send "Copy as path" command
+;     Run, pyw "%pythonScriptsDir%\remove_one.py"
+;     return
 #IfWinActive
 
 $q::

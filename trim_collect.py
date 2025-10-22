@@ -1,9 +1,13 @@
 import pyperclip,os
-from common.common import askstring,remove_other,assignval,findval,error,is_file
+from common.common import askstring,remove_other,assignval,findval,error,is_file,custom_dialog,dropdown,find_folder_path,list_files,list_folders
 import subprocess
 
 def trim_collect(vid:str,pss_string:str,true=None):
-
+    if findval("which_DS") == False:
+        cue = custom_dialog(msg="Select cue", title="Cue folder", op1="DS-", op2="DS+")
+        if not cue:
+            return
+        assignval("which_DS", cue)
     print(vid)
     if not is_file(vid): # if is not a path althogether: the error should terminate the script
         return
@@ -16,31 +20,68 @@ def trim_collect(vid:str,pss_string:str,true=None):
 
     # os.startfile(vid)
     both_times:list = pss_string.split(".")
-    start_times:list = [both_times[i] for i in range(0,len(both_times),2)]
-    end_times:list = [both_times[i] for i in range(1,len(both_times),2)]
 
-    while len(start_times) != len(end_times):
-        error("Provide same number of start and end times")
-        if not true:
-            true = pss_string
-        both_times:list = pss_string.split(".")
-        pss_string:str = remove_other(askstring("start_times and end_times separated by a period:",f"{os.path.basename(vid)}",fill=true)).strip(".")
-        if not pss_string:
-            return
+    if len(both_times) == 2: # 10.20
+        which_DS = findval("which_DS")
+        start_time:str = both_times[0]
+        end_time:str = both_times[1]
+        while not start_time < end_time:
+            error("Start time must be before end time")
+            pss_string:str = remove_other(askstring("Try again. Start_time and end_time separated by a period:",f"{os.path.basename(vid)}",fill=pss_string)).strip(".")
+            if not pss_string:
+                finish = custom_dialog("Mark this interval video as done?",vid)
+                if finish == "yes":
+                    assignval("trim_done",{"input_path":vid,"done":True})
+                return 
+            both_times:list = pss_string.split(".")
+            start_time:str = both_times[0]
+            end_time:str = both_times[1]
+        clipspath = find_folder_path("5-clips")
+        behavior = dropdown(list_folders(os.path.join(clipspath,which_DS)),"Select behavior:")
+        if behavior:
+            outpath = os.path.join(clipspath,which_DS,behavior)
+            assignval("trim_queue",[{"input_path":vid,"start_time":start_time,"end_time":end_time,"output_path":outpath}])
+        else: #closed window
+            assignval("trim_queue",[{"input_path":vid,"start_time":start_time,"end_time":end_time}])
+
+    else: # 100.300.400.500...
         start_times:list = [both_times[i] for i in range(0,len(both_times),2)]
         end_times:list = [both_times[i] for i in range(1,len(both_times),2)]
 
-    print(start_times,end_times)
-    assignval("trim_queue",[{"input_path":vid,"start_time":start_times[i],"end_time":end_times[i]} for i in range(len(start_times))])
+        while len(start_times) != len(end_times):
+            error("Provide same number of start and end times")
+            if not true:
+                true = pss_string
+            both_times:list = pss_string.split(".")
+            if len(both_times) > 2:
+                pss_string:str = remove_other(askstring("start_times and end_times separated by a period:",f"{os.path.basename(vid)}",fill=true)).strip(".")
+                if not pss_string:
+                    return
+                start_times:list = [both_times[i] for i in range(0,len(both_times),2)]
+                end_times:list = [both_times[i] for i in range(1,len(both_times),2)]     
+
+        print(start_times,end_times)
+        assignval("trim_queue",[{"input_path":vid,"start_time":start_times[i],"end_time":end_times[i]} for i in range(len(start_times))])
     
 def main():
     vid = pyperclip.paste().strip( '"' )
     if not is_file(vid):
         error(f"Not a file:\n{vid}")
         return
+    if findval("which_DS") == False:
+        cue = custom_dialog(msg="Select cue", title="Cue folder", op1="DS-", op2="DS+")
+        if not cue:
+            return
+        assignval("which_DS", cue)
+
     while True:
         pss_string:str = remove_other(askstring("start_times and end_times separated by a period:",f"{os.path.basename(vid)}")).strip(".")
         if not pss_string:
+            finish = custom_dialog("Mark this interval video as done?",vid)
+            if finish == "yes":
+                queue = findval("trim_queue")
+                queue.append({"input_path":vid,"done":True})
+                assignval("trim_queue",queue)
             return
         trim_collect(vid,adjust(pss_string),pss_string)
 

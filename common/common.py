@@ -312,9 +312,6 @@ def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,h
             new_folder_name = f"{foldername.replace('-','')}-{count}"
     # Create full path to new folder
     new_folder_path = os.path.join(folder_path, new_folder_name)
-    # Check if folder exists and print debug info
-    # print(f"Checking if folder exists: {new_folder_path}")
-    # print(f"Folder exists: {os.path.exists(new_folder_path)}")
     
     # Create the folder if it doesn't exist
     if os.path.exists(new_folder_path):
@@ -606,13 +603,15 @@ def wrap(text_input:str,text_to_wrap:str) -> str:
     '''
     return f"{text_to_wrap}{text_input}{text_to_wrap}"
 
-def remove_other(stringinput:str) -> str:
+def remove_other(stringinput:str,allowed:list[str]=["."]) -> str:
     """
     Cleans a *`string`* to remove characters that arent **PERIODS** or **NUMBERS**
     """
     clean_string = ""
     for char in stringinput:
-        if char in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.']:
+        if char.isdigit():
+            clean_string += char
+        elif char in allowed:
             clean_string += char
     return clean_string
 
