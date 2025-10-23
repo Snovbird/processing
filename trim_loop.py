@@ -1,17 +1,17 @@
 import time,shutil,os
 from common.common import clear_gpu_memory,assignval,findval,find_folder_path,msgbox,list_folderspaths
 from TRIM import trim_frames
+from initiate_trimming_behavior_collection import find_done_folder,rename_done_folder
 while True:
     time.sleep(4)
     queue:list = findval("trim_queue")
     if queue:
         first_item:dict = queue.pop(0)
         if first_item.get("done"):
-            for i in list_folderspaths(os.path.dirname(first_item["input_path"])):
-                if "done" in i.lower():
-                    donepath = i
+            donepath = find_done_folder(fullpath=os.path.dirname(first_item["input_path"]))              
             shutil.move(first_item["input_path"],donepath)
             assignval("trim_queue",queue)
+            rename_done_folder(fullpath=os.path.dirname(first_item["input_path"]))
             continue
         # pyperclip.copy(f"""path = {first_item["input_path"]}\nstart_time = {first_item["start_time"]}\nend_time = {first_item["end_time"]}""")
         assignval("trim_queue",queue)
