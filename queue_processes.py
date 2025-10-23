@@ -7,11 +7,9 @@ from extractpng import extractpng
 from frameoverlay import overlay_FRAMES
 from markersquick import apply_png_overlay
 from newtrim import trim_DS_auto
-# from photo_carrousel import photo_carrousel
-# from image_combine import combine_and_resize_images
 functions = [trim_DS_auto,apply_png_overlay,concatenate,extractpng,overlay_FRAMES]
 def queue():
-    functions_str:list[str] = [str(func).split(" ")[1] for func in functions] #"photo_carrousel","combine_and_resize_images"
+    functions_str:list[str] = [str(func).split(" ")[1] for func in functions] 
     ind = simple_dropdown(functions_str,return_index=True)
     if ind is None:
         return
@@ -37,18 +35,13 @@ def queue():
                 selection = select_video(f"Select videos. Cancel to stop file explorer loop")
                 if selection:
                     videos.append(selection)
-                # for function in range(how_many_functions):
-                #     sel = dropdown(functions)
-                #     selected_functions.append(sel)
-                #     functions.remove(sel)
         assignval("last_input_videos",videos)
-
-
     count = 0
+    
     if sel_name == "trim_DS_auto":
         which = simple_dropdown(["DS+","DS-","ALL IN ONE","BOTH SEPARATE"])
         for group in videos:
-            trim_DS_auto(group,which=which)
+            trim_DS_auto(group,which=which,first="DS+") # DS+ first specified for predictable light order. Change for DS+/DS- first unpredictable
             count += len(group)
     else:
         for group in videos:

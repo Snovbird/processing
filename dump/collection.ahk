@@ -7,8 +7,10 @@ pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
 
 ; start the script that processes the clips (trimmer)
 run, py "%pythonScriptsDir%\trim_loop.py"
-
-
+sleep, 500
+run, "C:\Users\samahalabo\Desktop\0-RECORDINGS"
+sleep, 500
+run, "C:\Users\samahalabo\Desktop\Collection progress.xlsx"
 #IfWinActive, ahk_exe explorer.exe
 $c::
 F7::

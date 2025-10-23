@@ -162,7 +162,7 @@ def process_from_start(file_paths,start_times,end_times,output_folder = None,bat
         error(f"Must enter same # of start times as end times.\n{start_times=}\nEnd times = {end_times=}")
     return output_folder,all_processing_complete
 
-def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE"):
+def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE",first=None):
     """
     Args:
         video (str): path to video
@@ -171,9 +171,11 @@ def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE"):
     okay = ["DS+", "DS-"] if which == "BOTH SEPARATE" else [which]
     from trial_formula import trial_formula
     from addtopss import addtopss
-    first = os.path.basename(os.path.dirname(file_paths[0])).split(" ")[-1]
+    if not first: # automatically use the name to determine if it is DS+ or DS-
+        first = os.path.basename(os.path.dirname(file_paths[0])).split(" ")[-1]
+    
     start_time = 18
-    batch_size = 5
+    batch_size = 7
     if first == "DS+":
         if "DS+" in okay:
             DS_plus_plusfirst_start:str = trial_formula(plus_or_minus_first="DS+",extract_which="DS+",start_time=start_time)
@@ -194,8 +196,4 @@ def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE"):
             process_from_start(file_paths,DS_minus_minusfirst_start.split("."),DS_minus_minusfirst_end,output_folder="DS-",batch_size=batch_size)
 
 if __name__ == "__main__":
-    folder = select_folder()
-    if folder:
-        video_files = [os.path.join(folder, f) for f in list_files_ext(folder, ext=".mp4")]
-        trim_DS_auto(video_files, which="BOTH SEPARATE")
-
+    main()
