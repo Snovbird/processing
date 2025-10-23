@@ -1,15 +1,24 @@
 from common.common import *
 import os, shutil
 from frameoverlay import overlay_FRAMES
-def find_done_folder(path = find_folder_path("5-clips"),DS = "DS-"):
-    collectedpath = os.path.join(path,f"collected {DS}")
+def find_done_folder(path = find_folder_path("5-clips"),DS = "DS-",fullpath = None):
+    """
+    If `fullpath` is provided, `path` and `DS` are ignored.
+    """
+    if fullpath:
+        collectedpath = fullpath
+    else:
+        collectedpath = os.path.join(path,f"collected {DS}")
     for folderpath in list_folderspaths(collectedpath):
         if "done" in folderpath:
             return folderpath
     
 
-def rename_done_folder(path = find_folder_path("5-clips"),DS = "DS-"):
-    collectedpath = os.path.join(path,f"collected {DS}")
+def rename_done_folder(path = find_folder_path("5-clips"),DS = "DS-",fullpath = None):
+    if fullpath:
+        collectedpath = fullpath
+    else:
+        collectedpath = os.path.join(path,f"collected {DS}")
     original_clipspath = os.path.join(collectedpath,"originals")
     original_clips = list_files(original_clipspath)
     for folderpath in list_folderspaths(collectedpath):

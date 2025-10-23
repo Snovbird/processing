@@ -1,7 +1,7 @@
 #SingleInstance, force
 
 pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
-run, pyw "%pythonScriptsDir%\initiate trimming behavior collection.py"
+run, pyw "%pythonScriptsDir%\initiate_trimming_behavior_collection.py"
 
 run, pyw "%pythonScriptsDir%\trim_loop.py"
 run, explorer.exe "%A_Desktop%\5-clips\collected DS-"

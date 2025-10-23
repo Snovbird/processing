@@ -1,7 +1,6 @@
 import pyperclip,os
-from common.common import askstring,remove_other,assignval,findval,error,is_file,custom_dialog,dropdown,find_folder_path,list_files,list_folders
+from common.common import askstring,remove_other,assignval,findval,error,is_file,custom_dialog,simple_dropdown,find_folder_path,list_files,list_folders
 import subprocess
-
 def trim_collect(vid:str,pss_string:str,true=None):
     if findval("which_DS") == False:
         cue = custom_dialog(msg="Select cue", title="Cue folder", op1="DS-", op2="DS+")
@@ -37,7 +36,7 @@ def trim_collect(vid:str,pss_string:str,true=None):
             start_time:str = both_times[0]
             end_time:str = both_times[1]
         clipspath = find_folder_path("5-clips")
-        behavior = dropdown(list_folders(os.path.join(clipspath,which_DS)),"Select behavior:")
+        behavior = simple_dropdown(list_folders(os.path.join(clipspath,which_DS)),"Select behavior name:","Behavior")
         if behavior:
             outpath = os.path.join(clipspath,which_DS,behavior)
             assignval("trim_queue",[{"input_path":vid,"start_time":start_time,"end_time":end_time,"output_path":outpath}])
