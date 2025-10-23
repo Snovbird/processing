@@ -1,5 +1,5 @@
 # necessary
-from common.common import askint,select_video,select_folder,simple_dropdown,custom_dialog,makefolder,msgbox,list_files_ext,assignval,findval
+from common.common import *
 import wx,os
 # Queue-able processes
 from concatenate import concatenate
@@ -39,9 +39,11 @@ def queue():
     count = 0
     
     if sel_name == "trim_DS_auto":
+        first_cue = custom_dialog("What is the first cue for experiments?","Trim setting",op1="DS+",op2="DS-")
         which = simple_dropdown(["DS+","DS-","ALL IN ONE","BOTH SEPARATE"])
+        starttime = askint("Start time in seconds?","Trim setting",fill=0)
         for group in videos:
-            trim_DS_auto(group,which=which,first="DS+") # DS+ first specified for predictable light order. Change for DS+/DS- first unpredictable
+            trim_DS_auto(group,which=which,first=first_cue,start_time=starttime) # DS+ first specified for predictable light order. Change for DS+/DS- first unpredictable
             count += len(group)
     else:
         for group in videos:

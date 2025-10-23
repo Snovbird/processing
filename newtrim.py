@@ -162,7 +162,7 @@ def process_from_start(file_paths,start_times,end_times,output_folder = None,bat
         error(f"Must enter same # of start times as end times.\n{start_times=}\nEnd times = {end_times=}")
     return output_folder,all_processing_complete
 
-def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE",first=None):
+def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE",first=None,start_time=20):
     """
     Args:
         video (str): path to video
@@ -173,8 +173,6 @@ def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE",first=None):
     from addtopss import addtopss
     if not first: # automatically use the name to determine if it is DS+ or DS-
         first = os.path.basename(os.path.dirname(file_paths[0])).split(" ")[-1]
-    
-    start_time = 18
     batch_size = 7
     if first == "DS+":
         if "DS+" in okay:
