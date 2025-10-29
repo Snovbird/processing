@@ -13,7 +13,6 @@ def find_done_folder(path = find_folder_path("5-clips"),DS = "DS-",fullpath = No
         if "done" in folderpath:
             return folderpath
     
-
 def rename_done_folder(path = find_folder_path("5-clips"),DS = "DS-",fullpath = None):
     if fullpath:
         collectedpath = fullpath
@@ -25,8 +24,10 @@ def rename_done_folder(path = find_folder_path("5-clips"),DS = "DS-",fullpath = 
         if "done" in folderpath:
             donepath = folderpath
             break
-    
-    newname = f"done ({len(list_files(donepath))} of {len(original_clips)})"
+    trimmed_progress = len(list_files(donepath))
+    total_clips = len(original_clips)
+    print(f"{trimmed_progress=}\n\n{total_clips=}")
+    newname = f"done ({trimmed_progress} of {total_clips})"
     
     shutil.move(donepath,os.path.join(collectedpath,newname))
 
