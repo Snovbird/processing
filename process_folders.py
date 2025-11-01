@@ -83,6 +83,8 @@ class process_recordings():
             name_cages(self.recording_folderpath)
         except: #already named
             pass
+
+        self.step1_organize_recordings()
     
 
     def step1_organize_recordings(self):
@@ -135,6 +137,8 @@ class process_recordings():
                 os.startfile(self.recording_folderpath)
             # sleep(1)
             # os.rmdir(self.recording_folderpath)
+        
+        
 
     def step2_photo_carrousel(self):
         photos_folders = {}
