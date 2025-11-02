@@ -45,12 +45,12 @@ def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[l
                 if not last_endtime: # first recording for the cage
                     cage_exp_group.append(recording)
                     if first:
-                        starts.append(recording)
+                        starts.append(f"{hours}:{minutes}")
                         first = False
                 elif seconds - last_endtime <= 5: # technically supposed to be identical end & start times, but allow for small variations
                     cage_exp_group.append(recording)
                     if first:
-                        starts.append(recording)
+                        starts.append(f"{hours}:{minutes}")
                         first = False
                 else: # other experiment started
                     cage_exp_groups.append(cage_exp_group)
@@ -258,7 +258,6 @@ class process_recordings():
 
         for folder in marker_folders:
             shutil.move(folder,self.final_outputpath)
-
 
 def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,videos=None):
     marker_overlays_path = find_folder_path("2-MARKERS")
