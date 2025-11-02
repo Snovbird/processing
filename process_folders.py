@@ -82,7 +82,7 @@ class process_recordings():
         try:
             name_cages(self.recording_folderpath)
         except: #already named
-            pass
+            pass 
 
         self.step1_organize_recordings()
     
@@ -96,7 +96,7 @@ class process_recordings():
             keys = {}
             for count,experiments_list in enumerate(experiments):
                 first = experiments_list[0]
-                time_start = first.split("-")[2]
+                time_start = first.spl it("-")[2]
                 hour = time_start[0:2]
                 minute = time_start[2:4]
                 row_name = f"Experiment #{count+1} at {hour}:{minute}"
@@ -138,7 +138,7 @@ class process_recordings():
             # sleep(1)
             # os.rmdir(self.recording_folderpath)
         
-        
+
 
     def step2_photo_carrousel(self):
         photos_folders = {}
