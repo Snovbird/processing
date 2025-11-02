@@ -36,6 +36,7 @@ def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[l
             cage_exp_groups = []
             cage_exp_group = []
             last_endtime = None
+            first = True
             for video_number, recording in enumerate(grouped_recordings[date][cage]):
                 experiment_starttime = recording.split('-')[2]
                 hours = int(experiment_starttime[:2])
@@ -43,11 +44,19 @@ def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[l
                 seconds = int(experiment_starttime[4:6]) + minutes*60 + hours *3600
                 if not last_endtime: # first recording for the cage
                     cage_exp_group.append(recording)
+                    if first:
+                        starts.append(recording)
+                        first = False
                 elif seconds - last_endtime <= 5: # technically supposed to be identical end & start times, but allow for small variations
                     cage_exp_group.append(recording)
+                    if first:
+                        starts.append(recording)
+                        first = False
                 else: # other experiment started
                     cage_exp_groups.append(cage_exp_group)
                     cage_exp_group = [recording]
+                    first = True
+
 
                 if video_number == len(grouped_recordings[date][cage]) - 1:
                     cage_exp_groups.append(cage_exp_group) # append last group
@@ -296,4 +305,5 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
          
 
 if __name__ == "__main__":
-    pass
+    recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
+    process_recordings(recording_folderpath=recordings_folder)
