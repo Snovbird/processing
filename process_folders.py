@@ -7,8 +7,11 @@ from image_combine import combine_and_resize_images
 from extractpng import extractpng
 from markersquick import apply_png_overlay,find_imgpath_overlay_date
 from newtrim import trim_DS_auto
-def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[list[str]]]:
+def group_by_date_and_experimentTime(videos_folderpath: str,max_pause=15) -> dict[str, list[list[str]]]:
     """
+    Args:
+        videos_folderpath: path to folder containing videos (possibly) over multiple days and containing multiple experiments per day
+        max_pause: max number of seconds allowed between 2 video parts part of a same experiment. If more: considered a separate experiment
     Returns:
         {
             20250122: [
@@ -47,7 +50,7 @@ def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[l
                     cage_exp_group.append(recording)
                     if first:
                         first = False
-                elif seconds - last_endtime <= 5: # technically supposed to be identical end & start times, but allow for small variations
+                elif seconds - last_endtime <= max_pause: # technically supposed to be identical end & start times, but allow for small variations
                     cage_exp_group.append(recording)
                     if first:
                         first = False
@@ -104,7 +107,7 @@ class process_recordings():
             self.date_folders.append(date_folder)
 
             grid_rownames = []
-            for experiment_number,experiments_list in enumerate(experiments,start=1): 
+            for experiment_number,experiments_list in enumerate(experiments,start=1):
                 first = experiments_list[0]
                 time_start = first.split("-")[2]
                 hour = time_start[0:2]
@@ -134,7 +137,6 @@ class process_recordings():
             time.sleep(1)
             os.rmdir(self.recording_folderpath)
 
- 
         return self.step2_photo_carrousel()
         
     def step2_photo_carrousel(self,experiment_fol = None):
@@ -190,38 +192,45 @@ class process_recordings():
 
         return self.step3_concatenate_videos()
 
+<<<<<<< HEAD
     def step3_concatenate_videos(self,experiment_fol:list = []):
 
         if experiment_fol:
             self.experiment_folders = experiment_fol
 
         cleanup = {}
+=======
+    def step3_concatenate_videos(self):
+        videos_to_delete = {}  # Store original videos that should be deleted
+>>>>>>> d16512730bd975302fbbdf5700650b9474fe316f
         print("Files organized\n\nStarting concatenation...")
+        
         for experiment_folder in self.experiment_folders:
-            
             videos = list_filespaths(experiment_folder)
             print(f"{videos}\n\n{experiment_folder=}")
             msgbox(f"{videos}\n\n{experiment_folder=}")
             if len(videos) == 0:
                 continue
             
-            
             grouped_videos = group_files_by_digits(videos)
-            cleanup[experiment_folder] = []
+            videos_to_delete[experiment_folder] = []
+            
             for group in grouped_videos:
-                output = concatenate(group,experiment_folder)
-                cleanup[experiment_folder].append(output)
+                # Store the original videos that will be concatenated (to delete later)
+                videos_to_delete[experiment_folder].extend(group)
+                # Create concatenated video
+                concatenate(group, experiment_folder)
 
-        for expfold, concatvids in cleanup.items():
-            for vid in list_filespaths(expfold):
-                if vid not in concatvids:
-                    try:
-                        os.remove(vid)
-                    except Exception as e:
-                        error(f"Error deleting {vid}\n\nError: {e}")
+        # Delete only the original videos that were concatenated
+        for expfold, original_vids in videos_to_delete.items():
+            for vid in original_vids:
+                try:
+                    os.remove(vid)
+                    print(f"Deleted original video: {os.path.basename(vid)}")
+                except Exception as e:
+                    error(f"Error deleting {vid}\n\nError: {e}")
                 
-        return self.step4_TrimIntervals()
-    
+        return self.step4_TrimIntervals()    
     def step4_TrimIntervals(self):
 
         for experiment in self.experiment_folders:
@@ -278,10 +287,10 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         times = 1
         imgpath = extractpng(video=video,times=(times,),output_folder=room_folder_path)[0]
         
-        # while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
-        #     os.remove(imgpath)
-        #     times += 5
-        #     imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
+        while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
+            os.remove(imgpath)
+            times += 5
+            imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
         
         dates:list[str] = findval("dates")
         if date not in dates:
@@ -290,7 +299,14 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
 
     os.startfile(room_folder_path)
          
+def main():
+    recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
+    process_recordings(recordings_folder).start()
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
     process_recordings(recordings_folder).step3_concatenate_videos(experiment_fol=list_folderspaths(recordings_folder))
+=======
+    main()
+>>>>>>> d16512730bd975302fbbdf5700650b9474fe316f
