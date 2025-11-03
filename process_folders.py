@@ -198,7 +198,8 @@ class process_recordings():
         
         for experiment_folder in self.experiment_folders:
             videos = list_filespaths(experiment_folder)
-            
+            print(f"{videos}\n\n{experiment_folder=}")
+            msgbox(f"{videos}\n\n{experiment_folder=}")
             if len(videos) == 0:
                 continue
             
@@ -297,4 +298,9 @@ def main():
     process_recordings(recordings_folder).start()
 
 if __name__ == "__main__":
+<<<<<<< HEAD
+    recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
+    process_recordings(recordings_folder).step3_concatenate_videos(experiment_fol=list_folderspaths(recordings_folder))
+=======
     main()
+>>>>>>> d16512730bd975302fbbdf5700650b9474fe316f
