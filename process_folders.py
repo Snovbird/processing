@@ -70,6 +70,7 @@ def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[l
         
         grouped_recordings[date] = exp_groups.values()
 
+
     return grouped_recordings
     
 class process_recordings():
@@ -97,35 +98,28 @@ class process_recordings():
 
     def step1_organize_recordings(self):
         self.grouped_recordings = group_by_date_and_experimentTime(self.recording_folderpath)
-        for date,experiments in self.grouped_recordings.items():
+        for date,experiments in self.grouped_recordings.items(): # unpack dates
             date_folder = makefolder(self.recording_folderpath, date,start_at_1=False)
 
-            questions = {}
-            keys = {}
-            for count,experiments_list in enumerate(experiments):
+            grid_rownames = []
+            for experiment_number,experiments_list in enumerate(experiments,start=1): 
                 first = experiments_list[0]
                 time_start = first.split("-")[2]
                 hour = time_start[0:2]
                 minute = time_start[2:4]
-                row_name = f"Experiment #{count+1} at {hour}:{minute}"
-                keys[row_name] = count
-                questions[experiments_list] = row_name
+                row_name_question = f"Experiment #{experiment_number} at {hour}:{minute}"
+                grid_rownames.append(row_name_question)
             
-            
-            answer:dict[str,str] = grid_selector(questions.values(),self.first_DS_or_Interval,
+            answer:dict[str,str] = grid_selector(grid_rownames,self.first_DS_or_Interval,
                                    "First Cue",
                                    f"Select the first cue illuminated in experiments on {date}"
                                    )
             
-            interpret_answer = {}
-            for question, first in answer.items():
-                count = keys[question]
-                experiment = experiments[count]
-                interpret_answer[experiment] = first
-
-            for count, (experiment, first) in enumerate(interpret_answer.items()):
-                experiment_folder = makefolder(date_folder, f"{date}_{count+1} {first}", start_at_1=False)
+            for experiment_number, first_DS in enumerate(answer.values(),start=1): 
+                experiment = experiments[experiment_number] # answers should already be ordered
+                experiment_folder = makefolder(date_folder, f"{date}_{experiment_number} {first_DS}", start_at_1=False)
                 self.experiment_folders.append(experiment_folder)
+
         
         for date, experiments in self.grouped_recordings.values():
             folders = list_folderspaths(
