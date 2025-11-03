@@ -20,7 +20,6 @@ def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[l
     """
     recordings = list_files(videos_folderpath)
     grouped_recordings = {}
-    starts = []
     for recording in recordings: # group by date
         # 7a-20251122-120000-130000.mp4
         date = recording.split('-')[1]
@@ -30,6 +29,8 @@ def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[l
         grouped_recordings[date][cage] = grouped_recordings[date].get(cage, [])
         grouped_recordings[date][cage].append(recording)
     
+    
+
     for date in grouped_recordings:
         exp_groups:dict[int, list[str]] = {}
         for cage in grouped_recordings[date]:
@@ -45,12 +46,10 @@ def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[l
                 if not last_endtime: # first recording for the cage
                     cage_exp_group.append(recording)
                     if first:
-                        starts.append(f"{hours}:{minutes:02d}")
                         first = False
                 elif seconds - last_endtime <= 5: # technically supposed to be identical end & start times, but allow for small variations
                     cage_exp_group.append(recording)
                     if first:
-                        starts.append(f"{hours}:{minutes:02d}")
                         first = False
                 else: # other experiment started
                     cage_exp_groups.append(cage_exp_group)
@@ -71,7 +70,7 @@ def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[l
         
         grouped_recordings[date] = exp_groups.values()
 
-    return grouped_recordings,starts
+    return grouped_recordings
     
 class process_recordings():
     def __init__(self, recording_folderpath):
