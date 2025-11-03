@@ -193,7 +193,7 @@ class process_recordings():
         return self.step3_concatenate_videos()
 
     def step3_concatenate_videos(self):
-        videos_to_delete = {}  # Store original videos that should be deleted
+        videos_to_delete = []  # Store original videos that should be deleted
         print("Files organized\n\nStarting concatenation...")
         
         for experiment_folder in self.experiment_folders:
@@ -204,16 +204,19 @@ class process_recordings():
                 continue
             
             grouped_videos = group_files_by_digits(videos)
-            videos_to_delete[experiment_folder] = []
+            videos_to_delete.append([])
             
             for group in grouped_videos:
-                # Store the original videos that will be concatenated (to delete later)
-                videos_to_delete[experiment_folder].extend(group)
-                # Create concatenated video
-                concatenate(group, experiment_folder)
+                concatenate(group, experiment_folder) # if singleitem, it will be renamed to ##-YYYYMMDD.mp4
+
+                if len(group) > 1: # single item = no concatenation = no deletion
+                    videos_to_delete[-1].extend(group)
 
         # Delete only the original videos that were concatenated
-        for expfold, original_vids in videos_to_delete.items():
+        for original_vids in videos_to_delete:
+            if not original_vids: #only one item in "group" = empty list --> no deletion needed
+                continue
+
             for vid in original_vids:
                 try:
                     os.remove(vid)
