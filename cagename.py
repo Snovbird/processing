@@ -3,33 +3,36 @@ import wx
 from common.common import select_folder,windowpath,msgbox,list_files
 
 def name_cages(source_folder):
-    """Create subfolder and copy files with modified names"""    
-    # Get all files in source folder
     files = list_files(source_folder)
-
-    if not files:
-        raise Exception("The selected folder does not contain any files.")
-    # Copy files with appended names
     
     for filename in files:
-        # Create new filename with appended string
-        name, extension = os.path.splitext(filename)
-        if filename == "desktop.ini":
-            continue # skips to next iteration. desktop.ini shows up when you change a folder's appearance
-        if '_' not in name :
-            print(f"No underscore in {name}. Skipping")
-            continue
-        thedate = name.split('_')[3][:8] # to get YYYYMMDD
-        # N864A6_ch1_main_20250714103626_20250714110000
-        start_time = name.split('_')[3][8:] # to get HHMMSS
-        end_time = name.split('_')[4][8:] # to get HHMMSS
-        cage_number = name.split('_')[1].replace('ch','')
-        # letter_ord_value = 97 # "a"
-        full_renamed_path = os.path.join(source_folder,f"{cage_number}-{thedate}-{start_time}-{end_time}{extension}")
-        # while os.path.exists(full_renamed_path) and letter_ord_value < 123:
-        #     letter_ord_value += 1
-        #     full_renamed_path = os.path.join(source_folder,f"{cage_number}-{thedate}-{start_time}-{end_time}{extension}")
-        os.rename(os.path.join(source_folder,filename),full_renamed_path)
+        try:
+            name, extension = os.path.splitext(filename)
+            if filename == "desktop.ini" or '_' not in name:
+                continue
+                
+            parts = name.split('_')
+            # print(f"Processing: {filename}")
+            # print(f"Parts: {parts}")
+            # print(f"Number of parts: {len(parts)}")
+            
+            if len(parts) < 5:  # Need at least 5 parts
+                print(f"Skipping {filename} - insufficient parts")
+                continue
+                
+            cage_number = parts[1].replace('ch','')
+            thedate = parts[3][:8]
+            start_time = parts[3][8:]
+            end_time = parts[4][8:]
+            
+            print(f"Cage: {cage_number}, Date: {thedate}, Start: {start_time}, End: {end_time}")
+            
+            full_renamed_path = os.path.join(source_folder, f"{cage_number}-{thedate}-{start_time}-{end_time}{extension}")
+            os.rename(os.path.join(source_folder, filename), full_renamed_path)
+            # print(f"Successfully renamed to: {os.path.basename(full_renamed_path)}")
+            
+        except Exception as e:
+            print(f"Error processing {filename}: {e}")
             
     
 
