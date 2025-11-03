@@ -27,7 +27,7 @@ def name_cages(source_folder):
             
             print(f"Cage: {cage_number}, Date: {thedate}, Start: {start_time}, End: {end_time}")
             
-            full_renamed_path = os.path.join(source_folder, f"{cage_number}-{thedate}-{start_time}-{end_time}{extension}")
+            full_renamed_path = os.path.join(source_folder, f"{cage_number.zfill(2)}-{thedate}-{start_time}-{end_time}{extension}")
             if os.path.exists(full_renamed_path):
                 if custom_dialog(f"ERROR: {os.path.basename(full_renamed_path)} already exists. Overwrite?") == "no":
                     continue
