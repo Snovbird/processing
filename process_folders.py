@@ -45,12 +45,12 @@ def group_by_date_and_experimentTime(videos_folderpath: str) -> dict[str, list[l
                 if not last_endtime: # first recording for the cage
                     cage_exp_group.append(recording)
                     if first:
-                        starts.append(f"{hours}:{minutes}")
+                        starts.append(f"{hours}:{minutes:02d}")
                         first = False
                 elif seconds - last_endtime <= 5: # technically supposed to be identical end & start times, but allow for small variations
                     cage_exp_group.append(recording)
                     if first:
-                        starts.append(f"{hours}:{minutes}")
+                        starts.append(f"{hours}:{minutes:02d}")
                         first = False
                 else: # other experiment started
                     cage_exp_groups.append(cage_exp_group)
@@ -92,9 +92,9 @@ class process_recordings():
             name_cages(self.recording_folderpath)
         except: #already named
             pass 
-
         self.step1_organize_recordings()
-    
+
+        
 
     def step1_organize_recordings(self):
         self.grouped_recordings = group_by_date_and_experimentTime(self.recording_folderpath)
@@ -105,7 +105,7 @@ class process_recordings():
             keys = {}
             for count,experiments_list in enumerate(experiments):
                 first = experiments_list[0]
-                time_start = first.spl it("-")[2]
+                time_start = first.split("-")[2]
                 hour = time_start[0:2]
                 minute = time_start[2:4]
                 row_name = f"Experiment #{count+1} at {hour}:{minute}"
@@ -147,8 +147,8 @@ class process_recordings():
             # sleep(1)
             # os.rmdir(self.recording_folderpath)
         
-
-
+        return self.step2_photo_carrousel()
+        
     def step2_photo_carrousel(self):
         photos_folders = {}
         photos_to_carrousel = []
@@ -198,7 +198,6 @@ class process_recordings():
         
         return self.step3_concatenate_videos()
 
-
     def step3_concatenate_videos(self):
         todelete = None
         for experiment_folder in self.experiment_folders:
@@ -234,6 +233,8 @@ class process_recordings():
                             count += 1
                             print(f"error deleting file, try #{count}")
         print("Concatenation and clean up complete")
+
+        return self.step4_TrimIntervals()
     
     def step4_TrimIntervals(self):
 
@@ -241,6 +242,9 @@ class process_recordings():
             DS_cue = experiment.split(" ")[-1]
             videos = list_filespaths(experiment)
             trim_DS_auto(videos,first="DS_Cue",interval_duration=90,batch_size=5)
+
+        return self.step5_markers()
+    
 
     def step5_markers(self):
         marker_folders = []
@@ -305,4 +309,4 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
 
 if __name__ == "__main__":
     recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
-    process_recordings(recording_folderpath=recordings_folder)
+    process_recordings(recordings_folder)

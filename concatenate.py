@@ -1,12 +1,19 @@
 import subprocess
 import tempfile
-import os
+import os,shutil,sys
 from common.common import select_video,askint,clear_gpu_memory,makefolder,custom_dialog,select_folder,error
-import sys
 
 
-def concatenate(input_files:list[str], output_folder:str):
-    if True or len(input_files) > 2:
+def concatenate(input_files:list[str], output_folder:str) -> str | None:
+    """
+    Example video output basename: `11-20250925.mp4` (removes times)
+    Args:
+        input_files (list): Array of mp4 video files paths to concatenate if 2+ items. If single item in array: moves to output_folder (concatenation skipped)
+        output_folder: where concatenated videos are stored
+    Returns:
+        output_path: path to the concatenated video file (`None` if single item in array)
+    """
+    if len(input_files) > 2:
         """
         Combine multiple video files using NVIDIA CUDA hardware acceleration with two-stage approach.
         """
@@ -14,6 +21,7 @@ def concatenate(input_files:list[str], output_folder:str):
         temp_dir = tempfile.mkdtemp()
         intermediate_files = []
         concat_list_txt = None
+
         try:
             # STAGE 1: Transcode each file to ensure consistency
             for i, file in enumerate(input_files):
@@ -40,8 +48,8 @@ def concatenate(input_files:list[str], output_folder:str):
                 concat_list_txt = temp.name
             
             basename,ext = os.path.splitext(os.path.basename(input_files[0]))
-            date = basename.split("-")[1]
-            output_name = f"{''.join(char for char in basename[0:2] if char.isdigit())}-{date}{ext}" # Output should be named after the cage number
+            cage, date, *_ = basename.split("-")
+            output_name = f"{cage}-{date}{ext}" # Output should be named after the cage number
             output_path = os.path.join(output_folder, output_name)
             
             # Simple concatenation of consistently encoded files (no CUDA needed for this stage)
@@ -72,53 +80,17 @@ def concatenate(input_files:list[str], output_folder:str):
                 os.rmdir(temp_dir)
             except:
                 pass
-    # elif False and len(input_files) == 2:
-    #     """
-    #     Combine multiple video files using NVIDIA CUDA hardware acceleration.
-        
-    #     Args:
-    #         input_files (list): List of paths to input video files in desired order
-    #         output_file (str): Path to the output video file
-    #         video_bitrate (str): Video bitrate for encoding
-    #         preset (str): NVENC encoding preset (p1-p7)
-    #     """
-    #     # Create a temporary file for the concat list
-    #     with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as temp:
-    #         for file in input_files:
-    #             # Escape single quotes in filenames and use absolute paths
-    #             escaped_file = os.path.abspath(file).replace("'", "'\\''")
-    #             temp.write(f"file '{escaped_file}'\n")
-    #         temp_filename = temp.name
-
-    #     outputfile = f'concat{os.path.basename(input_files[0])}'
-    #     output = os.path.join(output_folder,outputfile)
-
-    #     try:
-    #         # Build the ffmpeg command
-    #         cmd = [
-    #             'ffmpeg',
-    #             '-y',                          # Overwrite output file if it exists
-    #             '-hwaccel', 'cuda',            # Use CUDA for decoding
-    #             '-hwaccel_output_format', 'cuda',  # Keep frames in GPU memory
-    #             '-f', 'concat',
-    #             '-safe', '0',
-    #             '-i', temp_filename,
-    #             '-vf', 'hwupload_cuda,scale_cuda=format=nv12',
-    #             '-c:v', 'h264_nvenc',          # Use NVIDIA hardware encoderAdd commentMore actions
-    #             '-preset', 'p1', #preset,
-    #             # '-b:v', video_bitrate,
-    #             '-an',              
-    #             output
-    #         ]
-    #         print(cmd)
-    #         # Run the command with error checking
-    #         subprocess.run(cmd, check=True)
-    #         return True
-        
-    #     finally:
-    #         # Clean up the temporary file
-    #         if os.path.exists(temp_filename):
-    #             os.remove(temp_filename)
+    else: # move to output folder if single item in group
+        if len(input_files) == 0:
+            error("Empty array of input files for concatenation. Skipping...","Simple warning")
+            return
+        filepath = input_files[0]
+        name,ext = os.path.splitext(os.path.basename(filepath))
+        folder = os.path.dirname(filepath)
+        cage,date, *_ = name.split("-")
+        newpathname = os.path.join(folder,f"{cage}-{date}{ext}")
+        os.rename(filepath,newpathname)
+        shutil.move(newpathname,output_folder)
 
 def main():
     startpath = None
@@ -195,19 +167,14 @@ def group_files_by_digits(file_paths: list[str]) -> list[list[str]]:
     for file_path in file_paths:
         # Get just the filename from the full path
         filename = os.path.basename(file_path)
-        
-        # Extract the filename without the extension
-        name_without_ext = os.path.splitext(filename)[0]
-        
-        # This is your provided logic to create the grouping key
-        digit_key = ''.join([char for char in name_without_ext if char.isdigit()])
+                
+        cage,date = filename.split("-")[:2]
         
         # Add the full file path to the list for this key
-        grouped_files[digit_key].append(file_path)
+        grouped_files[cage].append(file_path)
         
     # We only need the lists of grouped files, not the keys themselves.
-    # We also filter out any "groups" that only contain a single file.
-    return [group for group in grouped_files.values() if len(group) > 1]
+    return [group for group in grouped_files.values()]
 
 def manually_select_concatenation(startpath):
     toconcat: list[list[str]] = [select_video(title="select videos to concatenate first",path=startpath) for c in range(askint("How many concatenations?","Total Outputs"))]
