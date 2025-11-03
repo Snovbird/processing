@@ -190,13 +190,18 @@ class process_recordings():
 
         return self.step3_concatenate_videos()
 
-    def step3_concatenate_videos(self):
+    def step3_concatenate_videos(self,experiment_fol:list = []):
+
+        if experiment_fol:
+            self.experiment_folders = experiment_fol
+
         cleanup = {}
         print("Files organized\n\nStarting concatenation...")
         for experiment_folder in self.experiment_folders:
             
             videos = list_filespaths(experiment_folder)
-            
+            print(f"{videos}\n\n{experiment_folder=}")
+            msgbox(f"{videos}\n\n{experiment_folder=}")
             if len(videos) == 0:
                 continue
             
@@ -288,4 +293,4 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
 
 if __name__ == "__main__":
     recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
-    process_recordings(recordings_folder).start()
+    process_recordings(recordings_folder).step3_concatenate_videos(experiment_fol=list_folderspaths(recordings_folder))
