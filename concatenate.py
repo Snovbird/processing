@@ -90,7 +90,8 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
         cage,date, *_ = name.split("-")
         newpathname = os.path.join(folder,f"{cage}-{date}{ext}")
         os.rename(filepath,newpathname)
-        shutil.move(newpathname,output_folder)
+        if os.path.dirname(newpathname) != output_folder:
+            shutil.move(newpathname,output_folder)
 
 def main():
     startpath = None

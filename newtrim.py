@@ -134,7 +134,7 @@ def process_from_start(file_paths,start_times,end_times,output_folder = None,bat
     end_times_list = group_from_end(end_times, batch_size)
     print(f"{end_times_list=}")
 
-    if len(start_times) > 1 and len(file_paths) == 1 or len(file_paths) > 1:  # folder needed if multiple trims for one file
+    if (len(start_times) > 1 and len(file_paths) == 1) or len(file_paths) > 1:  # folder needed if multiple trims for one file
         output_folder = makefolder(file_paths[0],foldername=output_folder if output_folder else "trimmed",start_at_1=False if output_folder else True)
     else: # same folder if only one single trim output
         output_folder = os.path.dirname(file_paths[0])

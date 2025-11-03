@@ -15,7 +15,7 @@ def extractpng(video: str, times: list[int], output_folder: str) -> tuple[str,..
     outputs = []
     for i, seconds in enumerate(times):
         # Create a unique filename for each frame from each video to avoid overwrites
-        output_filename = os.path.join(output_folder, f'{video_name}_{i:03d}.png')
+        output_filename = os.path.join(output_folder, f'{video_name}-{i:03d}.png')
 
         # This command uses fast seeking (-ss before -i) which is very efficient
         # for extracting individual frames without decoding the whole video.

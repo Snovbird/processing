@@ -80,7 +80,7 @@ class process_recordings():
         self.experiment_folders = []
         self.processes_folder:dict[str, str] = {}
         self.first_DS_or_Interval = ["DS+","DS-","SEEKING_TEST"]
-        
+        self.date_folders = []
         overlays_path = find_folder_path("2-MARKERS")
         room_options = list_folders(overlays_path)
         self.room = dropdown(room_options + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_name="star",hide=("MARKERS-TEMPLATES",))
@@ -92,14 +92,16 @@ class process_recordings():
             name_cages(self.recording_folderpath)
         except: #already named
             pass 
-        self.step1_organize_recordings()
 
-        
+    def start(self):
+        self.step1_organize_recordings()
 
     def step1_organize_recordings(self):
         self.grouped_recordings = group_by_date_and_experimentTime(self.recording_folderpath)
+
         for date,experiments in self.grouped_recordings.items(): # unpack dates
-            date_folder = makefolder(self.recording_folderpath, date,start_at_1=False)
+            date_folder = makefolder(os.path.dirname(self.recording_folderpath), date,start_at_1=False)
+            self.date_folders.append(date_folder)
 
             grid_rownames = []
             for experiment_number,experiments_list in enumerate(experiments,start=1): 
@@ -116,15 +118,12 @@ class process_recordings():
                                    )
             
             for experiment_number, first_DS in enumerate(answer.values(),start=1): 
-                experiment = experiments[experiment_number] # answers should already be ordered
                 experiment_folder = makefolder(date_folder, f"{date}_{experiment_number} {first_DS}", start_at_1=False)
                 self.experiment_folders.append(experiment_folder)
 
         
-        for date, experiments in self.grouped_recordings.values():
-            folders = list_folderspaths(
-                    os.path.join(self.recording_folderpath, date)
-                )
+        for date_folder, experiments in zip(self.date_folders,self.grouped_recordings.values()):
+            folders = list_folderspaths(date_folder)
 
             for experiment_number, experiment_list in enumerate(experiments):
                 for video in experiment_list:
@@ -132,30 +131,28 @@ class process_recordings():
                     dst = folders[experiment_number]
                     shutil.move(video_path, dst)
         else:
-            if os.listdir(self.recording_folderpath) == []:
-                msgbox(f"This path is empty and will be deleted:\n{self.recording_folderpath}")
-            else:
-                error("Error deleting the recordings_folderpath. Opening:")
-                os.startfile(self.recording_folderpath)
-            # sleep(1)
-            # os.rmdir(self.recording_folderpath)
-        
+            time.sleep(1)
+            os.rmdir(self.recording_folderpath)
+
+ 
         return self.step2_photo_carrousel()
         
-    def step2_photo_carrousel(self):
+    def step2_photo_carrousel(self,experiment_fol = None):
         photos_folders = {}
         photos_to_carrousel = []
+        if experiment_fol:
+            self.experiment_folders = [experiment_fol]
         for experiment_folder in self.experiment_folders:
             photos_folders[experiment_folder] = makefolder(experiment_folder, "photos", start_at_1=False)
 
-        for count, (experiment_folder, photos_folder) in enumerate(photos_folders.items()):
+        for experiment_folder, photos_folder in photos_folders.items():
                 
             for cage_group in group_files_by_digits(list_filespaths(experiment_folder)):
 
                 first_video = cage_group[0]
 
                 photos_to_carrousel.append(
-                    extractpng(first_video,times=[1],output_folder=photos_folder)[0] # use string not tuple (default output)              
+                    extractpng(first_video,times=[0],output_folder=photos_folder)[0] # use string not tuple (default output)              
                 )
         
         combinedpaths = {}
@@ -188,45 +185,36 @@ class process_recordings():
                     return
                 
                 return emergency_overlay_maker(cage_numbers=[cage_number],room=self.room,date=date,videos=[vid_basename])
-        
+        for folder in photos_folders.values():
+            shutil.rmtree(folder)
+
         return self.step3_concatenate_videos()
 
     def step3_concatenate_videos(self):
-        todelete = None
+        cleanup = {}
+        print("Files organized\n\nStarting concatenation...")
         for experiment_folder in self.experiment_folders:
+            
             videos = list_filespaths(experiment_folder)
             
             if len(videos) == 0:
                 continue
             
+            
             grouped_videos = group_files_by_digits(videos)
-
+            cleanup[experiment_folder] = []
             for group in grouped_videos:
-                concatenate(group,experiment_folder)
-            for video in todelete:
-                if os.path.exists(video):
+                output = concatenate(group,experiment_folder)
+                cleanup[experiment_folder].append(output)
+
+        for expfold, concatvids in cleanup.items():
+            for vid in list_filespaths(expfold):
+                if vid not in concatvids:
                     try:
-                        os.remove(video)
-                    except:
-                        pass
-            if todelete:
-                attempt_delete(todelete)
-            todelete = videos
-        print("Files organized\n\nStarting concatenation...")
-
-        count = 0
-        while todelete: # last cage group cleanup
-            for video in todelete:
-                    if os.path.exists(video):
-                        try:
-                            os.remove(video)
-                            todelete.remove(video)
-                        except:
-                            time.sleep(1)
-                            count += 1
-                            print(f"error deleting file, try #{count}")
-        print("Concatenation and clean up complete")
-
+                        os.remove(vid)
+                    except Exception as e:
+                        error(f"Error deleting {vid}\n\nError: {e}")
+                
         return self.step4_TrimIntervals()
     
     def step4_TrimIntervals(self):
@@ -234,7 +222,7 @@ class process_recordings():
         for experiment in self.experiment_folders:
             DS_cue = experiment.split(" ")[-1]
             videos = list_filespaths(experiment)
-            trim_DS_auto(videos,first="DS_Cue",interval_duration=90,batch_size=5)
+            trim_DS_auto(videos,first=DS_cue,start_time=16,interval_duration=90,batch_size=5)
 
         return self.step5_markers()
     
@@ -248,8 +236,6 @@ class process_recordings():
             
             for concat_vid in list_filespaths(experiment):
                 basename = os.path.splitext(os.path.basename(concat_vid))[0]
-
-                number, date, *_ = basename.split("-")
 
                 apply_png_overlay(concat_vid,marked,self.room)
 
@@ -302,4 +288,4 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
 
 if __name__ == "__main__":
     recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
-    process_recordings(recordings_folder)
+    process_recordings(recordings_folder).start()
