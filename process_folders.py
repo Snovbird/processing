@@ -192,17 +192,8 @@ class process_recordings():
 
         return self.step3_concatenate_videos()
 
-<<<<<<< HEAD
-    def step3_concatenate_videos(self,experiment_fol:list = []):
-
-        if experiment_fol:
-            self.experiment_folders = experiment_fol
-
-        cleanup = {}
-=======
     def step3_concatenate_videos(self):
         videos_to_delete = {}  # Store original videos that should be deleted
->>>>>>> d16512730bd975302fbbdf5700650b9474fe316f
         print("Files organized\n\nStarting concatenation...")
         
         for experiment_folder in self.experiment_folders:
