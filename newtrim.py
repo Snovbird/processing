@@ -123,6 +123,7 @@ def process_from_start(file_paths:list[str],start_times:list[str],end_times:list
 
 def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE",first=None,start_time=20,interval_duration=55,batch_size = 7,):
     """
+    Automatically find DS+ and DS- timestamps for given videos
     Args:
         video (str): path to video
         which (str, optional): options = `DS+`, `DS-`,`ALL IN ONE` or `BOTH SEPARATE`. Default will provide DS+ and DS- folder
