@@ -339,7 +339,6 @@ def get_duration(video_path: str) -> tuple[float, str] | None:
     Returns:
         A tuple containing (frames,seconds, formatted_time) or None if error
     """
-    import os
     import cv2
     import datetime
 
@@ -353,7 +352,7 @@ def get_duration(video_path: str) -> tuple[float, str] | None:
     
     # Check if video opened successfully
     if not video.isOpened():
-        print(f"Error: Could not open video '{video_path}'")
+        error(f"Could not find duration for video. Unable to open: '{video_path}'")
         return None
     
     # Count the number of frames
