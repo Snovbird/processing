@@ -83,15 +83,15 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
     else: # move to output folder if single item in group
         if len(input_files) == 0:
             error("Empty array of input files for concatenation. Skipping...","Simple warning")
-            return
+            return None
         filepath = input_files[0]
         name,ext = os.path.splitext(os.path.basename(filepath))
         folder = os.path.dirname(filepath)
         cage,date, *_ = name.split("-")
         newpathname = os.path.join(folder,f"{cage}-{date}{ext}")
         os.rename(filepath,newpathname)
-        if os.path.dirname(newpathname) != output_folder:
-            shutil.move(newpathname,output_folder)
+        moved_path = shutil.move(newpathname, output_folder)
+        return moved_path
 
 def main():
     startpath = None
@@ -181,7 +181,7 @@ def manually_select_concatenation(startpath):
     toconcat: list[list[str]] = [select_video(title="select videos to concatenate first",path=startpath) for c in range(askint("How many concatenations?","Total Outputs"))]
 
     for group in toconcat:
-        ready:str = concatenate(group)
+        ready:str = concatenate(group, os.path.dirname(group[0]))
     if ready:
         clear_gpu_memory()
         os.startfile(os.path.dirname(ready))

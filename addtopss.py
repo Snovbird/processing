@@ -2,14 +2,19 @@
 from common.common import askstring, askint, custom_dialog,hhmmss_to_seconds,seconds_to_hhmmss,error
 
 
-def addtopss(time_input:list[str]|str,toadd:int|None = None,HHMMSS_or_frames:str = None) -> list[str] : # add a given value to each period-separated value
+def addtopss(time_input:list[str]|str,toadd:int|None = None,HHMMSS_or_frames:str = None) -> list[str] : 
+    """
+    Add integer value to numerical strings in a list
+    Args:
+        time_input: `['12','34','56]`
+        toadd (int): number of frames or seconds to add. Seconds can exceed 60 (ex: `150`). Prompts if not provided
+        HHMMSS_or_frames (str): options = `HHMMSS` or `frames`. If `HHMMSS`, will be formatted appropriately with 60-base for MM and SS (Uses .zfill(2) for hours but can return above double HH digits). Prompts if not provided
+    """
     
     if not toadd:
         toadd = askint(title="Enter integer", msg="Number of SECONDS to add:")
     if not toadd:
         return
-
-    # Copy based on choice
     if not HHMMSS_or_frames:
         HHMMSS_or_frames = custom_dialog(title="HHMMSS or FRAMES", msg="HHMMSS or FRAMES", op1="HHMMSS", op2="FRAME")
 
@@ -20,11 +25,7 @@ def addtopss(time_input:list[str]|str,toadd:int|None = None,HHMMSS_or_frames:str
         except:
             error("Addtopss input cannot be formatted as integers")
             return
-        for c, value in enumerate(time_input):
-            time_input[c] += toadd
-            # Join with periods
-            tocopy = [str(i) for i in list_of_values]
-        return tocopy
+        return [str(value + toadd) for value in time_input]
     
     # **************************************            HHMMSS          **************************************
     elif HHMMSS_or_frames == "HHMMSS":
@@ -37,16 +38,10 @@ def addtopss(time_input:list[str]|str,toadd:int|None = None,HHMMSS_or_frames:str
         else: # preferable list input
             list_of_values = [hhmmss_to_seconds(str(numberstring)) for numberstring in time_input.copy()] # LISTS ARE MUTABLE
 
-
         for c, value in enumerate(list_of_values):
             list_of_values[c] += toadd
-            # Join with periods
-            # tocopy = [str(i) for i in list_of_values]
 
-        
-        formatted = [seconds_to_hhmmss(number) for number in list_of_values.copy()]
-
-        return formatted
+        return [seconds_to_hhmmss(number) for number in list_of_values.copy()]
 
 
 

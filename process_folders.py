@@ -224,7 +224,8 @@ class process_recordings():
                 except Exception as e:
                     error(f"Error deleting {vid}\n\nError: {e}")
                 
-        return self.step4_TrimIntervals()    
+        return self.step4_TrimIntervals()
+    
     def step4_TrimIntervals(self):
 
         for experiment in self.experiment_folders:
@@ -234,7 +235,6 @@ class process_recordings():
 
         return self.step5_markers()
     
-
     def step5_markers(self):
         marker_folders = []
         for experiment in self.experiment_folders:
@@ -259,7 +259,7 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         
     room_folder_path = os.path.join(marker_overlays_path,room)
     if not cage_numbers:
-        cage_numbers:list[int] = [ askint("Enter the cage number:","Cage number") ]
+        cage_numbers:list[int] = [ f"{askint("Enter the cage number:","Cage number"):02d}" ]
         if not cage_numbers:
             return
     if not videos:

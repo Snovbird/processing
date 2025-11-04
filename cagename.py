@@ -1,10 +1,8 @@
-import os
-import wx
+import os, shutil, wx
 from common.common import select_folder,windowpath,msgbox,list_files,custom_dialog
 
 def name_cages(source_folder):
     files = list_files(source_folder)
-    
     for filename in files:
         try:
             name, extension = os.path.splitext(filename)
@@ -12,9 +10,9 @@ def name_cages(source_folder):
                 continue
                 
             parts = name.split('_')
-            # print(f"Processing: {filename}")
-            # print(f"Parts: {parts}")
-            # print(f"Number of parts: {len(parts)}")
+            print(f"Processing: {filename}")
+            print(f"Parts: {parts}")
+            print(f"Number of parts: {len(parts)}\n")
             
             if len(parts) < 5:  # Need at least 5 parts
                 print(f"Skipping {filename} - insufficient parts")
@@ -31,16 +29,18 @@ def name_cages(source_folder):
             
             full_renamed_path = os.path.join(source_folder, f"{cage_number}-{thedate}-{start_time}-{end_time}{extension}")
             if os.path.exists(full_renamed_path):
-                if custom_dialog(f"ERROR: {os.path.basename(full_renamed_path)} already exists. Overwrite?") == "no":
-                    continue
-                else:
-                    os.remove(full_renamed_path)
-            os.rename(os.path.join(source_folder, filename), full_renamed_path)
+                # if custom_dialog(f"ERROR: {os.path.basename(full_renamed_path)} already exists. Overwrite?") == "no":
+                #     continue
+                duplicate_path = os.path.join(source_folder,filename)
+                os.remove(duplicate_path)
+            else:
+                os.rename(os.path.join(source_folder, filename), full_renamed_path)
             # print(f"Successfully renamed to: {os.path.basename(full_renamed_path)}")
             
         except Exception as e:
             print(f"Error processing {filename}: {e}")
-                
+
+        
 
 def main():
     # Initialize wx application

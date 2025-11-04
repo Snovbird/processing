@@ -19,7 +19,7 @@ def main():
     if append_string:
         START_or_END_or_REPLACE = custom_dialog(msg=f"Place string at the START, END of the file name or simply replace '{toreplace}'",
                                      title='START or END or REPLACE',
-                                     op1="START",op2="END",op3="REPLACE")
+                                     op1="REPLACE",op2="START",op3="END",)
 
     if not append_string:
         append_string = ''
