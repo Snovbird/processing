@@ -118,6 +118,8 @@ def main():
         os.startfile(output_folder)
 
 def process_from_start(file_paths,start_times,end_times,output_folder = None,batch_size = None):
+    
+    
     start_times = list(
         map(format_time_colons,start_times) # format as HH:MM:SS
     )
@@ -164,8 +166,9 @@ def process_from_start(file_paths,start_times,end_times,output_folder = None,bat
 
 def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE",first=None,start_time=20,interval_duration=55,batch_size = 7):
     """
+    Find timestamps for DS+ and DS- for given video path(s)
     Args:
-        video (str): path to video
+        file_paths (list[str]): path to video
         which (str, optional): options = `DS+`, `DS-`,`ALL IN ONE` or `BOTH SEPARATE`
     """
     okay = ["DS+", "DS-"] if which == "BOTH SEPARATE" else [which]
