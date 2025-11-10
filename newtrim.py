@@ -107,8 +107,8 @@ def process_from_start(file_paths:list[str],start_times:list[str],end_times:list
                 try:
                     complete = batch_trim(vid,start_list,end_times_list[count],output_folder,count=new_count)
                 except subprocess.CalledProcessError as e:
-                    assignval("TRIM_ERROR",f"FFmpeg error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(start_times)}\n\noutput:{output_folder}\n\nError details: {e}")
-                    error(f"FFmpeg error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(start_times)}\n\noutput:{output_folder}\n\nError details: {e}")
+                    assignval("TRIM_ERROR",f"FFmpeg error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(end_times)}\n\noutput:{output_folder}\n\nError details: {e}")
+                    error(f"FFmpeg error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(end_times)}\n\noutput:{output_folder}\n\nError details: {e}")
                     break
                 new_count += len(start_list)
             if complete:
