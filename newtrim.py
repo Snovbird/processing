@@ -25,7 +25,7 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
             time = time.replace(":", "").zfill(6)
             secs = int(time[0:2]) * 3600 + int(time[2:4]) * 60 + int(time[4:6])
             if secs < vidlen:
-                ok.append(time)
+                ok.append(format_time_colons(time)) # format needed by ffmpeg = HH:MM:SS not HHMMSS
         start_times = ok
         if len(start_times) != len(end_times):
             end_times = end_times[:len(start_times)]
