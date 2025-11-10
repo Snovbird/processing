@@ -4,7 +4,6 @@ from addtopss import addtopss
 import subprocess
 import os, sys
 
-
 def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  output_folder: str,count:int = 1,skip_overflow=True) -> bool:
     """
     Trims a video into multiple clips for given **seconds** timestamps
