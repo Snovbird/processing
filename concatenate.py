@@ -1,7 +1,7 @@
 import subprocess
 import tempfile
 import os,shutil,sys
-from common.common import select_video,askint,clear_gpu_memory,makefolder,custom_dialog,select_folder,error
+from common.common import select_video,askint,clear_gpu_memory,makefolder,custom_dialog,select_folder,error,msgbox
 
 
 def concatenate(input_files:list[str], output_folder:str) -> str | None:
@@ -13,7 +13,7 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
     Returns:
         output_path: path to the concatenated video file (`None` if single item in array)
     """
-    if len(input_files) > 2:
+    if len(input_files) > 1:
         """
         Combine multiple video files using NVIDIA CUDA hardware acceleration with two-stage approach.
         """
@@ -80,7 +80,8 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
                 os.rmdir(temp_dir)
             except:
                 pass
-    else: # move to output folder if single item in group
+    elif len(input_files) == 1: # move to output folder if single item in group
+        error(f"Input files weird:\n{input_files}")
         if len(input_files) == 0:
             error("Empty array of input files for concatenation. Skipping...","Simple warning")
             return None
@@ -90,8 +91,11 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
         cage,date, *_ = name.split("-")
         newpathname = os.path.join(folder,f"{cage}-{date}{ext}")
         os.rename(filepath,newpathname)
-        moved_path = shutil.move(newpathname, output_folder)
-        return moved_path
+        if output_folder != os.path.dirname(filepath):
+            moved_path = shutil.move(newpathname, output_folder)
+            return moved_path
+    else:
+        error(f"Error processing:\n{'\n\n'.join(input_files)}")
 
 def main():
     startpath = None

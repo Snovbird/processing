@@ -35,7 +35,11 @@ Return
 !k::
     Run, pyw "%pythonScriptsDir%\add count to folder names.py"
 return
-
+#IfWinActive, ahk_exe explorer.exe
+!c::
+    run, pyw "%pythonScriptsDir%\cagename.py"
+return
+#if
 ^+A::
 run, explorer.exe "C:\Users\%Username%\Desktop"
 return
@@ -80,9 +84,7 @@ return
 $!s::
     run, pyw "%pythonScriptsDir%\sort_generated_pairs_to_folder.py"
 return
-!c::
-    run, pyw "%pythonScriptsDir%\cagename.py"
-return
+
 !+C::
 ; Check if the active window is File Explorer
     WinGetClass, activeClass, A
