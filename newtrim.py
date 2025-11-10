@@ -90,7 +90,8 @@ def process_from_start(file_paths:list[str],start_times:list[str],end_times:list
     print(f"{end_times_list=}")
 
     if (len(start_times) > 1 and len(file_paths) == 1) or len(file_paths) > 1:  # folder needed if multiple trims for one file
-        output_folder = makefolder(file_paths[0],foldername=trims_foldername,start_at_1=False if output_folder else True)
+        output_folder = makefolder(file_paths[0],foldername=trims_foldername,
+                                   start_at_1=False if trims_foldername != "Trims" else True)
     else: # same folder if only one single trim output
         output_folder = os.path.dirname(file_paths[0])
     all_processing_complete = False
@@ -138,20 +139,20 @@ def trim_DS_auto(file_paths:list[str],first:str=None,which=["DS+", "DS-"],start_
         if "DS+" in okay:
             DS_plus_plusfirst_start:str = trial_formula(plus_or_minus_first="DS+",extract_which="DS+",start_time=start_time)
             DS_plus_plusfirst_end:list[str] = addtopss(DS_plus_plusfirst_start, toadd=interval_duration, HHMMSS_or_frames="HHMMSS")
-            process_from_start(file_paths,DS_plus_plusfirst_start.split("."),DS_plus_plusfirst_end,output_folder="DS+",batch_size=batch_size)
+            process_from_start(file_paths,DS_plus_plusfirst_start.split("."),DS_plus_plusfirst_end,trims_foldername="DS+",batch_size=batch_size)
         if "DS-" in okay:
             DS_minus_plusfirst_start:str = trial_formula(plus_or_minus_first="DS+",extract_which="DS-",start_time=start_time)
             DS_minus_plusfirst_end:list[str] = addtopss(DS_minus_plusfirst_start, toadd=interval_duration, HHMMSS_or_frames="HHMMSS")
-            process_from_start(file_paths,DS_minus_plusfirst_start.split("."),DS_minus_plusfirst_end,output_folder="DS-",batch_size=batch_size)
+            process_from_start(file_paths,DS_minus_plusfirst_start.split("."),DS_minus_plusfirst_end,trims_foldername="DS-",batch_size=batch_size)
     elif first == "DS-":
         if "DS+" in okay:
             DS_plus_minusfirst_start:str = trial_formula(plus_or_minus_first="DS+",extract_which="DS-",start_time=start_time)
             DS_plus_minusfirst_end:list[str] = addtopss(DS_plus_minusfirst_start, toadd=interval_duration, HHMMSS_or_frames="HHMMSS")
-            process_from_start(file_paths,DS_plus_minusfirst_start.split("."),DS_plus_minusfirst_end,output_folder="DS+",batch_size=batch_size)
+            process_from_start(file_paths,DS_plus_minusfirst_start.split("."),DS_plus_minusfirst_end,trims_foldername="DS+",batch_size=batch_size)
         if "DS-" in okay:
             DS_minus_minusfirst_start:str = trial_formula(plus_or_minus_first="DS-",extract_which="DS-",start_time=start_time)
             DS_minus_minusfirst_end:list[str] = addtopss(DS_minus_minusfirst_start, toadd=interval_duration, HHMMSS_or_frames="HHMMSS")
-            process_from_start(file_paths,DS_minus_minusfirst_start.split("."),DS_minus_minusfirst_end,output_folder="DS-",batch_size=batch_size)
+            process_from_start(file_paths,DS_minus_minusfirst_start.split("."),DS_minus_minusfirst_end,trims_foldername="DS-",batch_size=batch_size)
     else:
         error(f"{first} is not implemented yet")
         return
@@ -213,4 +214,4 @@ def main():
         os.startfile(output_folder)
 
 if __name__ == "__main__":
-    main()
+    trim_DS_auto(file_paths=select_video(),first="DS+")
