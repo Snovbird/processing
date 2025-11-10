@@ -90,7 +90,9 @@ class process_recordings():
         if self.room == "ENTER NEW ROOM NAME":
             return emergency_overlay_maker()
 
-        self.final_outputpath = find_folder_path("3-PROCESSED")      
+        self.final_outputpath = find_folder_path("3-PROCESSED")
+        self.final_outputpath = r"C:\Users\samahalabo\Desktop\3-PROCESSED\.specialtest"
+        msgbox("Note: finaloutputpath is wrong")
         try:
             name_cages(self.recording_folderpath)
         except: #already named
@@ -199,7 +201,6 @@ class process_recordings():
         for experiment_folder in self.experiment_folders:
             videos = list_filespaths(experiment_folder)
             print(f"{videos}\n\n{experiment_folder=}")
-            msgbox(f"{videos}\n\n{experiment_folder=}")
             if len(videos) == 0:
                 continue
             
@@ -207,7 +208,7 @@ class process_recordings():
             videos_to_delete.append([])
             
             for group in grouped_videos:
-                concatenate(group, experiment_folder) # if singleitem, it will be renamed to ##-YYYYMMDD.mp4
+                concatenate(group, experiment_folder) # if singleitem, it will only be renamed to ##-YYYYMMDD.mp4
 
                 if len(group) > 1: # single item = no concatenation = no deletion
                     videos_to_delete[-1].extend(group)

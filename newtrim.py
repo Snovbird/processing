@@ -72,10 +72,6 @@ def process_from_start(file_paths:list[str],start_times:list[str],end_times:list
         end_times (list[str]): list of trim end timestamps in **seconds**. Must be the same length as start_times
         trims_foldername (str, optional): Name of the created trim ouputs folder. Default name = "Trims". 
         batch_size (int): number of outputs per batch. Adjust this value depending on GPU memory capabilities. Prompts if not provided
-
-
-
-
     """
     start_times = list(
         map(format_time_colons,start_times) # format as HH:MM:SS
@@ -121,14 +117,18 @@ def process_from_start(file_paths:list[str],start_times:list[str],end_times:list
         error(f"Must enter same # of start times as end times.\n{start_times=}\nEnd times = {end_times=}")
     return output_folder,all_processing_complete
 
-def trim_DS_auto(file_paths:list[str],which="BOTH SEPARATE",first=None,start_time=20,interval_duration=55,batch_size = 7,):
+def trim_DS_auto(file_paths:list[str],first:str=None,which=["DS+", "DS-"],start_time=20,interval_duration=55,batch_size = 7,):
     """
     Automatically find DS+ and DS- timestamps for given videos
     Args:
         video (str): path to video
-        which (str, optional): options = `DS+`, `DS-`,`ALL IN ONE` or `BOTH SEPARATE`. Default will provide DS+ and DS- folder
+        first (str): Options = `DS+` or `DS-`. The first cue occuring in the experiment video.
+        which (str, optional): options = `DS+`, `DS-`,`ALL IN ONE` or `BOTH SEPARATE`. Default will creeate both DS+ and DS- folder
+        start_time (int): Time in seconds when the first trial (illuminated light) occurs.
+        interval_duration (int): Length of trimmed outputs. Increase to make sure to account for shifts in trial timestamps (will include ITI where no cue light is illuminated).
+        batch_size (int, optional): number of outputs at once for a SINGLE video
     """
-    okay = ["DS+", "DS-"] if which == "BOTH SEPARATE" else [which]
+    okay = [which] if isinstance(which,str) else which
     from trial_formula import trial_formula
     from addtopss import addtopss
     if not first: # automatically use the name to determine if it is DS+ or DS-
