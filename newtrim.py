@@ -73,10 +73,6 @@ def process_from_start(file_paths:list[str],start_times:list[str],end_times:list
         end_times (list[str]): list of trim end timestamps in **seconds**. Must be the same length as start_times
         trims_foldername (str, optional): Name of the created trim ouputs folder. Default name = "Trims". 
         batch_size (int): number of outputs per batch. Adjust this value depending on GPU memory capabilities. Prompts if not provided
-
-
-
-
     """
     start_times = list(
         map(format_time_colons,start_times) # format as HH:MM:SS
@@ -112,6 +108,7 @@ def process_from_start(file_paths:list[str],start_times:list[str],end_times:list
                     error(f"FFmpeg error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(end_times)}\n\noutput:{output_folder}\n\nError details: {e}","Trigger #1")
                     break
                 new_count += len(start_list)
+            msgbox(f"{complete=}")
             if complete:
                 clear_gpu_memory()
             else:
