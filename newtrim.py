@@ -22,10 +22,12 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
         vidlen = get_duration(input_path)[1]
         ok = []
         for time in start_times:
-            time = time.replace(":", "").zfill(6)
-            secs = int(time[0:2]) * 3600 + int(time[2:4]) * 60 + int(time[4:6])
+            time_no_colon = time.replace(":", "").zfill(6)
+            secs = int(time_no_colon[0:2]) * 3600 + int(time_no_colon[2:4]) * 60 + int(time_no_colon[4:6])
+            print(f"{input_path=}\n{start_times=}\n{end_times=}\n{vidlen=}\n{time=}\n{secs=}\n{secs<vidlen=}")
             if secs < vidlen:
-                ok.append(format_time_colons(time)) # format needed by ffmpeg = HH:MM:SS not HHMMSS
+                
+                ok.append(time) # format needed by ffmpeg = HH:MM:SS not HHMMSS
         start_times = ok
         if len(start_times) != len(end_times):
             end_times = end_times[:len(start_times)]
@@ -59,7 +61,7 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
 
     if start_times:
         print(cmd)
-        subprocess.run(cmd, check=True)
+        # subprocess.run(cmd, check=True)
         return output_path
     
 def process_from_start(file_paths:list[str],start_times:list[str],end_times:list[str],trims_foldername = "Trims",batch_size:int = None):
@@ -107,23 +109,22 @@ def process_from_start(file_paths:list[str],start_times:list[str],end_times:list
                 try:
                     complete = batch_trim(vid,start_list,end_times_list[count],output_folder,count=new_count)
                 except subprocess.CalledProcessError as e:
-                    assignval("TRIM_ERROR",f"FFmpeg error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(end_times)}\n\noutput:{output_folder}\n\nError details: {e}")
-                    error(f"FFmpeg error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(end_times)}\n\noutput:{output_folder}\n\nError details: {e}")
+                    error(f"FFmpeg error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(end_times)}\n\noutput:{output_folder}\n\nError details: {e}","Trigger #1")
                     break
                 new_count += len(start_list)
             if complete:
                 clear_gpu_memory()
             else:
-                error(f"Error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(start_times)}\n\noutput:{output_folder}")
+                error(f"Error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(end_times)}\n\noutput:{output_folder}","Trigger #2")
                 return
         all_processing_complete = clear_gpu_memory() # -> True
     else:
-        error(f"Must enter same # of start times as end times.\n{start_times=}\nEnd times = {end_times=}")
+        error(f"Must enter same # of start times as end times.\n{start_times=}\nEnd times = {end_times=}","Trigger #3")
     return output_folder,all_processing_complete
 
 def trim_DS_auto(file_paths:list[str],first:str=None,which=["DS+", "DS-"],start_time=20,interval_duration=55,batch_size = 7,):
     """
-    Automatically find DS+ and DS- timestamps for given videos
+    Automatically find DS+ and DS- timestamps for given videos, then call process_from_start to trim each video for different timestamps
     Args:
         video (str): path to video
         first (str): Options = `DS+` or `DS-`. The first cue occuring in the experiment video.
