@@ -156,7 +156,7 @@ class process_recordings():
                 first_video = cage_group[0]
 
                 photos_to_carrousel.append(
-                    extractpng(first_video,times=[0],output_folder=photos_folder)[0] # use string not tuple (default output)              
+                    extractpng(first_video,times=(0,),output_folder=photos_folder)[0] # use string not tuple (default output)              
                 )
         
         combinedpaths = {}
@@ -179,16 +179,17 @@ class process_recordings():
                 basename = os.path.splitext(os.path.basename(photopath))[0]
                 cage_string, date, *_ = basename.split("-")
                 cage_number = "".join([i for i in cage_string if i.isdigit()])
-                parent = os.path.dirname(os.path.dirname(img)) # Experiment folder > photos > combined20.png
+                parent = os.path.dirname(img) # Experiment folder > photos 
                 for video in list_filespaths(parent):
                     vid_basename = os.path.splitext(os.path.basename(video))[0]
                     if vid_basename == basename:
+                        problematic_videopath = os.path.join(parent,video)
                         break # found
                 else:
-                    error(f"No matching video file found for {basename}")
+                    error(f"No matching video file found for {basename} in {parent}\nPurpose: extract png to make new overlay")
                     return
                 
-                return emergency_overlay_maker(cage_numbers=[cage_number],room=self.room,date=date,videos=[vid_basename])
+                return emergency_overlay_maker(cage_numbers=[cage_number],room=self.room,date=date,videos=[problematic_videopath])
         for folder in photos_folders.values():
             shutil.rmtree(folder)
 
@@ -268,7 +269,7 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         videos:str = select_video("Select video from which an image will be extracted. It will be used to align the markers")
         if not videos:
             return
-    msgbox(f"emergency {videos=}\n\n{cage_numbers=}\n\n{room=}\n\n{date=}")
+    # msgbox(f"EMERGENCY:\n{videos=}\n\n{cage_numbers=}\n\n{room=}\n\n{date=}")
     for video,cage_number in zip(videos,cage_numbers):
         if not room: # 2-MARKERS/ NEWROOMNAME /
             room = askstring("Provide the name of the new room:","New room name",fill="ROOMNAME (numberofcages)")
@@ -277,15 +278,15 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
             project_folderpath = makefolder(room_folder_path,f"cage{cage_number}-{date}",start_at_1=False)
         
         unnamed_project_folderpath = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),project_folderpath)
-        renamed_project_path = os.path.join(project_folderpath,f"cage{cage_number}-{date}.xcf")
+        renamed_project_path = os.path.join(project_folderpath,f"{cage_number}-{date}.xcf")
         os.rename(unnamed_project_folderpath,renamed_project_path)
-        times = 1
-        imgpath = extractpng(video=video,times=(times,),output_folder=room_folder_path)[0]
+
+        imgpath = extractpng(video=video,times=(0,),output_folder=project_folderpath)[0]
         
-        while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
-            os.remove(imgpath)
-            times += 5
-            imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
+        # while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
+        #     os.remove(imgpath)
+        #     times += 5
+        #     imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
         
         dates:list[str] = findval("dates")
         if date not in dates:

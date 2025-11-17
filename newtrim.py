@@ -24,9 +24,7 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
         for time in start_times:
             time_no_colon = time.replace(":", "").zfill(6)
             secs = int(time_no_colon[0:2]) * 3600 + int(time_no_colon[2:4]) * 60 + int(time_no_colon[4:6])
-            print(f"{input_path=}\n{start_times=}\n{end_times=}\n{vidlen=}\n{time=}\n{secs=}\n{secs<vidlen=}")
             if secs < vidlen:
-                
                 ok.append(time) # format needed by ffmpeg = HH:MM:SS not HHMMSS
         start_times = ok
         if len(start_times) != len(end_times):
@@ -61,7 +59,7 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
 
     if start_times:
         print(cmd)
-        # subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True)
         return output_path
     
 def process_from_start(file_paths:list[str],start_times:list[str],end_times:list[str],trims_foldername = "Trims",batch_size:int = None):
@@ -83,41 +81,32 @@ def process_from_start(file_paths:list[str],start_times:list[str],end_times:list
     
     # Group timestamps in descending order to avoid GPU memory overload
     start_times_list = group_from_end(start_times, batch_size)
-    print(f"{start_times_list=}",)
     end_times = list(
         map(format_time_colons,end_times) # format as HH:MM:SS
     )
     end_times_list = group_from_end(end_times, batch_size)
-    print(f"{end_times_list=}")
 
     if (len(start_times) > 1 and len(file_paths) == 1) or len(file_paths) > 1:  # folder needed if multiple trims for one file
         output_folder = makefolder(file_paths[0],foldername=trims_foldername,
                                    start_at_1=False if trims_foldername != "Trims" else True)
     else: # same folder if only one single trim output
         output_folder = os.path.dirname(file_paths[0])
-    all_processing_complete = False
-    complete = None
     
-    if len(end_times) == len(start_times): # making sure no timestamps are missing in start/end inputs
-        for vid in file_paths:
-            new_count = 1
-            for count, start_list in enumerate(start_times_list):
-                try:
-                    complete = batch_trim(vid,start_list,end_times_list[count],output_folder,count=new_count)
-                except subprocess.CalledProcessError as e:
-                    error(f"FFmpeg error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(end_times)}\n\noutput:{output_folder}\n\nError details: {e}","Trigger #1")
-                    break
-                new_count += len(start_list)
-            msgbox(f"{complete=}")
-            if complete:
-                clear_gpu_memory()
-            else:
-                error(f"Error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(end_times)}\n\noutput:{output_folder}","Trigger #2")
+    if len(start_times) != len(end_times): # end trimming if missing end_times
+        return error(f"Must enter same # of start times as end times.\n{start_times=}\nEnd times = {end_times=}","Trigger #3")
+    
+    for vid in file_paths:
+        new_count = 1
+        for count, start_list in enumerate(start_times_list):
+            try:
+                batch_trim(vid,start_list,end_times_list[count],output_folder,count=new_count)
+            except subprocess.CalledProcessError as e:
+                error(f"FFmpeg error with video: {os.path.basename(vid)}\n\nStart times = {' '.join(start_times)}\nEnd times = {' '.join(end_times)}\n\noutput:{output_folder}\n\nError details: {e}","Trigger #1")
                 return
-        all_processing_complete = clear_gpu_memory() # -> True
+            new_count += len(start_list)
+        clear_gpu_memory()
     else:
-        error(f"Must enter same # of start times as end times.\n{start_times=}\nEnd times = {end_times=}","Trigger #3")
-    return output_folder,all_processing_complete
+        return output_folder
 
 def trim_DS_auto(file_paths:list[str],first:str=None,which=["DS+", "DS-"],start_time=20,interval_duration=55,batch_size = 7,):
     """
@@ -176,7 +165,7 @@ def main():
                 if os.path.isdir(path):
                     startpath =  path
                     break
-    except Exception as e:
+    except: # Current focused window is not file explorer
         startpath:str = ''
     
     # COLLAPSE FOR VISIBILITY
@@ -209,10 +198,11 @@ def main():
             print("Exiting since end_times is None")
             return
 
-    output_folder,all_processing_complete = process_from_start(file_paths,start_times,end_times)    
+    output_folder = process_from_start(file_paths,start_times,end_times)    
     # Only open the directory once all processing is complete and multiple files were selected
-    if all_processing_complete and output_folder:
+    if output_folder:
         os.startfile(output_folder)
 
 if __name__ == "__main__":
     trim_DS_auto(file_paths=select_video(),first="DS+")
+    # main()
