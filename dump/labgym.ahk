@@ -211,3 +211,10 @@ Sleep 325
 SplashTextOff
 reload
 return
+
+#IfWinActive ahk_exe smplayer.exe
+
+WheelUp::Send .
+WheelDown::Send ,
+
+#IfWinActive
