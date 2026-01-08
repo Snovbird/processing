@@ -84,7 +84,6 @@ return
 $!s::
     run, pyw "%pythonScriptsDir%\sort_generated_pairs_to_folder.py"
 return
-
 !+C::
 ; Check if the active window is File Explorer
     WinGetClass, activeClass, A
@@ -211,10 +210,16 @@ Sleep 325
 SplashTextOff
 reload
 return
+; -------------------- collect examples --------------------
+^#!C::
+run, "C:\Users\samahalabo\Documents\Python_files_video_processing\dump\speedcollectmouse.ahk"
+return
+
+; -----------------------------------------------------------
 
 #IfWinActive ahk_exe smplayer.exe
 
-WheelUp::Send .
-WheelDown::Send ,
-
+WheelUp::Send, {.}
+WheelDown::Send, {,}
+RControl::Send, !{F4}
 #IfWinActive

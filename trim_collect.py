@@ -1,5 +1,5 @@
 import pyperclip,os
-from common.common import askstring,remove_other,assignval,findval,error,is_file,custom_dialog,simple_dropdown,find_folder_path,list_files,list_folders
+from common.common import *
 import subprocess
 def trim_collect(vid:str,pss_string:str,true=None):
     if findval("which_DS") == False:
@@ -24,7 +24,7 @@ def trim_collect(vid:str,pss_string:str,true=None):
         which_DS = findval("which_DS")
         start_time:str = both_times[0]
         end_time:str = both_times[1]
-        while not start_time < end_time:
+        while not int(start_time) < int(end_time):
             error("Start time must be before end time")
             pss_string:str = remove_other(askstring("Try again. Start_time and end_time separated by a period:",f"{os.path.basename(vid)}",fill=pss_string)).strip(".")
             if not pss_string:
