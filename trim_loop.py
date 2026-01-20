@@ -1,7 +1,16 @@
 import time,shutil,os
+import importlib.util
 from common.common import clear_gpu_memory,assignval,findval,find_folder_path,msgbox,list_folderspaths
 from TRIM import trim_frames
-from initiate_trimming_behavior_collection import find_done_folder,rename_done_folder
+
+# Dynamically import from .pyw file since standard import ignores it
+pyw_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "initiate_trimming_behavior_collection.pyw")
+spec = importlib.util.spec_from_file_location("initiate_trimming_behavior_collection", pyw_path)
+itbc = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(itbc)
+find_done_folder = itbc.find_done_folder
+rename_done_folder = itbc.rename_done_folder
+
 while True:
     time.sleep(4)
     queue:list = findval("trim_queue")

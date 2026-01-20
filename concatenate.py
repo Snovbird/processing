@@ -95,7 +95,7 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
             moved_path = shutil.move(newpathname, output_folder)
             return moved_path
     else:
-        error(f"Error processing:\n{'\n\n'.join(input_files)}")
+        error("Error processing:\n" + '\n\n'.join(input_files))
 
 def main():
     startpath = None
@@ -195,4 +195,4 @@ def manually_select_concatenation(startpath):
 
 # Example usage
 if __name__ == "__main__":
-    main()
+    manually_select_concatenation(startpath=None)

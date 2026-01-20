@@ -261,7 +261,7 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         
     room_folder_path = os.path.join(marker_overlays_path,room)
     if not cage_numbers:
-        cage_numbers:list[int] = [ f"{askint("Enter the cage number:","Cage number"):02d}" ]
+        cage_numbers:list[int] = [ f"{askint('Enter the cage number:','Cage number'):02d}" ]
         if not cage_numbers:
             return
     if not videos:

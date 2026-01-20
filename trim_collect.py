@@ -36,7 +36,11 @@ def trim_collect(vid:str,pss_string:str,true=None):
             start_time:str = both_times[0]
             end_time:str = both_times[1]
         clipspath = find_folder_path("5-clips")
-        behavior = simple_dropdown(list_folders(os.path.join(clipspath,which_DS)),"Select behavior name:","Behavior")
+
+        full_behavior_names = list_folders(os.path.join(clipspath,which_DS))
+        # shortened_names = [name.split(" ")[1] if len(name.split(" ")) > 1 else name for name in full_behavior_names]
+        # behavior = full_behavior_names[simple_dropdown(shortened_names,"Select behavior name:","Behavior",return_index=True)]
+        behavior = simple_dropdown(full_behavior_names,"Select behavior name:","Behavior")
         if behavior:
             outpath = os.path.join(clipspath,which_DS,behavior)
             assignval("trim_queue",[{"input_path":vid,"start_time":start_time,"end_time":end_time,"output_path":outpath}])
