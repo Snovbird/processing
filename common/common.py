@@ -1133,4 +1133,44 @@ def attempt_delete(todelete:str, delete_interval=1):
                 os.remove(todelete)
         except Exception as e:
             print(f"Error occured while deleteting {todelete}\nError:{e}")
+
+import cv2
+
+def screenshot(video_path: str, frame_number: int, output_path: str = "screenshot.png") -> str:
+    """
+    Extract a specific frame from a video and save it as a PNG image.
     
+    Args:
+        video_path: Path to the MP4 video file
+        frame_number: The exact frame number to capture
+        output_path: Path for the output PNG file (default: "screenshot.png")
+    
+    Returns:
+        screenshot png path
+    """
+    # Open the video file
+    cap = cv2.VideoCapture(video_path)
+    
+    if not cap.isOpened():
+        print(f"Error: Could not open video file: {video_path}")
+        return False
+    
+    # Set the frame position
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+    
+    # Read the frame
+    ret, frame = cap.read()
+    
+    if not ret:
+        print(f"Error: Could not read frame {frame_number}")
+        cap.release()
+        return False
+    
+    # Save the frame as PNG
+    cv2.imwrite(output_path, frame)
+    
+    # Clean up
+    cap.release()
+    
+    print(f"Screenshot saved to: {output_path}")
+    return True
