@@ -174,6 +174,7 @@ def select_video(title:str="Select videos",path:str='',avi:bool = False) -> list
                     
                 # Get the selected paths
                 video_paths = file_dialog.GetPaths()
+
                 return video_paths
         except Exception as e:
             custom_dialog(msg="here " + str(e))
@@ -222,8 +223,10 @@ def select_anyfile(title="Select files",path='',specific_ext:list[str] | str=Non
                 return []  # Return empty list if canceled
                 
             # Get the selected paths
-            video_paths = file_dialog.GetPaths()
-            return video_paths
+            file_paths = file_dialog.GetPaths()
+            files_str = '\n' + '\n'.join(file_paths)
+            print(f"{title.replace('?','').replace(':','')}: {files_str}")
+            return file_paths
     # Create the file dialog
     if path:
         try:
@@ -248,23 +251,27 @@ def select_anyfile(title="Select files",path='',specific_ext:list[str] | str=Non
         return pathDNE()
 
 def askint(msg:str="Enter an integer:", title:str="Integer Input", fill:str|int=0) -> int:
-    
-    
     """Open a dialog to ask for an integer, always on top."""
     app = wx.App(False)  # Create the wx.App instance
-    dlg = wx.TextEntryDialog(None, msg, title, value=f"{fill}", style=wx.OK | wx.CANCEL)
+    dlg = wx.TextEntryDialog(None, msg, title, value=f"{fill}", style=wx.OK | wx.CANCEL | wx.CENTRE | wx.CAPTION | wx.CLOSE_BOX)
     dlg.Centre()
+    import ctypes
+    ctypes.windll.user32.SetWindowPos(dlg.GetHandle(), -1, 0, 0, 0, 0, 3)
+    dlg.RequestUserAttention()
     
     if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
+        rawresult = dlg.GetValue()
         try:
-            result = int(dlg.GetValue())  # Convert the input to an integer
+            result = int(rawresult)  # Convert the input to an integer
             dlg.Destroy()
             app.Destroy()
+            print(f"{msg.replace('?','').replace(':','')}: {result}")
             return result
         except ValueError:
             dlg.Destroy()
-            error(f"{fill} is not a valid default value. Please enter a valid integer.")
+            error(f"{rawresult} is not a valid value. Please enter a valid integer.")
             app.Destroy()
+            
             return askint(msg=msg, title=title, fill=fill)
     
     dlg.Destroy()
@@ -274,13 +281,17 @@ def askint(msg:str="Enter an integer:", title:str="Integer Input", fill:str|int=
 def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
     
     app = wx.App(False)  # Create the wx.App instance
-    dlg = wx.TextEntryDialog(None, msg, title, value=f'{fill}',style= wx.OK)
+    dlg = wx.TextEntryDialog(None, msg, title, value=f'{fill}',style= wx.OK | wx.CANCEL | wx.CENTRE | wx.CAPTION | wx.CLOSE_BOX)
     dlg.Centre()
+    import ctypes
+    ctypes.windll.user32.SetWindowPos(dlg.GetHandle(), -1, 0, 0, 0, 0, 3)
+    dlg.RequestUserAttention()
     if dlg.ShowModal() == wx.ID_OK:  # If the user clicks OK
         result = dlg.GetValue()  # Get the entered string
-        print(f"Entered string: {result}")
+        print(f"{msg.replace('?','').replace(':','')}: {result}")
         return result
     dlg.Destroy()  # Clean up the dialog
+    
     return None
 
 def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,hide:bool=False,count:int=1,) -> str:
@@ -727,7 +738,6 @@ def avg(list_values: list[int | float]) -> str:
     normal_float:float = total / count 
     return average_fraction, normal_float
 
-
 def simple_file_walk(folder,filefunc = None) -> tuple[ set[str],set[str]] | int:
     """Simple version - just print all files"""
     if filefunc:
@@ -747,8 +757,7 @@ def simple_file_walk(folder,filefunc = None) -> tuple[ set[str],set[str]] | int:
             for dir in dirs:
                 dirspaths.add(os.path.join(root, dir))
         return filepaths,dirspaths
-        
-    
+          
 def letter(text:str) -> str:
     """
     Remove all non-letter characters
@@ -846,8 +855,6 @@ def get_extreme_colors(n):
     
     return colors
 
-import wx
-
 def simple_dropdown(choices,msg='',title='',return_index = False):
     """Simple dropdown function using wx.SingleChoiceDialog"""
     app = wx.App(False)
@@ -857,18 +864,21 @@ def simple_dropdown(choices,msg='',title='',return_index = False):
         None,
         message=msg,
         caption=title,
-        choices=choices
+        choices=choices,
+        style=wx.CHOICEDLG_STYLE | wx.STAY_ON_TOP
     )
     
+    selection = None
     # Show dialog and get result
     if dialog.ShowModal() == wx.ID_OK:
         if return_index:
-            selection:int = dialog.GetSelection() 
+            selection = dialog.GetSelection() 
         else:
-            selection:str = dialog.GetStringSelection()
+            selection = dialog.GetStringSelection()
             
     dialog.Destroy()
     app.Destroy()
+    print(f"{msg.replace('?','').replace(':','')}: {selection}")
     return selection
 
 def list_files_ext(dir:str,ext:str) -> list[str]:
@@ -878,7 +888,6 @@ def list_files_ext(dir:str,ext:str) -> list[str]:
     if os.path.isdir(dir):
         return [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file)) and file.lower().endswith(ext.lower())]
     
-
 def abs(number:int) -> int:
     """Returns the absolute value of an integer"""
     if number < 0:
@@ -900,7 +909,6 @@ def delete_folder(folder_path:str) -> bool:
             print(f"Failed to delete folder {folder_path}: {e}")
             return False
         
-
 def grid_selector(strings_list, options_list, title='Selection', message='Select options for each item'):
     """
     Create a grid selection window with radio buttons

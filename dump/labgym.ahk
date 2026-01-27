@@ -5,7 +5,9 @@ pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
 ^+P::
 Run, py "%pythonScriptsDir%\process_recordings.py" 
 return
-
+^#!L::
+run, explorer.exe "%pythonScriptsDir%"
+return
 !+T::
 ; Check if the active window is File Explorer
     WinGetClass, activeClass, A

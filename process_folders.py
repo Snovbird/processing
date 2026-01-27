@@ -91,8 +91,6 @@ class process_recordings():
             return emergency_overlay_maker()
 
         self.final_outputpath = find_folder_path("3-PROCESSED")
-        self.final_outputpath = r"C:\Users\samahalabo\Desktop\3-PROCESSED\.specialtest"
-        msgbox("Note: finaloutputpath is wrong")
         try:
             name_cages(self.recording_folderpath)
         except: #already named

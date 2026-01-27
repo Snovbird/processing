@@ -31,3 +31,12 @@ def excel_to_list(file_path: str) -> list[ list[int | str]]:
     except Exception as e:
         error(f"Cannot read '{file_path}'. Conversion to dict failed: {e}")
         return None
+    
+def list_to_excel(data: list[ str ], default_file_name: str = "output.xlsx") -> str:
+    folder = select_folder()
+    if not folder:
+        return None
+    file_path = f"{folder}/{default_file_name}"
+    df = pandas.DataFrame(data)
+    df.to_excel(file_path, index=False)
+    return file_path

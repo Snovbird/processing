@@ -1,7 +1,8 @@
 import os
 import subprocess
 import platform
-from common.common import clear_gpu_memory,select_video,makefolder,custom_dialog,windowpath,select_anyfile
+from common.common import clear_gpu_memory,select_video,makefolder,custom_dialog,windowpath,select_anyfile,error
+
 
 def overlay_FRAMES(input_path,folder_path = None,center=False,append_to_name= "-overlaid"):
     """
@@ -43,17 +44,17 @@ def overlay_FRAMES(input_path,folder_path = None,center=False,append_to_name= "-
             output_path
         ]
         
-        print("Starting video resizing...")
+        print("Starting video frame overlay...")
         subprocess.run(cmd, check=True)
-        print(f"Overlay completed successfully! Resized video saved to: {output_path}")
+        print(f"Overlay completed successfully! Overlaid video saved to: {output_path}")
         
         return output_path
     
     except subprocess.CalledProcessError as e:
-        print(f"Error during resizing: {e}")
+        print(f"Error during frame overlay: {e}")
         return None
     except FileNotFoundError:
-        print("Error: FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
+        error("FFmpeg not found. Make sure FFmpeg is installed and in your PATH.")
         return None
 
 def main():
