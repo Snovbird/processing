@@ -1134,20 +1134,34 @@ def attempt_delete(todelete:str, delete_interval=1):
         except Exception as e:
             print(f"Error occured while deleteting {todelete}\nError:{e}")
 
-import cv2
-
-def screenshot(video_path: str, frame_number: int, output_path: str = "screenshot.png") -> str:
+def screenshot(video_path: str, frame_number: int, output_path: str = "screenshot.png",start_at_1=True) -> str:
     """
-    Extract a specific frame from a video and save it as a PNG image.
+    Extract a specific frame from a video and save it as a PNG image. Will not overwrite existing files; instead, it appends a number to the filename.
     
     Args:
         video_path: Path to the MP4 video file
         frame_number: The exact frame number to capture
         output_path: Path for the output PNG file (default: "screenshot.png")
+        start_at_1: If True, png is numbered from 1; if False, no numbering for the first unique image name
     
     Returns:
         screenshot png path
     """
+    if not os.path.isabs(output_path):
+        output_path = os.path.join(os.path.dirname(video_path), output_path)
+
+    import cv2
+
+    filename, ext = os.path.splitext(os.path.basename(output_path))
+
+    if start_at_1:
+        c = 1
+        output_path = os.path.join(os.path.dirname(output_path), f"{filename}{c}{ext}")
+    
+    while os.path.exists(output_path):
+        c += 1
+        output_path = os.path.join(os.path.dirname(output_path), f"{filename}{c}{ext}")
+
     # Open the video file
     cap = cv2.VideoCapture(video_path)
     
@@ -1172,5 +1186,5 @@ def screenshot(video_path: str, frame_number: int, output_path: str = "screensho
     # Clean up
     cap.release()
     
-    print(f"Screenshot saved to: {output_path}")
-    return True
+    print(f"{os.path.basename(video_path)} screenshot at frame {frame_number} saved to: {output_path}")
+    return output_path

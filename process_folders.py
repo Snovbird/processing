@@ -124,7 +124,7 @@ class process_recordings():
                 experiment_folder = makefolder(date_folder, f"{date}_{experiment_number} {first_DS}", start_at_1=False)
                 self.experiment_folders.append(experiment_folder)
 
-        
+
         for date_folder, experiments in zip(self.date_folders,self.grouped_recordings.values()):
             folders = list_folderspaths(date_folder)
 
@@ -154,8 +154,9 @@ class process_recordings():
                 first_video = cage_group[0]
 
                 photos_to_carrousel.append(
-                    extractpng(first_video,times=(0,),output_folder=photos_folder)[0] # use string not tuple (default output)              
-                )
+                    screenshot(first_video,frame_number=0),
+                    output_path=os.path.join(photos_folder, os.path.basename(first_video).replace(".mp4", ".png")))              
+                
         
         combinedpaths = {}
         for photopath in photos_to_carrousel:
@@ -279,7 +280,7 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         renamed_project_path = os.path.join(project_folderpath,f"{cage_number}-{date}.xcf")
         os.rename(unnamed_project_folderpath,renamed_project_path)
 
-        imgpath = extractpng(video=video,times=(0,),output_folder=project_folderpath)[0]
+        imgpath = screenshot(video=video,frame_number=0,output_path=os.path.join(project_folderpath,os.path.basename(video).replace(".mp4", ".png")))
         
         # while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
         #     os.remove(imgpath)
