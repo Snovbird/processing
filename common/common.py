@@ -381,10 +381,30 @@ def get_duration(video_path: str) -> tuple[float, str] | None:
     
     return frames, seconds, formatted_time
 
-def msgbox(msg:str,title:str=' '):
-    app = wx.App(False)  # Create the wx.App instance
+def msgbox(msg:str, title:str=' ', timeout:int=None):
+    """
+    display a message
+    
+    :param msg: content
+    :type msg: str
+    :param title: title displayed in top left
+    :type title: str
+    :param timeout: time in seconds before auto close. Default keeps window open
+    :type timeout: int
+    """
+    app = wx.GetApp()
+    if not app:
+        app = wx.App(False)  # Create the wx.App instance
 
-    wx.MessageBox(f"{msg}", f"{title}", wx.OK | wx.ICON_INFORMATION)
+    if timeout:
+        dlg = wx.MessageDialog(None, f"{msg}", f"{title}", wx.OK | wx.ICON_INFORMATION)
+        timer = wx.Timer(dlg)
+        dlg.Bind(wx.EVT_TIMER, lambda event: dlg.EndModal(wx.ID_OK), timer)
+        timer.Start(timeout * 1000, oneShot=True)
+        dlg.ShowModal()
+        dlg.Destroy()
+    else:
+        wx.MessageBox(f"{msg}", f"{title}", wx.OK | wx.ICON_INFORMATION)
 
 def error(msg:str,title:str="ERROR"):
     

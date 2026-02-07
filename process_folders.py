@@ -154,8 +154,11 @@ class process_recordings():
                 first_video = cage_group[0]
 
                 photos_to_carrousel.append(
-                    screenshot(first_video,frame_number=0),
-                    output_path=os.path.join(photos_folder, os.path.basename(first_video).replace(".mp4", ".png")))              
+                    screenshot(first_video,frame_number=0,
+                    output_path=os.path.join(photos_folder, 
+                                             os.path.basename(first_video).replace(".mp4", ".png"))
+                        )
+                    )              
                 
         
         combinedpaths = {}

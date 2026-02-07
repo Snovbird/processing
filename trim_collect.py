@@ -28,6 +28,22 @@ def trim_collect(vid:str,pss_string:str,true=None):
             both_times:list = pss_string.split(".")
             start_time:str = both_times[0]
             end_time:str = both_times[1]
+        if not (int(end_time) - int(start_time)) % 3 == 0:
+            # action = custom_dialog("Not a multiple of 3. Add or remove a frame?",title=f"{vid} (T)",op1="+1",op2="-1")
+            # if not action:
+            #     return
+            if (int(end_time) - int(start_time) + 1) % 3 == 0:
+                action = custom_dialog(msg="add 1 frame or remove 2?",title=f"{os.path.basename(vid)} (T)",op1="+1",op2="-2")
+                if action == "+1":
+                    end_time = str(int(end_time)+1)
+                elif action == "-2":
+                    end_time = str(int(end_time)-2)
+            elif (int(end_time) - int(start_time) - 1) % 3 == 0:
+                action = custom_dialog(msg="add 2 frames or remove 1?",title=f"{os.path.basename(vid)} (T)",op1="+2",op2="-1")
+                if action == "+2":
+                    end_time = str(int(end_time)+2)
+                elif action == "-1":
+                    end_time = str(int(end_time)-1)
         clipspath = find_folder_path("5-clips")
 
         full_behavior_names = list_folders(os.path.join(clipspath,which_DS))

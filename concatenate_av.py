@@ -25,74 +25,69 @@ def concatenate_with_av(input_files: list[str], output_folder: str) -> str | Non
         
         print(f"Concatenating {len(input_files)} files into {output_path}...")
         
-        try:
-            with av.open(output_path, 'w') as output_container:
-                output_video_stream = None
-                output_audio_stream = None
+        with av.open(output_path, 'w') as output_container:
+            output_video_stream = None
+            output_audio_stream = None
+            
+            # We track the duration offset so timestamps continue smoothly across files.
+            # pts_offset = 0 # (Not reliable enough for simple offsetting, we generally re-calc based on last packet)
+            video_duration = 0
+            
+            # Open the first file to set up the output streams
+            first_file = input_files[0]
+            with av.open(first_file) as input_container:
+                # Setup Video Stream
+                in_video = input_container.streams.video[0]
+                output_video_stream = output_container.add_stream(in_video.name)
                 
-                # We track the duration offset so timestamps continue smoothly across files.
-                # pts_offset = 0 # (Not reliable enough for simple offsetting, we generally re-calc based on last packet)
-                video_duration = 0
+                # (Optional) Setup Audio Stream - The original script used -an (no audio).
+                # If user wants audio, we would need to add it here.
+                # For now, mimicking original behavior of dropping audio to ensure speed/compatibility?
+                # Original script line 38: '-an', # No audio
+                # So we SKIP audio setup.
+
+            # Now process all files
+            for i, file_path in enumerate(input_files):
+                print(f"Processing part {i+1}/{len(input_files)}: {os.path.basename(file_path)}")
                 
-                # Open the first file to set up the output streams
-                first_file = input_files[0]
-                with av.open(first_file) as input_container:
-                    # Setup Video Stream
+                with av.open(file_path) as input_container:
                     in_video = input_container.streams.video[0]
-                    output_video_stream = output_container.add_stream(template=in_video)
+                    # We only demux. We don't decode.
                     
-                    # (Optional) Setup Audio Stream - The original script used -an (no audio).
-                    # If user wants audio, we would need to add it here.
-                    # For now, mimicking original behavior of dropping audio to ensure speed/compatibility?
-                    # Original script line 38: '-an', # No audio
-                    # So we SKIP audio setup.
-
-                # Now process all files
-                for i, file_path in enumerate(input_files):
-                    print(f"Processing part {i+1}/{len(input_files)}: {os.path.basename(file_path)}")
-                    
-                    with av.open(file_path) as input_container:
-                        in_video = input_container.streams.video[0]
-                        # We only demux. We don't decode.
+                    for packet in input_container.demux(in_video):
+                        if packet.dts is None:
+                            continue
                         
-                        for packet in input_container.demux(in_video):
-                            if packet.dts is None:
-                                continue
+                        # Rebase timestamps
+                        # We must update the packet's stream to be the output stream
+                        packet.stream = output_video_stream
+                        
+                        # Adjust timestamps (PTS/DTS)
+                        # Simple approach: add the accumulated duration of previous clips.
+                        # BUT: packet timestamps are in the stream's time_base.
+                        # Ideally inputs have same timebase.
+                        
+                        # Shift timestamps by current video_duration
+                        if packet.pts is not None:
+                            packet.pts += video_duration
+                        if packet.dts is not None:
+                            packet.dts += video_duration
                             
-                            # Rebase timestamps
-                            # We must update the packet's stream to be the output stream
-                            packet.stream = output_video_stream
-                            
-                            # Adjust timestamps (PTS/DTS)
-                            # Simple approach: add the accumulated duration of previous clips.
-                            # BUT: packet timestamps are in the stream's time_base.
-                            # Ideally inputs have same timebase.
-                            
-                            # Shift timestamps by current video_duration
-                            if packet.pts is not None:
-                                packet.pts += video_duration
-                            if packet.dts is not None:
-                                packet.dts += video_duration
-                                
-                            output_container.mux(packet)
-                            
-                        # Update offset for next file
-                        # We need the duration of this file in the TIMEBASE of the stream.
-                        # av.stream.duration is often in time_base units.
-                        if in_video.duration:
-                            video_duration += in_video.duration
-                        else:
-                            # Fallback if duration is missing (rare in healthy mp4)
-                            # We might need to rely on the last packet's pts + duration?
-                            # For now assuming headers are correct.
-                            pass
+                        output_container.mux(packet)
+                        
+                    # Update offset for next file
+                    # We need the duration of this file in the TIMEBASE of the stream.
+                    # av.stream.duration is often in time_base units.
+                    if in_video.duration:
+                        video_duration += in_video.duration
+                    else:
+                        # Fallback if duration is missing (rare in healthy mp4)
+                        # We might need to rely on the last packet's pts + duration?
+                        # For now assuming headers are correct.
+                        pass
 
-            print(f"Successfully created: {output_path}")
-            return output_path
-
-        except Exception as e:
-            error(f"Failed to concatenate with PyAV: {e}\nFiles might be incompatible or corrupt.")
-            return None
+        print(f"Successfully created: {output_path}")
+        return output_path
 
     elif len(input_files) == 1:
         # Move single file logic
