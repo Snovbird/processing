@@ -78,7 +78,7 @@ def group_by_date_and_experimentTime(videos_folderpath: str,max_pause=15,warn_fo
             for number, exp_group in enumerate(cage_exp_groups):
                 exp_groups[number] = exp_groups.get(number, []) + exp_group
         
-        grouped_recordings[date] = exp_groups.values()
+        grouped_recordings[date] = list(exp_groups.values())
 
 
     return grouped_recordings
