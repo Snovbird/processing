@@ -500,18 +500,9 @@ def assignval(valuename:str,value):
             jsondata = json.load(j)
         jsondata['values'][valuename] = value
         
-        import tempfile
-        # Write to a temporary file first to ensure atomicity
-        dir_name = os.path.dirname(JSON_PATH)
-        with tempfile.NamedTemporaryFile('w', dir=dir_name, delete=False, indent=4) as tf:
-            json.dump(jsondata, tf, indent=4)
-            tempname = tf.name
-        
-        # Atomically replace the old file with the new one
-        os.replace(tempname, JSON_PATH)
+        with open(JSON_PATH, 'w') as j:
+            json.dump(jsondata,j,indent=4)
     except Exception as e:
-        if 'tempname' in locals() and os.path.exists(tempname):
-            os.remove(tempname)
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
 def dropdown(choices: list[str], title='', icon_name=None,hide:tuple[str]=(None,),return_index:bool=False) -> str:
