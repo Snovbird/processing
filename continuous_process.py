@@ -9,14 +9,16 @@ from markersquick import apply_png_overlay,find_imgpath_overlay_date
 from newtrim import trim_DS_auto
 from process_folders import group_by_date_and_experimentTime
 
+def reset_saved():
+    assignval("salvage_processing_step", {})
 
 def step1_organize_recordings_DATASAVE():
     last_step = findval("salvage_processing_step")
     if last_step and "step1_organize_recordings_DATASAVE" not in last_step:
         return step2_create_folders_and_move()
 
-    recording_folderpath = findval("salvage_processing_step")["step1_organize_recordings_DATASAVE"]["recordings_folder"]
-    grouped_recordings = findval("salvage_processing_step")["step1_organize_recordings_DATASAVE"]["grouped_recordings"]
+    recording_folderpath = last_step["step1_organize_recordings_DATASAVE"]["recordings_folder"]
+    grouped_recordings = last_step["step1_organize_recordings_DATASAVE"]["grouped_recordings"]
     {'20251103': [['01-20251103-104708-113000.mp4', '01-20251103-113000-114505.mp4','03-20251103-104708-113000.mp4'], #exp1
                   ['01-20251103-122945-130000.mp4', '01-20251103-130000-133000.mp4']], #experiment 2
     '20251104': [['01-20251104-093838-100000.mp4', '01-20251104-100000-103000.mp4'], 
@@ -40,7 +42,7 @@ def step1_organize_recordings_DATASAVE():
             row_name_question = f"Experiment #{experiment_number} at {hour}:{minute}"
             grid_rownames.append(row_name_question)
             
-        if not override_first_cue:
+        if override_first_cue:
             answer_dict:dict[str,str] = grid_selector(strings_list=grid_rownames, #time for each experiment (row names)
                                                     options_list=["DS+","DS-","SEEKING_TEST"], # options for each row
                                     title="First Cue",
@@ -66,7 +68,7 @@ def step1_organize_recordings_DATASAVE():
         for experiment_number, first_DS in enumerate(answer, start=0): 
             # first_DS is either DS+, DS- or SEEKING_TEST
 
-            folder_name = makefolderpath(f"{date}_{experiment_number} {first_DS}", start_at_1=False)
+            folder_name = makefolderpath(date_folderpath,f"{date}_{experiment_number} {first_DS}", start_at_1=False)
 
             folders_to_create[date_number]["experiment_folders"].append(folder_name)
             folders_to_create[date_number]["grouped_experiments"].append((experiment_groups[experiment_number]))
@@ -78,18 +80,19 @@ def step1_organize_recordings_DATASAVE():
             "folders_to_create": folders_to_create,
             "grouped_recordings": grouped_recordings}})
         
+        step2_create_folders_and_move()
 
-def step2_create_folders_and_move(dict_saved_step1):
+def step2_create_folders_and_move():
 
     last_step = findval("salvage_processing_step")
     if "step2_create_folders_and_move" not in last_step:
         return step3
 
-    recording_folderpath = dict_saved_step1["step2_create_folders_and_move"]["recordings_folderpath"]
-    folders_to_create = dict_saved_step1["step2_create_folders_and_move"]["folders_to_create"]
-    grouped_recordings = dict_saved_step1["step2_create_folders_and_move"]["grouped_recordings"]
+    recording_folderpath = last_step["step2_create_folders_and_move"]["recordings_folderpath"]
+    folders_to_create = last_step["step2_create_folders_and_move"]["folders_to_create"]
+    grouped_recordings = last_step["step2_create_folders_and_move"]["grouped_recordings"]
     RECORDINGS_PATH = find_folder_path("0-RECORDINGS")
-    dict_saved_step1["moved"] = dict_saved_step1.get("moved",[])
+    last_step["moved"] = last_step.get("moved",[])
 
     import pyperclip
     pyperclip.copy(
@@ -134,9 +137,7 @@ def continuous_process():
 
     if not findval("salvage_processing_step"):
 
-        override_first_cue = custom_dialog("Separate each video into DS+/DS- intervals (for training only)", title="Specify first cue")
-        if not override_first_cue:
-            return
+        override_first_cue = True if custom_dialog("Separate each video into DS+/DS- intervals (for training only)?", title="Specify first cue for each experiment?") == "yes" else False
         
         grouped_recordings = group_by_date_and_experimentTime(recordings_folder,max_pause=750,warn_for_lost_time=True)
 
@@ -144,7 +145,6 @@ def continuous_process():
                                               {"recordings_folder": recordings_folder, 
                                                "grouped_recordings": grouped_recordings,
                                                "override_first_cue": override_first_cue}})
-        
         step1_organize_recordings_DATASAVE()
     else:
         msgbox(findval("salvage_processing_step"), title="Last saved step")
