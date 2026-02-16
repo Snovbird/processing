@@ -12,7 +12,7 @@ from process_folders import group_by_date_and_experimentTime
 
 def step1_organize_recordings_DATASAVE():
     last_step = findval("salvage_processing_step")
-    if "step1_organize_recordings_DATASAVE" not in last_step:
+    if last_step and "step1_organize_recordings_DATASAVE" not in last_step:
         return step2_create_folders_and_move()
 
     recording_folderpath = findval("salvage_processing_step")["step1_organize_recordings_DATASAVE"]["recordings_folder"]
@@ -91,6 +91,10 @@ def step2_create_folders_and_move(dict_saved_step1):
     RECORDINGS_PATH = find_folder_path("0-RECORDINGS")
     dict_saved_step1["moved"] = dict_saved_step1.get("moved",[])
 
+    import pyperclip
+    pyperclip.copy(
+        f"{folders_to_create}"
+    )
 
 
     if False:
@@ -143,5 +147,9 @@ def continuous_process():
         
         step1_organize_recordings_DATASAVE()
     else:
+        msgbox(findval("salvage_processing_step"), title="Last saved step")
         last_command = list(findval("salvage_processing_step").keys())[0]
         exec(f"{last_command}()")
+
+if __name__ == "__main__":
+    continuous_process()
