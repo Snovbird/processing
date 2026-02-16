@@ -17,23 +17,23 @@ def step1_organize_recordings_DATASAVE():
 
     recording_folderpath = findval("salvage_processing_step")["step1_organize_recordings_DATASAVE"]["recordings_folder"]
     grouped_recordings = findval("salvage_processing_step")["step1_organize_recordings_DATASAVE"]["grouped_recordings"]
-    {
-    "20250725": [ ["01-20250725-100000-110000.mp4","01-20250725-110000-120000.mp4"],
-        ["02-20250725-100000-110000.mp4","02-20250725-110000-120000.mp4"],
-        ["03-20250725-100000-110000.mp4","03-20250725-110000-120000.mp4"]]}
+    {'20251103': [['01-20251103-104708-113000.mp4', '01-20251103-113000-114505.mp4','03-20251103-104708-113000.mp4'], #exp1
+                  ['01-20251103-122945-130000.mp4', '01-20251103-130000-133000.mp4']], #experiment 2
+    '20251104': [['01-20251104-093838-100000.mp4', '01-20251104-100000-103000.mp4'], 
+                 ['01-20251104-112135-120000.mp4', '01-20251104-120000-122642.mp4']]}
 
     override_first_cue = findval("salvage_processing_step")["step1_organize_recordings_DATASAVE"]["override_first_cue"]
 
     folders_to_create = []
-    for date_number, (date,cage_and_videos_dict) in enumerate(grouped_recordings.items()): # unpack dates
+    for date_number, (date,experiment_groups) in enumerate(grouped_recordings.items()): # unpack dates
         
         date_folderpath = makefolderpath(os.path.dirname(recording_folderpath), foldername=date, start_at_1=False)
 
         folders_to_create.append({"date_folderpath": date_folderpath,"experiment_folders":[],"grouped_experiments":[]})
         
         grid_rownames = []
-        for experiment_number,experiments_list in enumerate(cage_and_videos_dict,start=1): #make question string
-            first = experiments_list[0]
+        for experiment_number,videos_per_experiment in enumerate(experiment_groups,start=1): #make question string
+            first = videos_per_experiment[0]
             time_start = first.split("-")[2]
             hour = time_start[0:2]
             minute = time_start[2:4]
@@ -57,65 +57,69 @@ def step1_organize_recordings_DATASAVE():
 
             for i, ans in enumerate(answer):
                 if ans == "NO":
-                    for 
-                    del experiments[i]
+                    experiment_groups[i-1].extend(experiment_groups[i])
+                    experiment_groups[i-1].sort()
+                    del experiment_groups[i]
 
-            answer = ["SEEKING_TEST"] * len(experiments)
+            answer = ["SEEKING_TEST"] * len(experiment_groups)
 
         for experiment_number, first_DS in enumerate(answer, start=0): 
+            # first_DS is either DS+, DS- or SEEKING_TEST
 
-            folder_name = makefolderpath()
+            folder_name = makefolderpath(f"{date}_{experiment_number} {first_DS}", start_at_1=False)
 
-            folders_to_create[date][experiment_number + 1] = [experiments[experiment_number], ]
-            # experiment_folder = makefolder(date_folder, f"{date}_{experiment_number} {first_DS}", start_at_1=False)
-            # experiment_folders.append(experiment_folder)
+            folders_to_create[date_number]["experiment_folders"].append(folder_name)
+            folders_to_create[date_number]["grouped_experiments"].append((experiment_groups[experiment_number]))
 
-        # folders_to_create = {20250725: {1: [["01-20250725-100000-110000.mp4","01-20250725-110000-120000.mp4"]: "DS+",...}}}
         print(f"{folders_to_create=}")
 
         assignval("salvage_processing_step", {"step2_create_folders_and_move":{
             "recordings_folderpath": recording_folderpath,
-            "folders_to_create": folders_to_create}})
+            "folders_to_create": folders_to_create,
+            "grouped_recordings": grouped_recordings}})
         
 
 def step2_create_folders_and_move(dict_saved_step1):
 
     last_step = findval("salvage_processing_step")
-    if not last_step or "step2_create_folders_and_move" not in last_step:
+    if "step2_create_folders_and_move" not in last_step:
         return step3
 
     recording_folderpath = dict_saved_step1["step2_create_folders_and_move"]["recordings_folderpath"]
     folders_to_create = dict_saved_step1["step2_create_folders_and_move"]["folders_to_create"]
+    grouped_recordings = dict_saved_step1["step2_create_folders_and_move"]["grouped_recordings"]
     RECORDINGS_PATH = find_folder_path("0-RECORDINGS")
     dict_saved_step1["moved"] = dict_saved_step1.get("moved",[])
 
 
-    for date, exp_number_and_info in folders_to_create.items():
-        date_folder = makefolder(RECORDINGS_PATH, date,start_at_1=False)
 
-        for experiment_number, experiment_info in exp_number_and_info.items():
-            experiments, first_DS = experiment_info
-            experiment_folder = makefolder(date_folder, f"{date}_{experiment_number} {first_DS}", start_at_1=False)
+    if False:
+        for date, exp_number_and_info in folders_to_create.items():
+            date_folder = makefolder(RECORDINGS_PATH, date,start_at_1=False)
 
-
-
-            for experiment in experiments:
-                video_path = os.path.join(recording_folderpath, experiment)
-                dst = experiment_folder
-                shutil.move(video_path, dst)
+            for experiment_number, experiment_info in exp_number_and_info.items():
+                experiments, first_DS = experiment_info
+                experiment_folder = makefolder(date_folder, f"{date}_{experiment_number} {first_DS}", start_at_1=False)
 
 
-    for date_folder, experiments in zip(date_folders,grouped_recordings.values()):
-        folders = list_folderspaths(date_folder)
 
-        for experiment_number, experiment_list in enumerate(experiments):
-            for video in experiment_list:
-                video_path = os.path.join(recording_folderpath, video)
-                dst = folders[experiment_number]
-                shutil.move(video_path, dst)
-    else:
-        time.sleep(1)
-        os.rmdir(recording_folderpath)
+                for experiment in experiments:
+                    video_path = os.path.join(recording_folderpath, experiment)
+                    dst = experiment_folder
+                    shutil.move(video_path, dst)
+
+
+        for date_folder, experiments in zip(date_folders,grouped_recordings.values()):
+            folders = list_folderspaths(date_folder)
+
+            for experiment_number, experiment_list in enumerate(experiments):
+                for video in experiment_list:
+                    video_path = os.path.join(recording_folderpath, video)
+                    dst = folders[experiment_number]
+                    shutil.move(video_path, dst)
+        else:
+            time.sleep(1)
+            os.rmdir(recording_folderpath)
 
 
 def step3():
