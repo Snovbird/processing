@@ -138,7 +138,7 @@ def continuous_process():
 
         assignval("salvage_processing_step", {"step1_organize_recordings_DATASAVE": 
                                               {"recordings_folder": recordings_folder, 
-                                               "grouped_recordings": grouped_recordings
+                                               "grouped_recordings": grouped_recordings,
                                                "override_first_cue": override_first_cue}})
         
         step1_organize_recordings_DATASAVE()
