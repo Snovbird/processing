@@ -340,6 +340,30 @@ def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,h
         # print(f"Created folder: {new_folder_path}")
     return new_folder_path
 
+def makefolderpath(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,hide:bool=False,count:int=1,) -> str:
+    """
+    Same as makefolder but returns the path to the created folder instead of creating it. Does not check if path exists.
+    """
+    import os
+    # Get directory containing the file
+    if os.path.isdir(file_or_folder_path):
+        folder_path = file_or_folder_path
+    else:
+        folder_path = os.path.dirname(file_or_folder_path)
+    
+    # Create folder name
+    if not start_at_1 and count == 1:
+        new_folder_name = f"{foldername if foldername != '' else '-'}"
+    else:
+        if foldername == '':
+            new_folder_name = f"{count}"
+        else:
+            new_folder_name = f"{foldername.replace('-','')}-{count}"
+    # Create full path to new folder
+    new_folder_path = os.path.join(folder_path, new_folder_name)
+    
+    return new_folder_path
+
 def get_duration(video_path: str) -> tuple[float, str] | None:
     """
     Get the duration of a video file

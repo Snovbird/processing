@@ -1,3 +1,5 @@
-from common.common import *
+q = {1:["val1"],2:["val2"],3:["val3"]}
 
-msgbox("This script is deprecated. Please use trim_collect_v2.py instead.",title="Deprecated Script",timeout=5)
+w = {1: ["val1.1", "val1.2"], 2: ["val2.1", "val2.2"], 3: ["val3.1", "val3.2"]}
+
+print(q.extend(w))

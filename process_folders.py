@@ -7,7 +7,7 @@ from image_combine import combine_and_resize_images
 from extractpng import extractpng
 from markersquick import apply_png_overlay,find_imgpath_overlay_date
 from newtrim import trim_DS_auto
-def group_by_date_and_experimentTime(videos_folderpath: str,max_pause=15) -> dict[str, list[list[str]]]:
+def group_by_date_and_experimentTime(videos_folderpath: str,max_pause=15,warn_for_lost_time=False) -> dict[str, list[list[str]]]:
     """
     Args:
         videos_folderpath: path to folder containing videos (possibly) over multiple days and containing multiple experiments per day
@@ -32,7 +32,6 @@ def group_by_date_and_experimentTime(videos_folderpath: str,max_pause=15) -> dic
         grouped_recordings[date][cage] = grouped_recordings[date].get(cage, [])
         grouped_recordings[date][cage].append(recording)
     
-    
 
     for date in grouped_recordings:
         exp_groups:dict[int, list[str]] = {}
@@ -50,7 +49,15 @@ def group_by_date_and_experimentTime(videos_folderpath: str,max_pause=15) -> dic
                     cage_exp_group.append(recording)
                     if first:
                         first = False
-                elif seconds - last_endtime <= max_pause: # technically supposed to be identical end & start times, but allow for small variations
+                elif seconds - last_endtime == 0:
+                    cage_exp_group.append(recording)
+                elif seconds - last_endtime < max_pause: # technically supposed to be identical end & start times, but allow for small variations
+                    if warn_for_lost_time:
+                        error(f"""Note: {seconds - last_endtime} seconds have been lost between\n
+                              {format_time_colons(last_endtime)} and {format_time_colons(experiment_starttime)}\n
+                              for cage {cage} on the date (YYYYMMDD): {date}\n
+                              ""","Warning")
+                    "f".format()
                     cage_exp_group.append(recording)
                     if first:
                         first = False
