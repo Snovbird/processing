@@ -21,10 +21,12 @@ def combine_and_resize_images(photo1_path, photo2_path, output_folder=None,
     if not output_folder:
         output_folder = os.path.dirname(photo1_path)
     
-    full_output_path = os.path.join(output_folder, 'combined.png')
+
+    photo_name = os.path.splitext(os.path.basename(photo1_path))[0]
+    full_output_path = os.path.join(output_folder, f'{photo_name}_combined.png')
     while os.path.exists(full_output_path):
         count += 1
-        full_output_path = os.path.join(output_folder, f'combined{count}.png')
+        full_output_path = os.path.join(output_folder, f'{photo_name}_combined{count}.png')
 
     try:
         # Load and convert images to RGBA
