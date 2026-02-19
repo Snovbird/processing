@@ -3,6 +3,36 @@ import subprocess
 from common.common import clear_gpu_memory,askstring,select_video,find_folder_path,findval,error,assignval,makefolder,is_date
 import sys
 from common.exceptions import *
+
+def find_imgpath_overlay_date(date_provided:str,room:str,cage_number:int | str) -> str:
+    """
+    Args:
+        date_provided (str): date as YYYYMMSS
+        room (str): specific room name. Should be listed inside of `2-markers` folder
+        cage_number (int | str): cage number. Will be converted to dual digit string (ex: `02`)
+    
+    """
+    cage_number = str(cage_number).zfill(2)
+    overlays_path = find_folder_path("2-markers")
+    alldates = findval("dates")[::-1] # invert it to loop from latest dates first then to earlier ones
+    if date_provided not in alldates:
+        for date in alldates: 
+            if int(date) < int(date_provided): #get img from date right before
+                imgpath = os.path.join(overlays_path, room, f"{cage_number}-{date}.png")
+                if os.path.exists(imgpath):
+                    break
+        else:
+            raise ImageNotFoundError(f"No overlays for cage {cage_number} on {date_provided} in room {room}")
+    else:
+        for date_index in range(alldates.index(date_provided),len(alldates)):
+            imgpath = os.path.join(overlays_path, room,f"{cage_number}-{alldates[date_index]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
+            if os.path.exists(imgpath):
+                break
+        else:
+            raise ImageNotFoundError(f"No overlays for cage {cage_number} on {date_provided} in room {room}")
+    return imgpath
+
+
 def apply_png_overlay(video_path, output_folder,room="OPTO-ROOM (12 cages)",cage_number=None,date_to_provide=None):
     """
     Apply a transparent PNG overlay to a video using FFmpeg.
@@ -118,34 +148,6 @@ def main():
         # Show an error message
         error("Error", "Failed to apply overlay. Check console for details.")
 
-def find_imgpath_overlay_date(date_provided:str,room:str,cage_number:int | str) -> str:
-    """
-    Args:
-        date_provided (str): date as YYYYMMSS
-        room (str): specific room name. Should be listed inside of `2-markers` folder
-        cage_number (int | str): cage number. Will be converted to dual digit string (ex: `02`)
     
-    """
-    cage_number = str(cage_number).zfill(2)
-    overlays_path = find_folder_path("2-markers")
-    alldates = findval("dates")[::-1] # invert it to loop from latest dates first then to earlier ones
-    if date_provided not in alldates:
-        for date in alldates: 
-            if int(date) < int(date_provided): #get img from date right before
-                imgpath = os.path.join(overlays_path, room, f"{cage_number}-{date}.png")
-                if os.path.exists(imgpath):
-                    break
-        else:
-            raise ImageNotFoundError(f"No overlays for cage {cage_number} on {date_provided} in room {room}")
-    else:
-        for date_index in range(alldates.index(date_provided),len(alldates)):
-            imgpath = os.path.join(overlays_path, room,f"{cage_number}-{alldates[date_index]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
-            if os.path.exists(imgpath):
-                break
-        else:
-            raise ImageNotFoundError(f"No overlays for cage {cage_number} on {date_provided} in room {room}")
-    return imgpath
-
 if __name__ == "__main__":
     main()
-    

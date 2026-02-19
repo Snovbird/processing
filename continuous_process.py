@@ -385,7 +385,6 @@ def step6_trim_intervals():
             "room": room
         }
     })
-    # {'experiment_folders': [...], 'room': 'Room 1'}
     
     return step7_apply_markers_and_move()
 
