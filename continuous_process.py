@@ -312,7 +312,7 @@ def step5_concatenate_videos():
         if len(videos) == 0:
             continue
         
-        grouped_videos = group_files_by_digits(videos)
+        grouped_videos = group_files_by_digits(videos) # important to update (if 2nd time) due to renaming if len(group) == 1
         
         for group in grouped_videos:
 
@@ -320,20 +320,17 @@ def step5_concatenate_videos():
                 continue
             if len(group) == 1:
                 saved_path = concatenate(group, experiment_folder) 
-                videos_to_delete.append((saved_path,)) # tuple for len == 1 check
+                videos_to_delete.append((saved_path,)) # tuple for len == 1 check (will not be deleted). Same list for simplicity (check of group in videos_to_delete)
             else:
                 concatenate(group, experiment_folder) 
-                videos_to_delete.append
+                videos_to_delete.append(group) 
             assignval("salvage_processing_step", last_step)
 
         processed_folders.append(experiment_folder)
-        
-        last_step["step5_concatenate_videos"]["videos_to_delete"] = videos_to_delete
-        last_step["step5_concatenate_videos"]["processed_folders"] = processed_folders
         assignval("salvage_processing_step", last_step)
 
     for vid_group in videos_to_delete:
-        if not vid_group or len(vid_group) == 1: # has already been renamed. DO NOT DELETE
+        if not vid_group or len(vid_group) == 1: # has been renamed by concatenate(). DO NOT DELETE
             continue
         for vid in vid_group:
             try:
@@ -349,7 +346,6 @@ def step5_concatenate_videos():
             "room": room
         }
     })
-    # {'experiment_folders': [...], 'room': 'Room 1'}
 
     return step6_trim_intervals()
 
@@ -362,6 +358,7 @@ def step6_trim_intervals():
     room = last_step["step6_trim_intervals"]["room"]
     
     trimmed_folders = last_step["step6_trim_intervals"].get("trimmed_folders", [])
+    last_step["step6_trim_intervals"]["trimmed_folders"] = trimmed_folders
 
     for experiment_folder in experiment_folders:
         if experiment_folder in trimmed_folders:
@@ -370,17 +367,16 @@ def step6_trim_intervals():
         # e.g. "D:\\...\\20251103_1 SEEKING_TEST"
         # The prompt says: DS_cue = experiment.split(" ")[-1]
         DS_cue = experiment_folder.split(" ")[-1]
-        
+        if DS_cue not in ["DS+","DS-"]:
+            continue # Skip trimming if not DS+ or DS- (e.g. SEEKING_TEST)
+
         videos = list_filespaths(experiment_folder)
-        # newtrim.trim_DS_auto
         try:
-            trim_DS_auto(videos, first=DS_cue, start_time=16, interval_duration=90, batch_size=5)
+            trim_DS_auto(videos, first=DS_cue, start_time=16, interval_duration=90, batch_size=5) # no need to save progress for each of DS+, DS- & CS+
         except Exception as e:
-            print(f"Error trimming {experiment_folder}: {e}")
-            # continue or stop? mostly safe to continue if error is handled inside
+            error(f"Error trimming {experiment_folder}: {e}")
             
         trimmed_folders.append(experiment_folder)
-        last_step["step6_trim_intervals"]["trimmed_folders"] = trimmed_folders
         assignval("salvage_processing_step", last_step)
 
     assignval("salvage_processing_step", {
@@ -397,8 +393,9 @@ def step7_apply_markers_and_move():
     last_step = findval("salvage_processing_step")
     if "step7_apply_markers_and_move" not in last_step:
         # Done?
-        print("All steps completed!")
+        error("Error finding last saved step. Starting over.")
         assignval("salvage_processing_step", {}) # Clear state
+        continuous_process()
         return
 
     experiment_folders = last_step["step7_apply_markers_and_move"]["experiment_folders"]
@@ -427,14 +424,16 @@ def step7_apply_markers_and_move():
         try:
             shutil.move(folder, final_outputpath)
         except Exception as e:
-            print(f"Error moving {folder} to {final_outputpath}: {e}")
+            error(f"Error moving {folder} to {final_outputpath}: {e}")
             
-    print("Processing complete. Cleared salvage step.")
+    msgbox(f"Video processing complete!\n\nPrepared videos are stored in {final_outputpath}.\nClose this message to open the folder.")
     assignval("salvage_processing_step", {})
+    os.startfile(final_outputpath) # Open final output folder
 
 
-def continuous_process():
-    recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
+def continuous_process(recordings_folder=None):
+    if not recordings_folder:
+        recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
 
     assignval("room_name", "OPTO-ROOM (12 cages)")
 
