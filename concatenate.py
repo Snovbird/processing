@@ -81,7 +81,6 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
             except:
                 pass
     elif len(input_files) == 1: # move to output folder if single item in group
-        error(f"Input files weird:\n{input_files}")
         if len(input_files) == 0:
             error("Empty array of input files for concatenation. Skipping...","Simple warning")
             return None

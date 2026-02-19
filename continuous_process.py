@@ -77,8 +77,7 @@ def step1_organize_recordings_DATASAVE():
 
         assignval("salvage_processing_step", {"step2_create_folders_and_move":{
             "recordings_folderpath": recording_folderpath,
-            "folders_to_create": folders_to_create,
-            "grouped_recordings": grouped_recordings}})
+            "folders_to_create": folders_to_create}})
         
         step2_create_folders_and_move()
 
@@ -126,8 +125,6 @@ def step2_create_folders_and_move():
                 "01-20251104-120000-122642.mp4"
             ]]}]
     
-    grouped_recordings = last_step["step2_create_folders_and_move"]["grouped_recordings"]
-    RECORDINGS_PATH = find_folder_path("0-RECORDINGS")
     last_step["moved"] = last_step.get("moved",[])
 
     for date_info in folders_to_create:
@@ -158,7 +155,6 @@ def step2_create_folders_and_move():
             assignval("salvage_processing_step", {"step3_create_photos_for_carroussel":{
             "experiment_folders": experiment_folders,}})
 
-
 def step3_create_photos_for_carroussel():
     last_step = findval("salvage_processing_step")
     if "step3_create_photos_for_carroussel" not in last_step:
@@ -166,13 +162,13 @@ def step3_create_photos_for_carroussel():
     
     experiment_folders = last_step["step3_create_photos_for_carroussel"]["experiment_folders"]
     
-    photos_folders = {}
-    photos_to_carroussel = []
+    experiment_and_png_folders = {}
+    photos_to_add_ = []
     
     for experiment_folder in experiment_folders:
-        photos_folders[experiment_folder] = makefolder(experiment_folder, "photos", start_at_1=False)
+        experiment_and_png_folders[experiment_folder] = makefolder(experiment_folder, "photos", start_at_1=False)
 
-    for experiment_folder, photos_folder in photos_folders.items():
+    for experiment_folder, photos_folder in experiment_and_png_folders.items():
         # Get videos in experiment folder
         videos = list_filespaths(experiment_folder)
         # Group by cage (digits) to get the first video of each cage
@@ -182,7 +178,7 @@ def step3_create_photos_for_carroussel():
             # Extract screenshot from the FIRST frame (frame_number=0)
             # This screenshot will be used to verify markers
             # common.common.screenshot
-            photos_to_carroussel.append(
+            photos_to_add_.append(
                 screenshot(first_video, frame_number=0,
                             output_path=os.path.join(photos_folder, 
                                                     os.path.basename(first_video).replace(".mp4", ".png"))
@@ -192,14 +188,13 @@ def step3_create_photos_for_carroussel():
     # Save state for the next step (step 4)
     assignval("salvage_processing_step", {
         "step4_created_combined_and_photo_carrousel": {
-            "experiment_folders": experiment_folders,
-            "photos_folders": photos_folders,
-            "photos_to_carroussel": photos_to_carroussel
+            "experiment_and_png_folders": experiment_and_png_folders, # experiment_folder : photos folder
+            "photos_to_add_": photos_to_add_
         }
     })
     # {'experiment_folders': ['D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST', ...],
-    #  'photos_folders': {'D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST': 'D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST\\photos', ...},
-    #  'photos_to_carroussel': ['D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST\\photos\\01-20251103-104708-113000.png', ...]}
+    #  'experiment_and_png_folders': {'D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST': 'D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST\\photos', ...},
+    #  'photos_to_add_': ['D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST\\photos\\01-20251103-104708-113000.png', ...]}
     
     return step4_created_combined_and_photo_carrousel()
 
@@ -209,13 +204,12 @@ def step4_created_combined_and_photo_carrousel():
         # Logic to skip if we are already past this step
         return step5_concatenate_videos()
 
-    experiment_folders = last_step["step4_created_combined_and_photo_carrousel"]["experiment_folders"]
-    photos_folders = last_step["step4_created_combined_and_photo_carrousel"]["photos_folders"]
-    photos_to_carroussel = last_step["step4_created_combined_and_photo_carrousel"]["photos_to_carroussel"]
-    created_photos = last_step["step4_created_combined_and_photo_carrousel"].get("created_photos", []) 
+    experiment_folders:list[str] = list(last_step["step4_created_combined_and_photo_carrousel"]["experiment_and_png_folders"].keys())
+    experiment_and_png_folders:dict[str,str] = list(last_step["step4_created_combined_and_photo_carrousel"]["experiment_and_png_folders"].values())
+    photos_to_add_:list[str] = last_step["step4_created_combined_and_photo_carrousel"]["photos_to_add_"]
+
+    created_photos:list[str] = last_step["step4_created_combined_and_photo_carrousel"].get("created_photos", []) 
     last_step["step4_created_combined_and_photo_carrousel"]["created_photos"] = created_photos # Initialize if not present
-    created_combined_paths = last_step["step4_created_combined_and_photo_carrousel"].get("created_combined_paths", [])
-    last_step["step4_created_combined_and_photo_carrousel"]["created_combined_paths"] = created_combined_paths
     room_options = list_folders(find_folder_path("2-MARKERS"))
     
     # Try to find room in data.json or ask user
@@ -228,7 +222,7 @@ def step4_created_combined_and_photo_carrousel():
             return emergency_overlay_maker()
         assignval("room_name", room)
 
-    for photopath in photos_to_carroussel:
+    for photopath in photos_to_add_:
 
         basename = os.path.splitext(os.path.basename(photopath))[0]
         combpath = os.path.join(os.path.dirname(photopath), f"{basename}_combined.png")
@@ -239,7 +233,6 @@ def step4_created_combined_and_photo_carrousel():
         parts = basename.split("-")
         cage_string = parts[0]
         date = parts[1]
-        
         cage_number = "".join([i for i in cage_string if i.isdigit()])
         
         overlay = find_imgpath_overlay_date(date, room=room, cage_number=cage_number)
@@ -252,20 +245,20 @@ def step4_created_combined_and_photo_carrousel():
                                                              output_folder=outpath)
         if created_combined_paths == combpath:
             created_photos.append(created_combined_paths)
-            assignval("salvage_processing_step", last_step) # Save progress after each photo is processed
 
-    for overlaid_png in last_step["step5_photo_carrousel"]["created_combined_paths"]:
+    for overlaid_png in created_photos:
         result = photo_carrousel(overlaid_png) 
         if result == "STOP markers NOT aligned":
-            dir = os.path.dirname(overlaid_png)
             basename = os.path.splitext(os.path.basename(overlaid_png))[0].replace("_combined","")
             cage_string, date, *_ = basename.split("-")
             cage_number = "".join([i for i in cage_string if i.isdigit()])
-            
-            parent = os.path.dirname(overlaid_png) 
+            parent_combinedpng_folder = os.path.dirname(overlaid_png) 
             # The photo is in .../Experiment/photos/
             # The video is in .../Experiment/
-            experiment_dir = os.path.dirname(parent)
+            experiment_dir = os.path.dirname(parent_combinedpng_folder)
+
+            created_photos.remove(overlaid_png)
+            assignval("salvage_processing_step",last_step) # remove problematic image
             
             problematic_videopath = None
             for video in list_filespaths(experiment_dir):
@@ -281,7 +274,7 @@ def step4_created_combined_and_photo_carrousel():
             return emergency_overlay_maker(cage_numbers=[cage_number], room=room, date=date, videos=[problematic_videopath])
 
     # Cleanup photos folders
-    for folder in photos_folders.values():
+    for folder in experiment_and_png_folders.values():
         try:
             shutil.rmtree(folder)
         except OSError as e:
@@ -306,19 +299,10 @@ def step5_concatenate_videos():
     experiment_folders = last_step["step5_concatenate_videos"]["experiment_folders"]
     room = last_step["step5_concatenate_videos"]["room"]
     
-    videos_to_delete = last_step["step5_concatenate_videos"].get("videos_to_delete", []) # Load if partly done
-
-    print("Files organized\n\nStarting concatenation...")
-
-    # We iterate again, but since we modify folders (concat), we ideally should track progress 
-    # to avoid re-concatenating if interrupted. 
-    # However, concatenate() usually checks if output exists.
-    # Let's assume we proceed safely or user handles re-run.
-    
-    # We will accumulate potential deletions in a local list first, or use the one from JSON if we want to be robust.
-    # ideally we append to the saved list.
-    
+    videos_to_delete:list[list[str]] = last_step["step5_concatenate_videos"].get("videos_to_delete", []) # Load if partly done
+    last_step["step5_concatenate_videos"]["videos_to_delete"] = videos_to_delete    
     processed_folders = last_step["step5_concatenate_videos"].get("processed_folders", [])
+    last_step["step5_concatenate_videos"]["processed_folders"] = processed_folders    
 
     for experiment_folder in experiment_folders:
         if experiment_folder in processed_folders:
@@ -330,31 +314,28 @@ def step5_concatenate_videos():
         
         grouped_videos = group_files_by_digits(videos)
         
-        folder_videos_to_delete = []
-
         for group in grouped_videos:
-            # concatenate.concatenate
-            concatenate(group, experiment_folder) 
-            
-            if len(group) > 1:
-                folder_videos_to_delete.extend(group)
 
-        # Update state: mark folder as processed and add files to delete list
-        videos_to_delete.append(folder_videos_to_delete)
+            if not group or group in videos_to_delete:
+                continue
+            if len(group) == 1:
+                saved_path = concatenate(group, experiment_folder) 
+                videos_to_delete.append((saved_path,)) # tuple for len == 1 check
+            else:
+                concatenate(group, experiment_folder) 
+                videos_to_delete.append
+            assignval("salvage_processing_step", last_step)
+
         processed_folders.append(experiment_folder)
         
-        # Incremental save
         last_step["step5_concatenate_videos"]["videos_to_delete"] = videos_to_delete
         last_step["step5_concatenate_videos"]["processed_folders"] = processed_folders
         assignval("salvage_processing_step", last_step)
 
-
-    # Delete original videos
-    # flatten list if needed, but structure in process_folders was list of lists
-    for original_vids in videos_to_delete:
-        if not original_vids:
+    for vid_group in videos_to_delete:
+        if not vid_group or len(vid_group) == 1: # has already been renamed. DO NOT DELETE
             continue
-        for vid in original_vids:
+        for vid in vid_group:
             try:
                 if os.path.exists(vid):
                     os.remove(vid)
