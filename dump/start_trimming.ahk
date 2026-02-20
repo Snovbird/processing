@@ -39,6 +39,10 @@ send, ^+{c} ; Send "Copy as path" command
 send, {Enter}
 run, pyw "%pythonScriptsDir%\trim_collect.py"
 return
+U::
+send, ^+{c} ; Send "Copy as path" command
+run, pyw "%pythonScriptsDir%\simpletrim.py"
+return
 
 Q::
 MsgBox, 4, Quit Trimming?, Are you sure you want to quit trimming?

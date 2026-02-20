@@ -148,12 +148,12 @@ def step2_create_folders_and_move():
                 last_step["moved"].append(video)
 
                 assignval("salvage_processing_step", last_step)
-        else:
-            time.sleep(1)
-            os.rmdir(recording_folderpath)
+    else:
+        time.sleep(1)
+        os.rmdir(recording_folderpath)
 
-            assignval("salvage_processing_step", {"step3_create_photos_for_carroussel":{
-            "experiment_folders": experiment_folders,}})
+        assignval("salvage_processing_step", {"step3_create_photos_for_carroussel":{
+        "experiment_folders": experiment_folders,}})
 
 def step3_create_photos_for_carroussel():
     last_step = findval("salvage_processing_step")
@@ -399,27 +399,37 @@ def step7_apply_markers_and_move():
 
     experiment_folders = last_step["step7_apply_markers_and_move"]["experiment_folders"]
     room = last_step["step7_apply_markers_and_move"]["room"]
+    created_marked_videos = last_step["step7_apply_markers_and_move"].get("created_marked_videos", [])
+    last_step["step7_apply_markers_and_move"]["created_marked_videos"] = created_marked_videos
+    created_marker_folders = last_step["step7_apply_markers_and_move"].get("created_marker_folders", [])
+    last_step["step7_apply_markers_and_move"]["created_marker_folders"] = created_marker_folders
+
+    # final_outputpath = find_folder_path("3-PROCESSED")
+    final_outputpath = r"D:\0-RECORDINGS\test_output"
     
-    final_outputpath = find_folder_path("3-PROCESSED")
-    
-    marker_folders_created = []
 
     for experiment_folder in experiment_folders:
         basename = os.path.basename(experiment_folder)
         # Create folder for marked videos inside the experiment folder (temp)
-        marked_folder = makefolder(experiment_folder, basename, start_at_1=False)
-        marker_folders_created.append(marked_folder)
-        
+        if experiment_folder not in created_marker_folders:
+            marked_folder = makefolder(experiment_folder, basename, start_at_1=False)
+            created_marker_folders.append(experiment_folder)
+            assignval("salvage_processing_step", last_step)
         # Apply overlay to all videos in the experiment folder
         # The videos here are presumably the concatenated (and possibly trimmed output?)
         # process_folders logic: for concat_vid in list_filespaths(experiment)
         
         for vid in list_filespaths(experiment_folder):
              # markersquick.apply_png_overlay
+             if vid in created_marked_videos:
+                 continue
+             
              apply_png_overlay(vid, marked_folder, room)
+             created_marked_videos.append(vid)
+             assignval("salvage_processing_step", last_step)
 
     # Move content to final output
-    for folder in marker_folders_created:
+    for folder in created_marker_folders:
         try:
             shutil.move(folder, final_outputpath)
         except Exception as e:
@@ -431,12 +441,17 @@ def step7_apply_markers_and_move():
 
 
 def continuous_process(recordings_folder=None):
-    if not recordings_folder:
-        recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
-
-    assignval("room_name", "OPTO-ROOM (12 cages)")
 
     if not findval("salvage_processing_step"):
+        if not recordings_folder:
+            recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
+
+        assignval("room_name", "OPTO-ROOM (12 cages)")
+        try:
+            name_cages(recordings_folder)
+        except Exception as e:
+            print("Cages already renamed")
+            pass
 
         override_first_cue = True if custom_dialog("Separate each video into DS+/DS- intervals (for training only)?", title="Specify first cue for each experiment?") == "yes" else False
         
@@ -448,7 +463,6 @@ def continuous_process(recordings_folder=None):
                                                "override_first_cue": override_first_cue}})
         step1_organize_recordings_DATASAVE()
     else:
-        msgbox(findval("salvage_processing_step"), title="Last saved step")
         last_command = list(findval("salvage_processing_step").keys())[0]
         exec(f"{last_command}()")
 

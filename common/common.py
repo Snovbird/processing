@@ -741,8 +741,8 @@ def unhide_folder(dir:str):
     subprocess.run(['attrib', '-h', dir], check=True, creationflags=creationflags)
 
 def is_date(date_string:str) -> bool:
-    from datetime import datetime
     """Simple date checker for most common formats"""
+    from datetime import datetime
     common_formats = ['%Y-%m-%d', '%d/%m/%Y', '%m/%d/%Y', '%Y%m%d']
     
     for fmt in common_formats:

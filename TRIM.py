@@ -5,26 +5,29 @@ import sys
 from addtopss import addtopss
 from common.common import clear_gpu_memory
 
-def trim_frames(input_path: str, start_time:str|int, end_time:str|int,output_folder:str = None,show_terminal:bool = True):
+def trim_frames(input_path: str, start_time:str|int, end_time:str|int,output_folder:str = None,show_terminal:bool = True,all_name_with_timestamps:bool = False):
     if not os.path.isfile(input_path):
         error(f"Error: The file '{input_path}' does not exist.")
         return None
     file_name = os.path.splitext(os.path.basename(input_path))[0]
     output_name = f"{file_name}.mp4"
-    if not path_exists(output_folder):
-        output_folder = os.path.dirname(input_path)
+    if all_name_with_timestamps:
         output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"
-    if is_dir(output_folder):
-        output_path = os.path.join(output_folder, output_name)
     else:
-        file_dir = os.path.dirname(input_path)
-        output_path = os.path.join(file_dir, output_name)
+        if not path_exists(output_folder):
+            output_folder = os.path.dirname(input_path)
+            output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"
+        if is_dir(output_folder):
+            output_path = os.path.join(output_folder, output_name)
+        else:
+            file_dir = os.path.dirname(input_path)
+            output_path = os.path.join(file_dir, output_name)
 
-    if os.path.exists(output_path): # if file already exists, do I want ugly name with timestamps? 
-        output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"
-        if show_terminal: # uses the 'show_terminal' parameter to determine whether or not to PROMPT to change the name of the trimmed output (if we show terminal → prompts, if we don't show → will automatically change the name to include timestamps)
-            if custom_dialog(msg=f"{file_name} already exists in {output_folder}. \nProceed with new name {output_name}?",title="Continue") == 'no':
-                return
+        if os.path.exists(output_path): # if file already exists, do I want ugly name with timestamps? 
+            output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"
+            if show_terminal: # uses the 'show_terminal' parameter to determine whether or not to PROMPT to change the name of the trimmed output (if we show terminal → prompts, if we don't show → will automatically change the name to include timestamps)
+                if custom_dialog(msg=f"{file_name} already exists in {output_folder}. \nProceed with new name {output_name}?",title="Continue") == 'no':
+                    return
             
     if not show_terminal: # [TEMPORARY] redundant - to clean up (necessary to always show timestamps) → to always show timestamps when terminal is hidden (False)
         output_name = f"{file_name}-trim({start_time}-{end_time}).mp4"

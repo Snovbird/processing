@@ -54,7 +54,7 @@ def group_by_date_and_experimentTime(videos_folderpath: str,max_pause=15,warn_fo
                 elif seconds - last_endtime < max_pause: # technically supposed to be identical end & start times, but allow for small variations
                     if warn_for_lost_time:
                         error(f"""Note: {seconds - last_endtime} seconds have been lost between\n
-                              {format_time_colons(last_endtime)} and {format_time_colons(experiment_starttime)}\n
+                              {format_time_colons(str(last_endtime))} and {format_time_colons(str(experiment_starttime))}\n
                               for cage {cage} on the date (YYYYMMDD): {date}\n
                               ""","Warning")
                     "f".format()
@@ -261,7 +261,16 @@ class process_recordings():
         for folder in marker_folders:
             shutil.move(folder,self.final_outputpath)
 
-def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,videos=None):
+def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,videos=None,pngpath=None):
+    """
+    Creates a gimp project named after the cage number and date, with an image of the problematic cage inside
+
+    cage_numbers: list of cage numbers to create overlays for. If None, will ask for one cage number
+    room: name of the room to put the overlay in. If None, will ask for it
+    date: date to put in the overlay name. If None, will ask for it
+    videos: list of videos to extract the image from. If None, will ask for it
+    pngpath: path to png to move in the overlay folder. Cannot be provided with videos. If None, will ask for videos
+    """
     marker_overlays_path = find_folder_path("2-MARKERS")
     if not date:
         date = askstring("Please enter the date as YYYYMMDD for this overlay. \nDefault is today's date.",fill=get_date_yyyymmdd())
@@ -273,24 +282,28 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         cage_numbers:list[int] = [ f"{askint('Enter the cage number:','Cage number'):02d}" ]
         if not cage_numbers:
             return
-    if not videos:
+    
+    if not videos and not pngpath:
         msgbox("A file explorer window will open next. From the explorer, select a video from which an image will be extracted to align the markers.\nThis image will be automatically added to the opened folder.")
         videos:str = select_video("Select video from which an image will be extracted. It will be used to align the markers")
         if not videos:
             return
     # msgbox(f"EMERGENCY:\n{videos=}\n\n{cage_numbers=}\n\n{room=}\n\n{date=}")
-    for video,cage_number in zip(videos,cage_numbers):
+    for n,cage_number in enumerate(cage_numbers):
         if not room: # 2-MARKERS/ NEWROOMNAME /
             room = askstring("Provide the name of the new room:","New room name",fill="ROOMNAME (numberofcages)")
             project_folderpath = makefolder(marker_overlays_path,foldername=room,start_at_1=False)
         else: # 2-MARKERS/OPTO-ROOM/cage2_20250806/
-            project_folderpath = makefolder(room_folder_path,f"cage{cage_number}-{date}",start_at_1=False)
+            project_folderpath = makefolder(room_folder_path,f"{cage_number.zfill(2)}-{date}",start_at_1=False)
         
         unnamed_project_folderpath = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),project_folderpath)
         renamed_project_path = os.path.join(project_folderpath,f"{cage_number}-{date}.xcf")
         os.rename(unnamed_project_folderpath,renamed_project_path)
 
-        imgpath = screenshot(video=video,frame_number=0,output_path=os.path.join(project_folderpath,os.path.basename(video).replace(".mp4", ".png")))
+        if not pngpath and videos:
+            screenshot(video=videos[0],frame_number=0,output_path=os.path.join(project_folderpath,os.path.basename(video).replace(".mp4", ".png")))
+        else:
+            shutil.move(pngpath,project_folderpath)
         
         # while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
         #     os.remove(imgpath)
