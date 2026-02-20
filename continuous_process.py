@@ -463,6 +463,10 @@ def continuous_process(recordings_folder=None):
                                                "override_first_cue": override_first_cue}})
         step1_organize_recordings_DATASAVE()
     else:
+        answer = custom_dialog("An incomplete process has been found, continue?","continue interrupted process",op1="YES, continue.",op2="NO, delete the videos")
+        if answer != "YES, continue.":
+            custom_dialog("Are you sure? This will delete the video recordings and you will need to transfer the videos from the LOREX software again","warning",op1="delete",op2="Cancel")
+            
         last_command = list(findval("salvage_processing_step").keys())[0]
         exec(f"{last_command}()")
 
