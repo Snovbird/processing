@@ -1232,3 +1232,23 @@ def screenshot(video_path: str, frame_number: int, output_path: str = "screensho
     
     print(f"{os.path.basename(video_path)} screenshot at frame {frame_number} saved to: {output_path}")
     return output_path
+
+def walk_delete(folder_path:str):
+    """
+    Walk through a folder and delete all files and subfolders. Then delete the folder itself.
+    """
+    for root, dirs, files in os.walk(folder_path, topdown=False):
+        for file in files:
+            try:
+                os.remove(os.path.join(root, file))
+            except Exception as e:
+                print(f"Failed to delete file {file}: {e}")
+        for dir in dirs:
+            try:
+                os.rmdir(os.path.join(root, dir))
+            except Exception as e:
+                print(f"Failed to delete folder {dir}: {e}")
+    try:
+        os.rmdir(folder_path)
+    except Exception as e:
+        print(f"Failed to delete folder {folder_path}: {e}")

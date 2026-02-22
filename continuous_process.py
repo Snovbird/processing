@@ -463,10 +463,26 @@ def continuous_process(recordings_folder=None):
                                                "override_first_cue": override_first_cue}})
         step1_organize_recordings_DATASAVE()
     else:
-        answer = custom_dialog("An incomplete process has been found, continue?","continue interrupted process",op1="YES, continue.",op2="NO, delete the videos")
+        answer = custom_dialog("An incomplete process has been found, continue?","continue interrupted process",op1="YES, continue.",op2="no")
         if answer != "YES, continue.":
-            custom_dialog("Are you sure? This will delete the video recordings and you will need to transfer the videos from the LOREX software again","warning",op1="delete",op2="Cancel")
-            
+            last_step = findval("salvage_processing_step")
+            stepname = list(last_step.keys())[0]
+            experiment_folders = last_step[stepname].get("experiment_folders", [])
+            recordings_folder = last_step[stepname].get("recordings_folderpath", None)
+            created_marker_folders = last_step[stepname].get("created_marker_folders", [])
+            if created_marker_folders:
+                if custom_dialog("Are you sure? This will delete the marked videos and you will need to re-mark them","warning",op1="delete",op2="Cancel") == "delete":
+                    for folder in created_marker_folders:
+                        walk_delete(folder)
+                    for folder in experiment_folders:
+                        walk_delete(folder)
+            elif experiment_folders:
+                if custom_dialog("Are you sure? This will delete the video recordings and you will need to transfer the videos from the LOREX software again","warning",op1="delete",op2="Cancel") == "delete":
+                    for folder in experiment_folders:
+                        walk_delete(folder)
+            elif recordings_folder:
+                continuous_process(recordings_folder=recordings_folder)
+
         last_command = list(findval("salvage_processing_step").keys())[0]
         exec(f"{last_command}()")
 
