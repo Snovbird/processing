@@ -388,14 +388,15 @@ def step6_trim_intervals():
     
     return step7_apply_markers_and_move()
 
-def step7_apply_markers_and_move():
-    last_step = findval("salvage_processing_step")
-    if "step7_apply_markers_and_move" not in last_step:
-        # Done?
-        error("Error finding last saved step. Starting over.")
-        assignval("salvage_processing_step", {}) # Clear state
-        continuous_process()
-        return
+def step7_apply_markers_and_move(last_step=None):
+    if not last_step:
+        last_step = findval("salvage_processing_step")
+        if "step7_apply_markers_and_move" not in last_step:
+            # Done?
+            error("Error finding last saved step. Starting over.")
+            assignval("salvage_processing_step", {}) # Clear state
+            continuous_process()
+            return
 
     experiment_folders = last_step["step7_apply_markers_and_move"]["experiment_folders"]
     room = last_step["step7_apply_markers_and_move"]["room"]
@@ -404,7 +405,7 @@ def step7_apply_markers_and_move():
     created_marker_folders = last_step["step7_apply_markers_and_move"].get("created_marker_folders", [])
     last_step["step7_apply_markers_and_move"]["created_marker_folders"] = created_marker_folders
 
-    # final_outputpath = find_folder_path("3-PROCESSED")
+    final_outputpath = find_folder_path("3-PROCESSED")
     final_outputpath = r"D:\0-RECORDINGS\test_output"
     
 
@@ -470,18 +471,26 @@ def continuous_process(recordings_folder=None):
             experiment_folders = last_step[stepname].get("experiment_folders", [])
             recordings_folder = last_step[stepname].get("recordings_folderpath", None)
             created_marker_folders = last_step[stepname].get("created_marker_folders", [])
-            if created_marker_folders:
+            if created_marker_folders: # step 7
                 if custom_dialog("Are you sure? This will delete the marked videos and you will need to re-mark them","warning",op1="delete",op2="Cancel") == "delete":
                     for folder in created_marker_folders:
                         walk_delete(folder)
                     for folder in experiment_folders:
                         walk_delete(folder)
-            elif experiment_folders:
+                    assignval("salvage_processing_step", {})
+                    continuous_process()
+            elif experiment_folders: #step 3,4,5,6
                 if custom_dialog("Are you sure? This will delete the video recordings and you will need to transfer the videos from the LOREX software again","warning",op1="delete",op2="Cancel") == "delete":
                     for folder in experiment_folders:
                         walk_delete(folder)
-            elif recordings_folder:
-                continuous_process(recordings_folder=recordings_folder)
+                    assignval("salvage_processing_step", {})
+                    continuous_process()
+            elif recordings_folder: #step 1,2
+                assignval("salvage_processing_step", {}) 
+                if custom_dialog(f"Restart process using the same folder?\n\n{recordings_folder=}", title="Transfer videos", icon_name="folder") == "yes":
+                    continuous_process(recordings_folder=recordings_folder)
+                else:
+                    continuous_process()
 
         last_command = list(findval("salvage_processing_step").keys())[0]
         exec(f"{last_command}()")
