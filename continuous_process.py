@@ -52,7 +52,7 @@ def step1_organize_recordings_DATASAVE():
 
             for session_number, first_DS in enumerate(answer, start=0): 
                 # first_DS is either DS+, DS- or SEEKING_TEST
-                folder_name = makefolderpath(date_folderpath,f"{date}_{session_number} {first_DS}", start_at_1=False)
+                folder_name = makefolderpath(date_folderpath,f"{date}_{session_number+1} {first_DS}", start_at_1=False)
                 folders_to_create[date_number]["session_folders"].append(folder_name)
                 folders_to_create[date_number]["grouped_sessions"].append((session_groups[session_number]))
 
@@ -73,17 +73,17 @@ def step1_organize_recordings_DATASAVE():
                     merged_sessions.append(session_groups[i])
 
             for session_number,merged_sess in enumerate(merged_sessions): 
-                folder_name = makefolderpath(date_folderpath,f"{date}_{session_number} SEEKING_TEST", start_at_1=False)
+                folder_name = makefolderpath(date_folderpath,f"{date}_{session_number+1} SEEKING_TEST", start_at_1=False)
                 folders_to_create[date_number]["session_folders"].append(folder_name)
                 folders_to_create[date_number]["grouped_sessions"].append((merged_sess))
 
-        print(f"{folders_to_create=}")
+    print(f"{folders_to_create=}")
 
-        assignval("salvage_processing_step", {"step2_create_folders_and_move":{
-            "recordings_folderpath": recording_folderpath,
-            "folders_to_create": folders_to_create}})
-        
-        # step2_create_folders_and_move()
+    assignval("salvage_processing_step", {"step2_create_folders_and_move":{
+        "recordings_folderpath": recording_folderpath,
+        "folders_to_create": folders_to_create}})
+    
+    step2_create_folders_and_move()
 
 def step2_create_folders_and_move():
 
@@ -157,7 +157,9 @@ def step2_create_folders_and_move():
         os.rmdir(recording_folderpath)
 
         assignval("salvage_processing_step", {"step3_create_photos_for_carroussel":{
-        "session_folders": session_folders,}})
+        "session_folders": session_folders}})
+
+        step3_create_photos_for_carroussel()
 
 def step3_create_photos_for_carroussel():
     last_step = findval("salvage_processing_step")
@@ -278,7 +280,7 @@ def step4_created_combined_and_photo_carrousel():
             return emergency_overlay_maker(cage_numbers=[cage_number], room=room, date=date, videos=[problematic_videopath])
 
     # Cleanup photos folders
-    for folder in session_and_png_folders.values():
+    for folder in session_and_png_folders:
         try:
             shutil.rmtree(folder)
         except OSError as e:
@@ -390,7 +392,7 @@ def step6_trim_intervals():
         }
     })
     
-    return step7_apply_markers_and_move()
+    # return step7_apply_markers_and_move()
 
 def step7_apply_markers_and_move(last_step=None):
     if not last_step:
@@ -491,10 +493,12 @@ def continuous_process(recordings_folder=None):
                     continuous_process()
             elif recordings_folder: #step 1,2
                 assignval("salvage_processing_step", {}) 
-                if custom_dialog(f"Restart process using the same folder?\n\n{recordings_folder=}", title="Transfer videos", icon_name="folder") == "yes":
-                    continuous_process(recordings_folder=recordings_folder)
-                else:
-                    continuous_process()
+                if os.path.exists(recordings_folder):
+                    if custom_dialog(f"Restart process using the same folder?\n\n{recordings_folder=}", title="Transfer videos",dimensions=(450,250)) == "yes":
+                        continuous_process(recordings_folder=recordings_folder)
+                        return
+                
+                continuous_process() #otherwise
 
         last_command = list(findval("salvage_processing_step").keys())[0]
         exec(f"{last_command}()")

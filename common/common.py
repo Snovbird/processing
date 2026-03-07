@@ -345,8 +345,9 @@ def makefolderpath(file_or_folder_path:str, foldername:str='',start_at_1:bool=Tr
     Same as makefolder but returns the path to the created folder instead of creating it. Does not check if path exists.
     """
     import os
-    # Get directory containing the file
-    if os.path.isdir(file_or_folder_path):
+    # A simple check for a file extension can differentiate between a file path and a directory path string.
+    # If there's no extension, we assume it's a directory path.
+    if not os.path.splitext(file_or_folder_path)[1]:
         folder_path = file_or_folder_path
     else:
         folder_path = os.path.dirname(file_or_folder_path)
@@ -435,7 +436,7 @@ def error(msg:str,title:str="ERROR"):
 
     app = wx.App(False)  # Create the wx.App instance
 
-    wx.MessageBox(f"Error: {msg}", f"{title}", wx.OK | wx.ICON_ERROR)
+    wx.MessageBox(f"{msg}", f"{title}", wx.OK | wx.ICON_ERROR)
 
 def find_folder_path(foldername:str) -> str:
     import json
