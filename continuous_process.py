@@ -130,11 +130,14 @@ def step2_create_folders_and_move():
             ]]}]
     
     last_step["moved"] = last_step.get("moved",[])
+    all_session_folders = []
 
     for date_info in folders_to_create:
         date_folderpath = date_info["date_folderpath"]
         session_folders = date_info["session_folders"]
         grouped_sessions = date_info["grouped_sessions"]
+        
+        all_session_folders.extend(session_folders)
 
         os.makedirs(date_folderpath, exist_ok=True)
         for session_folder in session_folders:
@@ -154,10 +157,11 @@ def step2_create_folders_and_move():
                 assignval("salvage_processing_step", last_step)
     else:
         time.sleep(1)
-        os.rmdir(recording_folderpath)
+        if len(list_files_ext(recording_folderpath,ext=".mp4")) == 0:
+            walk_delete(recording_folderpath)
 
         assignval("salvage_processing_step", {"step3_create_photos_for_carroussel":{
-        "session_folders": session_folders}})
+        "session_folders": all_session_folders}})
 
         step3_create_photos_for_carroussel()
 
