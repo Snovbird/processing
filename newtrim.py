@@ -180,15 +180,15 @@ def main():
             return
         start_times = remove_other(start_times).split(".")
 
-        handling_end_times = custom_dialog(msg="Enter automatically a given number of seconds or FULL end times string?",title="Ending times",op1="Automatic",op2="FULL STRING")
+        handling_end_times = custom_dialog(msg="Enter a FULL TIMESTAMP or a number of seconds to add to your start time",title="End time(s)",op1="FULL TIMESTAMP",op2="add seconds")
         if handling_end_times is None:
             print("Exiting... since handling_end_times is None")
             return
 
-        if handling_end_times == "Automatic":
+        if handling_end_times == "add seconds":
             end_times = addtopss(start_times,HHMMSS_or_frames="HHMMSS")
             print(end_times)
-        elif handling_end_times == "FULL STRING":
+        elif handling_end_times == "FULL TIMESTAMP":
             end_times = askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")
             if end_times is None:
                 print("Exiting since end_times is None")

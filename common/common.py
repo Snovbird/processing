@@ -635,9 +635,11 @@ def wrap(text_input:str,text_to_wrap:str) -> str:
     '''
     return f"{text_to_wrap}{text_input}{text_to_wrap}"
 
-def remove_other(stringinput:str,allowed:list[str]=["."]) -> str:
+def remove_other(stringinput:str,allowed:tuple[str]=(".",)) -> str:
     """
-    Cleans a *`string`* to remove characters that arent **PERIODS** or **NUMBERS**
+    Cleans a *`string`* to remove characters that arent numbers or in the allowed tuple. 
+
+    Isdigit check goes first
     """
     clean_string = ""
     for char in stringinput:

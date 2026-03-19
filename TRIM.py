@@ -145,12 +145,12 @@ def main():
             print("No file selected. Exiting...")
             return
         
-        start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Input Start Times")).split(".")
+        start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Enter Start Time(s)").split("."))
         if start_times is None:
             print("Exiting... since start_times is None")
             return
 
-        handling_end = custom_dialog(msg="Enter automatically a given number of seconds or FULL end times string?",title="Ending times",op1="Automatic",op2="FULL STRING")
+        handling_end = custom_dialog(msg="Enter a FULL TIMESTAMP or a number of seconds to add to your start time",title="End time(s)",op1="FULL TIMESTAMP",op2="add seconds")
         if handling_end is None:
             print("Exiting... since handling_end is None")
             return
@@ -160,10 +160,10 @@ def main():
             print("Exiting... since unitoption is None")
             return
 
-        if handling_end == "Automatic":
+        if handling_end == "add seconds":
             end_times = addtopss(start_times,HHMMSS_or_frames=unitoption)
             print(end_times)
-        elif handling_end == "FULL STRING":
+        elif handling_end == "FULL TIMESTAMP":
             end_times = remove_other(askstring("Input Values", "End time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS)::")).split(".")
         
         if end_times is None:

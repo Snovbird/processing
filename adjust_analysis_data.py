@@ -56,7 +56,7 @@ def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, 
                             current_group_start = idx + 1
                             blank_space_start = None
                             blank_space_count = 0
-                else:  # Blank value or NaN
+                else:  # Blank value
                     if current_group_start is not None and blank_space_start is None:
                         # Start counting blank space
                         blank_space_start = idx + 1  # +1 for Excel row numbering

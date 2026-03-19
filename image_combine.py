@@ -2,7 +2,7 @@ from PIL import Image, ImageEnhance
 import os
 
 def combine_and_resize_images(photo1_path, photo2_path, output_folder=None, 
-                            target_width=1024, target_height=768, overlay_opacity=1.0):
+                            target_width=1024, target_height=768, overlay_opacity=1.0,suffix="_combined"):
     """
     Combines two PNG images with advanced transparency handling.
     
@@ -23,10 +23,10 @@ def combine_and_resize_images(photo1_path, photo2_path, output_folder=None,
     
 
     photo_name = os.path.splitext(os.path.basename(photo1_path))[0]
-    full_output_path = os.path.join(output_folder, f'{photo_name}_combined.png')
+    full_output_path = os.path.join(output_folder, f'{photo_name}{suffix}.png')
     while os.path.exists(full_output_path):
         count += 1
-        full_output_path = os.path.join(output_folder, f'{photo_name}_combined{count}.png')
+        full_output_path = os.path.join(output_folder, f'{photo_name}{suffix}{count}.png')
 
     try:
         # Load and convert images to RGBA
@@ -34,8 +34,9 @@ def combine_and_resize_images(photo1_path, photo2_path, output_folder=None,
         overlay_img = Image.open(photo2_path).convert("RGBA")
         
         # Resize images with high quality resampling
-        base_img = base_img.resize((target_width, target_height), Image.Resampling.LANCZOS)
-        overlay_img = overlay_img.resize((target_width, target_height), Image.Resampling.LANCZOS)
+        if target_height != base_img.height or target_width != base_img.width:
+            base_img = base_img.resize((target_width, target_height), Image.Resampling.LANCZOS)
+            overlay_img = overlay_img.resize((target_width, target_height), Image.Resampling.LANCZOS)
         
         # Adjust overlay opacity if needed
         if overlay_opacity < 1.0:

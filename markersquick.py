@@ -7,7 +7,7 @@ from common.exceptions import *
 def find_imgpath_overlay_date(date_provided:str,room:str,cage_number:int | str) -> str:
     """
     Args:
-        date_provided (str): date as YYYYMMSS
+        date_provided (str): date as YYYYMMSS 
         room (str): specific room name. Should be listed inside of `2-markers` folder
         cage_number (int | str): cage number. Will be converted to dual digit string (ex: `02`)
     

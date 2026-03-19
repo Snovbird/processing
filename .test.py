@@ -15,4 +15,8 @@ import os
 # ('C:\\Users\\matts\\Downloads\\test\\t2', [], ['t1-A.txt']),
 # ('C:\\Users\\matts\\Downloads\\test', ['t1', 't2'], [])]
 
-print(os.path.isdir('D:\\0-RECORDINGS\\New folder\\20251103'))
+for file in os.listdir(r'C:\Users\samahalabo\Desktop\5-clips\collected DS-'):
+    if os.path.exists(os.path.join(r'C:\Users\samahalabo\Desktop\5-clips\collected DS-', file.replace("_","-"))):
+        os.remove(os.path.join(r'C:\Users\samahalabo\Desktop\5-clips\collected DS-', file))
+    else:
+        os.rename(os.path.join(r'C:\Users\samahalabo\Desktop\5-clips\collected DS-', file), os.path.join(r'C:\Users\samahalabo\Desktop\5-clips\collected DS-', file.replace("_","-")))

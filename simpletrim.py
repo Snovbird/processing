@@ -11,20 +11,21 @@ def main():
         light = "FRCL"
     elif "DS-" in os.path.dirname(file_path) or "BLCL" in os.path.dirname(file_path):
         light = "BLCL"
-    approach_folder = find_folder_path(f"{light} light approach")
-    orient_folder = find_folder_path(f"{light} light orient")
-    interaction_folder = find_folder_path(f"{light} light interaction")
+    approach_folder = find_folder_path(f"{light} light Approach")
+    orient_folder = find_folder_path(f"{light} light Orient")
+    interaction_folder = find_folder_path(f"{light} light Interaction")
 
     working_directory = os.path.dirname(os.path.dirname(file_path)) # e.g. C:\Users\samahalabo\Desktop\5-clips\DS-
 
     if not os.path.isfile(file_path):
+        print("not a file")
         return
 
     overlaid = overlay_FRAMES(file_path, working_directory,center=True)
     os.startfile(overlaid)
     fill = ""
     while True:
-        times = askstring("Enter the trim times (start.end) in seconds, separated by periods.",fill=fill).split(".")
+        times = askstring("Enter the trim times (start.end) in seconds, separated by periods.",title=f"{os.path.basename(file_path)}",fill=fill).split(".")
         fill = ".".join(times)
         if not times:
             return
