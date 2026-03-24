@@ -7,11 +7,39 @@ from extractpng import extractpng
 from frameoverlay import overlay_FRAMES
 from markersquick import apply_png_overlay
 from newtrim import trim_DS_auto
-from LabGym.tools import preprocess_video # type: ignore
 import sys
 
 
-functions = [trim_DS_auto,apply_png_overlay,concatenate,extractpng,overlay_FRAMES,preprocess_video]
+functions = [trim_DS_auto,apply_png_overlay,concatenate,extractpng,overlay_FRAMES]
+
+from LabGym.analyzebehavior import AnalyzeAnimal
+def generate_examples(video_path, output_folder, length=3):
+    """
+    Uses LabGym's AnalyzeAnimal class to generate examples of minimal length.
+    """
+    
+    # 1. Initialize the class
+    aa = AnalyzeAnimal()
+    
+    # 2. Prepare the parameters. We set length=3 as the minimum frame requirement.
+    # Note: animal_number determines how many objects are tracked
+    aa.prepare_analysis(
+        path_to_video=video_path,
+        results_path=output_folder,
+        animal_number=1, # Change if you have more than 1 animal
+        length=length,   # Minimum 3 frames
+        categorize_behavior=False, # We just want generation, not classification
+        animation_analyzer=False,
+    )
+    
+    # 3. Generate the data
+    # skip_redundant=1 means it will generate an example clip for every frame step
+    # background_free=True isolates the animal, making the background black
+    aa.generate_data(background_free=True, black_background=True, skip_redundant=1)
+    
+    print(f"Finished generating {length}-frame examples in {output_folder}")
+
+
 def queue():
     functions_str:list[str] = [str(func).split(" ")[1] for func in functions] 
     ind = simple_dropdown(functions_str,return_index=True)
@@ -49,13 +77,6 @@ def queue():
         for group in videos:
             trim_DS_auto(group,which=which,first=first_cue,start_time=starttime) # DS+ first specified for predictable light order. Change for DS+/DS- first unpredictable
             count += len(group)
-    elif sel_name == "preprocess_video":
-        sortedpath = find_folder_path("7-SORTED")
-        for group in videos:
-            output_folder = makefolder(sortedpath,os.path.dirname(os.path.dirname(group[0])))
-            for vid in group:  
-                preprocess_video(vid,output_folder=output_folder,framewidth=False)
-                count +=1
     else:
         for group in videos:
             output_folder = makefolder(group[0],"Processed videos-")
