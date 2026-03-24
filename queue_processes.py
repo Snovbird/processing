@@ -49,7 +49,7 @@ def queue():
         for group in videos:
             output_folder = makefolder(group[0],"Processed videos-")
             for vid in group:  
-                exec(f"{sel}(vid,output_folder=r'{output_folder}')")
+                sel(vid, output_folder=output_folder)
                 count +=1
     return count,sel_name
             

@@ -2,7 +2,7 @@ import json, os, pandas
 from common.common import select_anyfile,msgbox,error,list_folders,select_folder,list_folderspaths,avg,list_files,letter,check,path_exists
 from excel.writer_complex import writer_complex 
 from excel.general import fit_columns,excel_to_list
-from excel.export import export_excel
+from excel.outdated.export import export_excel
 
 def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, int]]]:
     """
