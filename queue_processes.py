@@ -1,4 +1,4 @@
-# necessary
+#! py -3.10
 from common.common import *
 import wx,os
 # Queue-able processes
@@ -7,7 +7,11 @@ from extractpng import extractpng
 from frameoverlay import overlay_FRAMES
 from markersquick import apply_png_overlay
 from newtrim import trim_DS_auto
-functions = [trim_DS_auto,apply_png_overlay,concatenate,extractpng,overlay_FRAMES]
+from LabGym.tools import preprocess_video # type: ignore
+import sys
+
+
+functions = [trim_DS_auto,apply_png_overlay,concatenate,extractpng,overlay_FRAMES,preprocess_video]
 def queue():
     functions_str:list[str] = [str(func).split(" ")[1] for func in functions] 
     ind = simple_dropdown(functions_str,return_index=True)
@@ -45,6 +49,13 @@ def queue():
         for group in videos:
             trim_DS_auto(group,which=which,first=first_cue,start_time=starttime) # DS+ first specified for predictable light order. Change for DS+/DS- first unpredictable
             count += len(group)
+    elif sel_name == "preprocess_video":
+        sortedpath = find_folder_path("7-SORTED")
+        for group in videos:
+            output_folder = makefolder(sortedpath,os.path.dirname(os.path.dirname(group[0])))
+            for vid in group:  
+                preprocess_video(vid,output_folder=output_folder,framewidth=False)
+                count +=1
     else:
         for group in videos:
             output_folder = makefolder(group[0],"Processed videos-")
@@ -52,7 +63,12 @@ def queue():
                 sel(vid, output_folder=output_folder)
                 count +=1
     return count,sel_name
-            
+
+def main ():
+    pythonver = os.path.dirname(sys.executable)
+    if pythonver != "Python310":
+        error(f"Please run python310 instead of {pythonver}")
+
 if __name__ == "__main__":
     c,sel_name = queue()
     msgbox(f"Successfully used {sel_name} on {c} videos")

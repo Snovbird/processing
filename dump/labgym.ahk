@@ -2,35 +2,6 @@
 
 pythonScriptsDir := StrReplace(A_ScriptDir, "\dump", "")
 
-^+P::
-Run, py "%pythonScriptsDir%\process_recordings.py" 
-return
-^#!L::
-run, explorer.exe "%pythonScriptsDir%"
-return
-!+T::
-; Check if the active window is File Explorer
-    WinGetClass, activeClass, A
-    if (activeClass != "CabinetWClass" && activeClass != "ExploreWClass") {
-        MsgBox, ,TIP, TIP: Focus your recordings folder before pressing 'Ctrl + Shift + P' to start navigating there
-        Run, py "%pythonScriptsDir%\newtrim.py" 
-        return
-    }
-
-    ; Use the Explorer COM object to get the actual path
-    for window in ComObjCreate("Shell.Application").Windows {
-        try {
-            if (window.HWND == WinExist("A")) {
-                fullPath := window.Document.Folder.Self.Path
-                command := "py -3.10 """ pythonScriptsDir "\newtrim.py"" """ fullPath """"
-                ; MsgBox, For debugging, the command is:`n%command% ; <-- UNCOMMENT THIS LINE TO DEBUG
-                Run, % command
-                return
-            }
-        }
-    }
-    ; MsgBox, 16, Error, Could not retrieve the folder path from File Explorer.
-return
 ^!+q::
     run, "%A_ScriptDir%/move_keys.ahk"
 Return
