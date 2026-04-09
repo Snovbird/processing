@@ -1,48 +1,13 @@
 import json, os, pandas
-from common.common import *
+from common.common import select_anyfile,msgbox,error,list_folders,select_folder,list_folderspaths,avg,list_files,letter,check,path_exists
 from excel.writer_complex import writer_complex 
 from excel.general import fit_columns,excel_to_list
 from excel.outdated.export import export_excel
 
-
-def step0_pair_detectorExcels_analysisExcel(detectorExcels_folder:str, analysisExcels_folder:str) -> list[tuple[str,str]]:
+def detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, int]]]:
     """
-    Returns:
-        {"analysisExcel_path.xlsx" : ["cue1.xlsx", "cue2.xlsx", ...], ...}
-
-    """
-    
-
-    paired_excels = {}
-    while True:
-        for analysisFolder, detectorFolder in zip(list_folderspaths(analysisExcels_folder), list_folderspaths(detectorExcels_folder)):
-            if analysis_xlsx_list != list_files_ext(analysisFolder, "xlsx") or detector_xlsx_list != list_files_ext(detectorFolder, "xlsx"):
-                raise(Exception(f"'{os.path.basename(analysisFolder)}' and '{os.path.basename(detectorFolder)}' do not contain the same detected objects. \nPlease check that the folders are all detection results in '{detectorExcels_folder}'"))
-            analysis_xlsx_list = list_files_ext(analysisFolder, "xlsx")
-            detector_xlsx_list = list_files_ext(detectorFolder, "xlsx")
-            if len(analysis_xlsx_list) > 1 and len(detector_xlsx_list) == 1: # mixed up the two
-                error("Next time, choose the analysis results folder first, then the detector results folder","WARNING")
-                saved_ana = analysisExcels_folder
-                analysisExcels_folder:str = detectorExcels_folder
-                detectorExcels_folder:str = saved_ana
-                break
-                
-            
-            if os.path.basename(analysisFolder) != os.path.basename(detectorFolder):
-                raise(Exception(f"'{os.path.basename(analysisFolder)}' and '{os.path.basename(detectorFolder)}' are not the same video name. \nPlease check that the folders in '{analysisExcels_folder}' and '{detectorExcels_folder}' are the same."))
-            paired_excels[os.path.join(analysisFolder, analysis_xlsx_list[0])] = [os.path.join(detectorFolder, f) for f in list_files_ext(detectorFolder, "xlsx")]
-        else:
-            break
-
-    objects_in_detector = [object.replace("_all_centers.xlsx","") for object in detector_xlsx_list]
-    return paired_excels, objects_in_detector
-
-def step1_detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, int]]]:
-    """
-
     Returns: 
-        keys are object names
-        {"cue CS+": [
+        {"Object_name": [
             {"first_frame": ..., "frame_duration": ..., "last_frame": ...},
             ...
             ]}
@@ -50,7 +15,7 @@ def step1_detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict
     detector_data = {}
     try:
         df = pandas.read_excel(excel_path, sheet_name=None)  # Read all sheets
-        object_name = os.path.basename(excel_path).replace("_all_centers.xlsx", "") # ex: "lever_right_all_centers.xlsx" -> "FNCL"
+        object_name = os.path.splitext(os.path.basename(excel_path))[0]
         
         for sheet_df in df.values():
             events = []
@@ -127,70 +92,6 @@ def step1_detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict
     
     return detector_data
 
-def determine_interval_times_from_detector(detector_data: dict[str, list[dict[str, int]]],cues=["light_BL","light_BR","light_FR"],min_detection_duration_frames=3) -> dict[str, list[dict[str, int]]]:
-    """
-    min_detection_duration_frames: minimum (>=) number of frames of presence to be considered a valid interval (ex: 3 frames = 0.2 seconds at 15 fps)
-    """
-    
-    cue_presence = {}
-    lever_presence = [] # lever names do not matter
-    for object_name, groups in detector_data.items():
-        if object_name in cues:
-            cue_presence[object_name] = groups
-        elif "lever" in object_name:
-            lever_presence.extend(groups)
-    
-    lever_presence.sort(key=lambda x: x['first_frame']) # sort by first frame of presence
-    lever_presence = [group for group in lever_presence if group['frame_duration'] >= min_detection_duration_frames] # remove short detections
-    
-    def add_durations(group1,group2):
-        first_frame = min(group1['first_frame'], group2['first_frame'])
-        last_frame = max(group1['last_frame'], group2['last_frame'])
-        frame_duration = last_frame - first_frame + 1
-        return {"first_frame": first_frame, "last_frame": last_frame, "frame_duration": frame_duration}
-
-    # combine/ignore intersecting lever presence
-    lever_presence = [add_durations(group, lever_presence[group_number+1]) # tldr: add durations if 2nd group ends after current group
-                      if group_number + 1 < len(lever_presence) 
-                      # if there is a next group
-                      and lever_presence[group_number+1]["last_frame"] >= group["first_frame"] 
-                      # and next group starts before current ends
-                      and lever_presence[group_number+1]["first_frame"] <= group["last_frame"] 
-                      # and next group ends after current starts (needs extending)
-                      else group 
-                      # otherwise keep current group that does not intersect with anything
-                      for group_number, group in enumerate(lever_presence) 
-                      if group_number == 0 or not (lever_presence[group_number-1]['last_frame'] >= group['first_frame'] # if current group starts after and ends before previous ends, ignore
-                              and lever_presence[group_number-1]['first_frame'] <= group['last_frame'])
-                              ] 
-    
-
-    intervals = []
-    for cue, cue_groups in cue_presence.items():
-        for cuegroup in cue_groups:
-            for lever_groups in lever_presence:
-                for lever_group in lever_groups:
-                    if cuegroup['last_frame'] < lever_group['first_frame']:
-                        break # cue turns OFF --> no need to continue iterating through lever extensions 
-                    elif cuegroup['first_frame'] > lever_group['last_frame']:
-                        continue # the lever retracted before the cue becomes illuminated --> move to next extension
-                        
-                    if cuegroup['first_frame'] <= lever_group['first_frame'] < cuegroup['last_frame']: # if lever is present during the cue presence
-                        prime_interval_start = cuegroup['first_frame']
-                        trial_interval_start = lever_group['first_frame'] 
-                        trial_interval_end = cuegroup['last_frame']
-
-                        intervals.append({"interval":f"{cue} prime", "first_frame": prime_interval_start, "last_frame": trial_interval_start})
-
-                        intervals.append({"interval":f"{cue} trial", "first_frame": trial_interval_start, "last_frame": trial_interval_end})
-
-    intervals.sort(key=lambda x: x['first_frame']) # sort by first frame of interval
-    
-    #cleanup short lever presence?
-
-    return intervals
-
-
 def group_remove_2NA(list_of_behaviors_strings:list[str]):
     """
     Group consecutive identical elements and removes consecutive 2 "NA"
@@ -228,6 +129,74 @@ def group_remove_2NA(list_of_behaviors_strings:list[str]):
     result.append({"behavior": current_item, "frame_duration": current_count, "first_frame": len(list_of_behaviors_strings) - current_count + 1})
     
     return result
+
+def find_missing_counts(list_of_grouped_behaviors: list[dict[str, str | int]]) -> tuple[dict[str, list[str, int]], set[str]]:
+    behaviors_missed: dict[str, list[str, int]] = {}
+    cues = set()
+    
+    for n, bv_set in enumerate(list_of_grouped_behaviors):
+        behavior = bv_set['behavior']
+        
+        # Extract cue from any behavior type
+        for behavior_type in ["Interaction", "Approach", "Orient"]:
+            if behavior.startswith(behavior_type):
+                cue = behavior.replace(behavior_type, "")
+                cues.add(cue)
+                break
+        else:
+            continue  # Skip if behavior doesn't match any type
+        
+        # Process Interaction behaviors
+        if behavior.startswith("Interaction"):
+            missing_behaviors = []
+            
+            # Check for missing Approach
+            if n > 0:
+                last_behavior = list_of_grouped_behaviors[n-1]['behavior']
+                last_cue = last_behavior.replace("Interaction", "").replace("Approach", "").replace("Orient", "")
+                
+                if not last_behavior.startswith('Approach') or cue != last_cue:
+                    missing_behaviors.append(f"Approach{cue} NOT QUANTIFIED")
+                    
+                    # Check for missing Orient (two positions ago)
+                    if n > 1:
+                        two_ago_behavior = list_of_grouped_behaviors[n-2]['behavior']
+                        two_ago_cue = two_ago_behavior.replace("Orient", "").replace("Approach", "").replace("Interaction", "")
+                        
+                        if not two_ago_behavior.startswith('Orient') or two_ago_cue != cue:
+                            missing_behaviors.append(f"Orient{cue} NOT QUANTIFIED")
+            else:
+                # First behavior is interaction - both approach and orient are missing since no cues BEFORE
+                missing_behaviors.extend([f"Approach{cue} NOT QUANTIFIED", f"Orient{cue} NOT QUANTIFIED"])
+            
+            # Add missing behaviors to the count
+            for missing_behavior in missing_behaviors:
+                if missing_behavior not in behaviors_missed:
+                    behaviors_missed[missing_behavior] = ["Count", 1]
+                else:
+                    behaviors_missed[missing_behavior][1] += 1
+        
+        # Process Approach behaviors
+        elif behavior.startswith("Approach"):
+            if n > 0:
+                last_behavior = list_of_grouped_behaviors[n-1]['behavior']
+                last_cue = last_behavior.replace("Approach", "").replace("Orient", "").replace("Interaction", "")
+                
+                if not last_behavior.startswith('Orient') or cue != last_cue:
+                    missing_behavior = f"Orient{cue} NOT QUANTIFIED"
+                    if missing_behavior not in behaviors_missed:
+                        behaviors_missed[missing_behavior] = ["Count", 1]
+                    else:
+                        behaviors_missed[missing_behavior][1] += 1
+            else:
+                # First behavior is approach - orient is missing
+                missing_behavior = f"Orient{cue} NOT QUANTIFIED"
+                if missing_behavior not in behaviors_missed:
+                    behaviors_missed[missing_behavior] = ["Count", 1]
+                else:
+                    behaviors_missed[missing_behavior][1] += 1
+
+    return behaviors_missed, cues
 
 def get_countsandduration(grouped_list:list[dict[str,str | int]]) -> dict[str, dict[str,str | int]]:
     """
@@ -311,36 +280,88 @@ def lists_for_export(cd_list:dict,behaviors_in_final_output:list[str]) -> dict[s
                 ]
     return clean
 
-def export_to_excel(input_dict, output_name:str):
-    """
-    reorganize behavior counts, latencies and durations for each cage into an excel where sheets are behaviors and columns are "Count", "Duration (s)", "Latencies (s)" for each cue
-    """
-    input_dict = {"sessionname" : 
-                  {"cage 3" {"date"}
-                  }
 
 def main():
-    detectorExcels_folder = select_folder("Select folder containing detection result folders")
-    if not detectorExcels_folder:
-        return
-    analysisExcels_folder = select_folder("Select folder containing analysis excels (ex: all_events.xlsx)")
-    if not analysisExcels_folder:
-        return
+    while True: # find right excel sheet
+        xlsx_path:str = select_anyfile("Find the excel file containing data", specific_ext="xlsx")[0]
+        if not xlsx_path:
+            return
+        if os.path.basename(xlsx_path) == "all_events.xlsx":
+            break
+        elif os.path.basename(xlsx_path) == "1_RAT_all_event_probability.xlsx":
+            pass # different treatment since data in column 2 ( [1] ) is formatted with strings like "['behavior','probability']" # future implementation
+        else:
+            error(f"'{os.path.basename(xlsx_path)}' is not the correct file.\nSelect 'all_events.xlsx' or '1_RAT_all_event_probability.xlsx'")
 
-    paired_analysisExcel_detectorExcels, object_names = step0_pair_detectorExcels_analysisExcel(detectorExcels_folder, analysisExcels_folder)
-    for analysisExcel, detectorExcels in paired_analysisExcel_detectorExcels.items():
-        detector_data = {}
-        for det_excel in detectorExcels:
-            if det_excel.endswith(".xlsx"):
-                detector_data.update(step1_detector_excel_to_object_times(det_excel))
+    if os.path.basename(xlsx_path) == "all_events.xlsx":
         
-        interval_times = determine_interval_times_from_detector(detector_data)
-        # future implementation: use interval times to adjust the analysis Excel data (ex: all_events.xlsx) and export a new Excel sheet with adjusted data (ex: "all_events_adjusted.xlsx")
+        video_names = list_folders(os.path.dirname(xlsx_path))
+        folder_of_detection = select_folder("Select folder containing detection result folders")
 
+        if not folder_of_detection:
+            return 
+        #minimum_probability = askint("Enter required probability out of 100","Minimum probability")
+        columns_list_with_probabilities:list[ list[str, int] ] = excel_to_list(xlsx_path)
+        columns_list_with_probabilities.pop(0) # remove timestamps column
+        # list_of_columns = [[behavior if float(probability) >= minimum_probability else "NA" 
+        #              for behavior, probability in video_column] for video_column in columns_list_with_probabilities]
+        columns_list: list[str] = [[behavior_and_prob[0] for behavior_and_prob in col] for col in columns_list_with_probabilities] # only behaviors, remove probabilities
+        behaviors:list[str] = list_folders(list_folderspaths(os.path.dirname(xlsx_path))[0])
+        behaviors_in_final_output = check(behaviors,"Select behaviors to obtain count, duration and latencies (if evoked by cue presence)","Behaviors of interest")
+        corrected_data: dict[str, dict [str, list[dict[str,str | int]]]] = {}
 
+        for video_name, column in zip(video_names,columns_list):
+            
+            grouped:list[dict[str,str | int]] = group_remove_2NA(column)
 
+            NO_NA_list = [group for group in grouped if group['behavior'] != "NA"]
+            
+            cd_list:dict[str, dict[str, str | int] ] = get_countsandduration(NO_NA_list)
+            missing_counts, cues = find_missing_counts(NO_NA_list)
+            cues = list(map(letter,cues)) # remove spaces from cue names
+
+            detection_excels = os.path.join(folder_of_detection,video_name)
+            detection:dict[str, list[dict[str,int]]] = {} 
+            for det_excel in list_files(detection_excels):
+
+                if det_excel.endswith(".xlsx") and det_excel.split("_")[0] in cues: # is the name "FNCL_all_centers.xlsx" for example
+                    detection.update(detector_excel_to_object_times(os.path.join(detection_excels,det_excel)))
+            
+            evoked_behaviors = {properties['behavior']: properties['behavior'].split()[-1] for properties in NO_NA_list if properties['behavior'].split()[-1] in cues}
+            # add latencies using 
+
+            add_and_remove_latencies_in_dict(cd_list,detection,evoked_behaviors)
+
+            corrected_data[video_name] = lists_for_export(cd_list,behaviors_in_final_output)
+            corrected_data[video_name].update(missing_counts)
         
-    
+        final = {}
+        # Before calling writer_complex, normalize all list lengths using empty strings (different lengths = error)
+        for video_name in corrected_data:
+            max_length = max(len(behavior_list) for behavior_list in corrected_data[video_name].values()) # a generator object IS an iterable (for max fct)
+            first_col = {'': ['' if i <= 4 else f"Trial {i -5 +1}:" for i in range(max_length)]}
+            final[video_name] = {}
+            final[video_name].update(first_col)
+            
+            for behavior_name in corrected_data[video_name]:
+                current_list = corrected_data[video_name][behavior_name]
+                while len(current_list) < max_length:
+                    current_list.append("")  # Pad with empty strings
+            final[video_name].update(corrected_data[video_name])
+
+    outpath = os.path.join(os.path.dirname(xlsx_path),"CORRECTED DATA.xlsx")
+    c = 1
+    while path_exists(outpath):
+        c+= 1
+        outpath = os.path.join(os.path.dirname(xlsx_path),f"CORRECTED DATA-{c}.xlsx")
+
+    writer_complex(final,outpath)
+
+    os.startfile(os.path.dirname(xlsx_path))
+
+def main():
+    msgbox(detector_excel_to_object_times(r"C:\Users\matts\Downloads\testdetect.xlsx"))
+
 
 if __name__ == "__main__":
     main()
