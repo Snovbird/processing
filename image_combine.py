@@ -71,11 +71,11 @@ def resize_img(imgpath,width,height=None,output_suffix="_resized",output_folder=
     
     img = Image.open(imgpath)
 
-    img.resize( (width,height))
+    resized_img = img.resize((width,height))
     if not output_folder or not is_dir(output_folder) :
         output_folder = os.path.dirname(imgpath)
     outputpath = os.path.join(output_folder,f"{os.path.splitext(os.path.basename(imgpath))[0]}{output_suffix}.png")
-    img.save(outputpath, "PNG", optimize=True, compress_level=6)
+    resized_img.save(outputpath, "PNG", optimize=True, compress_level=6)
 
 
 

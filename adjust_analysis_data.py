@@ -1,17 +1,15 @@
 from common.common import grid_selector
 import json, os, pandas
 from common.common import *
-from excel.writer_complex import writer_complex 
-from excel.general import fit_columns,excel_to_list
-from excel.outdated.export import export_excel
 
-
-def step0_pair_detectorExcels_analysisExcel(detectorResults_folder:str, analysisResults_folder:str) -> list[tuple[str,str]]:
+def step0_pair_detectorExcels_analysisExcel(detectorResults_folder:str, analysisResults_folder:str) -> list[tuple[dict[str,],str]]:
     """
-    Returns a tuple of ( {"analysisExcel_path.xlsx" : ["cue1.xlsx", "cue2.xlsx", ...], ...}, (obj1,obj2,...) )
+    Returns a tuple of a dictionnary where the key is the analysis excel path and the value is a list of object detection results excel paths
+    paired with a list of detection object names
+    ( {"analysisExcel_path.xlsx" : ["cue1.xlsx", "cue2.xlsx", ...], ...}, (obj1,obj2,...) )
     """
     
-    paired_excels = {}
+    paired_excels:dict[str,list[str]] = {}
     while True:
         for analysisFolder, detectorFolder in zip(list_folderspaths(analysisResults_folder), list_folderspaths(detectorResults_folder)):
             if analysis_xlsx_list != list_files_ext(analysisFolder, "xlsx") or detector_xlsx_list != list_files_ext(detectorFolder, "xlsx"):
@@ -24,7 +22,6 @@ def step0_pair_detectorExcels_analysisExcel(detectorResults_folder:str, analysis
                 analysisResults_folder:str = detectorResults_folder
                 detectorResults_folder:str = saved_ana
                 break
-                
             
             if os.path.basename(analysisFolder) != os.path.basename(detectorFolder):
                 raise(Exception(f"'{os.path.basename(analysisFolder)}' and '{os.path.basename(detectorFolder)}' are not the same video name. \nPlease check that the folders in '{analysisResults_folder}' and '{detectorResults_folder}' are the same."))
