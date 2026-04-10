@@ -1,4 +1,4 @@
-from common.common import select_folder, windowpath,askstring,custom_dialog,select_anyfile,is_dir
+from common.common import *
 import os
 '''
     Args: folder directory or selected files (any type)

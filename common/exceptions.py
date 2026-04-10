@@ -5,3 +5,7 @@ class ImageNotFoundError(Exception):
 class FileDialogExit(Exception): # won't be used for now since currently loops use "None" returned to break out → we don't want program to end prematurely
     """User exitted the file explorer, so stop program"""
     pass
+
+class CancelledDialog(Exception):
+    """User exitted a dialog window, so stop program"""
+    pass

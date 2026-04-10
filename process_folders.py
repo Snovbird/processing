@@ -5,7 +5,7 @@ from concatenate import concatenate, group_files_by_digits
 from photo_carrousel import photo_carrousel
 from image_combine import combine_and_resize_images
 from extractpng import extractpng
-from markersquick import apply_png_overlay,find_imgpath_overlay_date
+from markersquick import apply_png_overlay,find_overlay_path
 from newtrim import trim_DS_auto
 def group_by_date_and_sessionTime(videos_folderpath: str,max_pause=15,warn_for_lost_time=False) -> dict[str, list[list[str]]]:
     """
@@ -173,7 +173,7 @@ class process_recordings():
             basename = os.path.splitext(os.path.basename(photopath))[0]
             cage_string, date, *_ = basename.split("-")
             cage_number = "".join([i for i in cage_string if i.isdigit()])
-            overlay = find_imgpath_overlay_date(date,room=self.room,cage_number=cage_number)
+            overlay = find_overlay_path(date,room=self.room,cage_number=cage_number)
 
             outpath = os.path.dirname(photopath)
 

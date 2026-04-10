@@ -204,5 +204,5 @@ def main():
         os.startfile(output_folder)
 
 if __name__ == "__main__":
-    trim_DS_auto(file_paths=select_video(),first="DS+")
-    # main()
+    # trim_DS_auto(file_paths=select_video(),first="DS+")
+    main()

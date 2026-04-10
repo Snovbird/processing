@@ -3,7 +3,7 @@ from common.common import *
 
 def trim_collect(vid:str,pss_string:str,true=None):
     if findval("which_DS") == False:
-        cue = custom_dialog(msg="Select cue", title="Cue folder", op1="DS-", op2="DS+")
+        cue = custom_dialog(msg="Select cue", title="Cue folder", op1="DS-", op2="DS+",op3="CS+")
         if not cue:
             return
         assignval("which_DS", cue)
@@ -89,7 +89,7 @@ def main():
         error(f"Not a file:\n{vid}")
         return
     if findval("which_DS") == False:
-        cue = custom_dialog(msg="Select cue", title="Cue folder (T)", op1="DS-", op2="DS+")
+        cue = custom_dialog(msg="Select cue", title="Cue folder (T)", op1="DS-", op2="DS+",op3="CS+")
         if not cue:
             return
         assignval("which_DS", cue)
@@ -121,11 +121,8 @@ def adjust(pss_string:str) -> str:
 if __name__ == "__main__":
     
     if False: # add manually
-        
         path = None 
-
         pss_string = None
-
         trim_collect(vid,adjust(pss_string))
         both_times:list = pss_string.split(".")
     else:

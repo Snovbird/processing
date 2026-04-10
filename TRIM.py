@@ -145,7 +145,7 @@ def main():
             print("No file selected. Exiting...")
             return
         
-        start_times = remove_other(askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Enter Start Time(s)").split("."))
+        start_times = [remove_other(i) for i in askstring("Start time (HHMMSS or frame number): \nIF MULTIPLE: separate by period (HHMMSS.HHMMSS):","Enter Start Time(s)").split(".")]
         if start_times is None:
             print("Exiting... since start_times is None")
             return
