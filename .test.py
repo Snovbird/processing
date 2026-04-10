@@ -1,6 +1,10 @@
-from LabGym.tools import preprocess_video
+import os
 
-from common.common import *
+a = {"a":[1,2,3]}
 
-for i in range(20):
-    print(i*32)
+for v in a.values():
+    a = [i+2 for i in v]
+    v.clear()
+    v.extend(a)
+    
+print(a)
