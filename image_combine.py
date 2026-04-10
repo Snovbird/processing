@@ -1,6 +1,6 @@
 from PIL import Image, ImageEnhance
 import os
-
+from common.common import is_dir
 def combine_and_resize_images(photo1_path, photo2_path, output_folder=None, 
                             target_width=1024, target_height=768, overlay_opacity=1.0,suffix="_combined"):
     """
@@ -61,7 +61,31 @@ def combine_and_resize_images(photo1_path, photo2_path, output_folder=None,
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
+
+def resize_img(imgpath,width,height=None,output_suffix="_resized",output_folder=None):
+    """
+    resize a png image
+    """
+    if not height:
+        height = width*9//16
     
+    img = Image.open(imgpath)
+
+    img.resize( (width,height))
+    if not output_folder or not is_dir(output_folder) :
+        output_folder = os.path.dirname(imgpath)
+    outputpath = os.path.join(output_folder,f"{os.path.splitext(os.path.basename(imgpath))[0]}{output_suffix}.png")
+    img.save(outputpath, "PNG", optimize=True, compress_level=6)
+
+
+
+
 if __name__ == "__main__":
     from common.common import select_anyfile,select_folder
-    combine_and_resize_images(select_anyfile()[0],select_anyfile()[0],select_folder())
+    
+    videos = select_anyfile()
+    outpath = select_folder()
+
+    for vidpath in videos:
+        resize_img(vidpath,1440,output_folder=outpath)
+

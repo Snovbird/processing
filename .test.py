@@ -1,4 +1,2 @@
 import os
-
-for i in range(50):
-    print(i*32)
+print(1440*9//16)
