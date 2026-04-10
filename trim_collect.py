@@ -121,11 +121,8 @@ def adjust(pss_string:str) -> str:
 if __name__ == "__main__":
     
     if False: # add manually
-        
         path = None 
-
         pss_string = None
-
         trim_collect(vid,adjust(pss_string))
         both_times:list = pss_string.split(".")
     else:

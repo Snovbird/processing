@@ -23,7 +23,9 @@ def resize_width(input_path,width:int,output_folder=None):
 
     if not output_folder:
         output_folder = file_dir
-    output_path = os.path.join(output_folder, f"{file_name}-RESIZED{width}.mp4")
+        output_path = os.path.join(output_folder, f"{file_name}-RESIZED{width}.mp4")
+    else:
+        output_path = os.path.join(output_folder, f"{file_name}.mp4")
     
     try:
         cmd = [
@@ -51,7 +53,7 @@ def resize_width(input_path,width:int,output_folder=None):
 
 def main():
     
-    file_paths = select_anyfile("Select video file(s) to resize", filetypes=".mp4")
+    file_paths = select_anyfile("Select video file(s) to resize", specific_ext="mp4")
     if not file_paths:
         print("No file selected. Exiting...")
         return

@@ -38,8 +38,7 @@ def main():
 
     overlaid = overlay_FRAMES(file_path, working_directory,center=True)
     os.startfile(overlaid)
-    fill = "" # save input if len(starts) != len(ends) to ask question again
-
+    fill = ""
     toprocess = []
     snippet_number = 1
     while True:
@@ -51,8 +50,10 @@ def main():
         times=times.split(".")
         starts = [i for n, i in enumerate(times) if n % 2 == 0]
         ends = [i for n,i in enumerate(times) if n % 2 != 0]
+        fill = ""
         if len(starts) != len(ends):
             print("Please enter same number of start and end times.")
+            fill = ".".join(times)
             continue
 
         for start, end in zip(starts, ends):
@@ -81,12 +82,10 @@ def main():
                 break
             snippet_number += 1
             behavior_folder = behavior_name_path.get(behavior)
-            toprocess.append({(start, end): behavior_folder})
+            toprocess.append(((start, end), behavior_folder))
 
     
-    for time_and_folder in toprocess:
-        time, behavior_folder = time_and_folder.items()
-        start, end = time
+    for (start,end),behavior_folder in toprocess:
         trim_frames(input_path=file_path, output_folder=behavior_folder, start_time=start, end_time=end, show_terminal=False,all_name_with_timestamps=True)
 
     for folderpath in list_folderspaths(initial_dir):
