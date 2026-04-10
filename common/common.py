@@ -704,7 +704,7 @@ def assignval(valuename:str,value):
     except Exception as e:
         print(f"Failed to assign {value} to {valuename}.\nError: {e}")
 
-# ************************* Video Time and time Format *************************
+# ************************* Video CV2 functions *************************
 
 def get_duration(video_path: str) -> tuple[float, str] | None:
     """
@@ -718,84 +718,32 @@ def get_duration(video_path: str) -> tuple[float, str] | None:
     """
     import cv2
     import datetime
-
-    # Check if file exists
-    if not os.path.isfile(video_path):
-        print(f"Error finding video duration: File '{video_path}' does not exist")
-        return None
         
-    # Create video capture object
     video = cv2.VideoCapture(video_path)
-    
-    # Check if video opened successfully
-    if not video.isOpened():
-        error(f"Could not find duration for video. Unable to open: '{video_path}'")
-        return None
     
     # Count the number of frames
     frames = video.get(cv2.CAP_PROP_FRAME_COUNT)
     fps = video.get(cv2.CAP_PROP_FPS)
     
-    # Calculate duration in seconds
     seconds = frames / fps
     
     # Format time as HH:MM:SS (keep the colons!)
     formatted_time = str(datetime.timedelta(seconds=int(seconds)))
     
-    # Release the video object
     video.release()
-    
     return frames, seconds, formatted_time
 
-def hhmmss_to_seconds(time_str:str) -> int:
-    """Convert HHMMSS string to total seconds"""
-    # Ensure the string is 6 characters long (pad with leading zeros if needed)
-    if type(time_str) != str:
-        try:
-            str(time_str)
-        except Exception as e:
-            error("Error wrong input:", str(e))
-            return
-    
-    # runs anyway 
-    time_str = time_str.zfill(6)
-    
-    # Extract hours, minutes, seconds
-    hours = int(time_str[0:2])
-    minutes = int(time_str[2:4])
-    seconds = int(time_str[4:6])
-    
-    # Convert to total seconds
-    total_seconds = hours * 3600 + minutes * 60 + seconds
-    return total_seconds
-    
-def seconds_to_hhmmss(seconds:int) -> str:
-    """Convert seconds to HHMMSS string format"""
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    remaining_seconds = seconds % 60
-    
-    hhmmss_string = f"{hours:02d}{minutes:02d}{remaining_seconds:02d}".zfill(6)
-
-    return hhmmss_string
-
-def format_time_colons(time_input:str) -> str:
+def get_dimensions(video_path:str) -> tuple[int,int]:
     """
-    Format the time input to HH:MM:SS.
-    
-    Args:
-        time_input (str): The input time as a string without colons.
-    
     Returns:
-        str: Formatted time as HH:MM:SS.
+        A tuple of integer dimensions as (width,height)
     """
-    time_input = time_input.strip()
-    
-    if time_input.isdigit():
-        time_input = time_input.zfill(6) # or f"{time_input:06d}" would've also worked IF WE HAD AN INTEGER AND NOT A STRING
-        return f"{time_input[:-4]}:{time_input[-4:-2]}:{time_input[-2:]}"
-    else:
-        return time_input  # Return the original input if it's not valid
+    import cv2
+    video = cv2.VideoCapture(video_path)
+    width = video.get(cv2.CAP_PROP_FRAME_WIDTH)
+    height = video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    video.release()
+    return int(width), int(height)
 
 # ************************* os functions *************************
 
@@ -929,6 +877,56 @@ def walk_delete(folder_path:str):
         print(f"Failed to delete folder {folder_path}: {e}")
 
 # ************************* Str input and str output *************************
+
+def hhmmss_to_seconds(time_str:str) -> int:
+    """Convert HHMMSS string to total seconds"""
+    # Ensure the string is 6 characters long (pad with leading zeros if needed)
+    if type(time_str) != str:
+        try:
+            str(time_str)
+        except Exception as e:
+            error("Error wrong input:", str(e))
+            return
+    
+    # runs anyway 
+    time_str = time_str.zfill(6)
+    
+    # Extract hours, minutes, seconds
+    hours = int(time_str[0:2])
+    minutes = int(time_str[2:4])
+    seconds = int(time_str[4:6])
+    
+    # Convert to total seconds
+    total_seconds = hours * 3600 + minutes * 60 + seconds
+    return total_seconds
+    
+def seconds_to_hhmmss(seconds:int) -> str:
+    """Convert seconds to HHMMSS string format"""
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    remaining_seconds = seconds % 60
+    
+    hhmmss_string = f"{hours:02d}{minutes:02d}{remaining_seconds:02d}".zfill(6)
+
+    return hhmmss_string
+
+def format_time_colons(time_input:str) -> str:
+    """
+    Format the time input to HH:MM:SS.
+    
+    Args:
+        time_input (str): The input time as a string without colons.
+    
+    Returns:
+        str: Formatted time as HH:MM:SS.
+    """
+    time_input = time_input.strip()
+    
+    if time_input.isdigit():
+        time_input = time_input.zfill(6) # or f"{time_input:06d}" would've also worked IF WE HAD AN INTEGER AND NOT A STRING
+        return f"{time_input[:-4]}:{time_input[-4:-2]}:{time_input[-2:]}"
+    else:
+        return time_input  # Return the original input if it's not valid
 
 def wrap(text_input:str,text_to_wrap:str) -> str:
     '''

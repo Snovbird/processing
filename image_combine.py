@@ -66,12 +66,14 @@ def resize_img(imgpath,width,height=None,output_suffix="_resized",output_folder=
     """
     resize a png image
     """
-    if not height:
-        height = width*9//16
-    
     img = Image.open(imgpath)
 
-    resized_img = img.resize((width,height))
+    if not height:
+        # Automatically calculate height to maintain the image's original aspect ratio
+        height = int(width * (img.height / img.width))
+    
+    # Use LANCZOS resampling for high quality, matching combine_and_resize_images
+    resized_img = img.resize((width, height), Image.Resampling.LANCZOS)
     if not output_folder or not is_dir(output_folder) :
         output_folder = os.path.dirname(imgpath)
     outputpath = os.path.join(output_folder,f"{os.path.splitext(os.path.basename(imgpath))[0]}{output_suffix}.png")
