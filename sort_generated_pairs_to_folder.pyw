@@ -12,10 +12,7 @@ def main():
 
     parents_in_parent = [folderpath for folderpath in list_folderspaths(find_folder_path("6-GENERATED EXAMPLES")) if len(list_folders(folderpath)) > 0]
     for n, parent in enumerate(parents_in_parent): # parents inside bigger parent folder "6-GENERATED EXAMPLES"
-        if os.path.basename(parent) in destinations:
-            dtn = os.path.join(dir7,os.path.basename(parent))
-        else:
-            dtn = None
+        dtn = os.path.join(dir7,os.path.basename(parent))
         msg = move_files_in_subdir(parent,dtn)
         if not msg:
             return
@@ -24,14 +21,19 @@ def main():
     msgbox("Successfully moved:\n\n"+"\n".join(successes),"Success")
 
 def move_files_in_subdir(parent_dir=None,dtn=None):
-    if not dtn:
-        bv_clips_dir:str = os.path.join(find_folder_path("5-clips"),"DS+")
-        destinations:list[str] = list_folders(bv_clips_dir)
-        dtn:str = dropdown(choices=destinations,title=f"Choose destination for {os.path.basename(parent_dir)}")
-        sorted_dir7 = find_folder_path("7-SORTED")
-        dtn = os.path.join(sorted_dir7,dtn)
-        if not dtn:
-            return
+    """
+    parent_dir: behavior folder containing subfolders with files to move
+    dtn: destination folder to move files to. If the folder does not exist yet, it will be created. If None, the user will be prompted to select a destination folder from the "7-SORTED" directory.
+
+    """
+    # if not dtn:
+    #     bv_clips_dir:str = os.path.join(find_folder_path("5-clips"),"DS+")
+    #     destinations:list[str] = list_folders(bv_clips_dir) # wrong since behavior folders are sub-subfolders
+    #     dtn:str = dropdown(choices=destinations,title=f"Choose destination for {os.path.basename(parent_dir)}")
+    #     sorted_dir7 = find_folder_path("7-SORTED")
+    #     dtn = os.path.join(sorted_dir7,dtn)
+    #     if not dtn:
+    #         return
     
     if not os.path.exists(dtn):
         os.makedirs(dtn)

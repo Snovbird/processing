@@ -8,7 +8,7 @@ def find_done_folder(path = find_folder_path("5-clips"),DS = "DS-",fullpath = No
     if fullpath:
         collectedpath = fullpath
     else:
-        collectedpath = os.path.join(path,f"collected {DS}")
+        collectedpath = os.path.join(path,f".collected {DS}")
     for folderpath in list_folderspaths(collectedpath):
         if "done" in folderpath:
             return folderpath
@@ -17,7 +17,7 @@ def rename_done_folder(path = find_folder_path("5-clips"),DS = "DS-",fullpath = 
     if fullpath:
         collectedpath = fullpath
     else:
-        collectedpath = os.path.join(path,f"collected {DS}")
+        collectedpath = os.path.join(path,f".collected {DS}")
     original_clipspath = os.path.join(collectedpath,"originals")
     original_clips = list_files(original_clipspath)
     for folderpath in list_folderspaths(collectedpath):
@@ -32,7 +32,7 @@ def rename_done_folder(path = find_folder_path("5-clips"),DS = "DS-",fullpath = 
     shutil.move(donepath,os.path.join(collectedpath,newname))
 
 def clips_overlay_missing(path = find_folder_path("5-clips"),DS = "DS-"):
-    collectedpath:str = os.path.join(path,f"collected {DS}")
+    collectedpath:str = os.path.join(path,f".collected {DS}")
     original_clips:list = list_files(os.path.join(collectedpath,"originals"))
 
     currently_overlaid = [i.replace("-overlaid","") for i in list_files(collectedpath)]
@@ -44,5 +44,6 @@ def clips_overlay_missing(path = find_folder_path("5-clips"),DS = "DS-"):
             overlay_FRAMES(os.path.join(collectedpath,"originals",i),collectedpath,append_to_name="")
 
 if __name__ == "__main__":
-    rename_done_folder()
-    clips_overlay_missing()
+    for cue in ["DS-","DS+","CS+"]:
+        rename_done_folder(DS=cue)
+        clips_overlay_missing(DS=cue)

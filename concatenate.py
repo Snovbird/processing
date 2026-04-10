@@ -24,6 +24,8 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
 
         try:
             # STAGE 1: Transcode each file to ensure consistency
+            filespaths_joined = "\n".join(input_files)
+            print(f"Processing files:\n{filespaths_joined}\n\n{output_folder=}")
             for i, file in enumerate(input_files):
                 temp_output = os.path.join(temp_dir, f"temp_{i}.mp4")
                 intermediate_files.append(temp_output)

@@ -7,10 +7,10 @@ from extractpng import extractpng
 from frameoverlay import overlay_FRAMES
 from markersquick import apply_png_overlay
 from newtrim import trim_DS_auto
+from resize import resize_width
 import sys
 
 
-functions = [trim_DS_auto,apply_png_overlay,concatenate,extractpng,overlay_FRAMES]
 
 from LabGym.analyzebehavior import AnalyzeAnimal
 def generate_examples(video_path, output_folder, length=3):
@@ -39,6 +39,7 @@ def generate_examples(video_path, output_folder, length=3):
     
     print(f"Finished generating {length}-frame examples in {output_folder}")
 
+functions = [trim_DS_auto,apply_png_overlay,concatenate,extractpng,overlay_FRAMES,generate_examples,resize_width]
 
 def queue():
     functions_str:list[str] = [str(func).split(" ")[1] for func in functions] 
@@ -77,6 +78,14 @@ def queue():
         for group in videos:
             trim_DS_auto(group,which=which,first=first_cue,start_time=starttime) # DS+ first specified for predictable light order. Change for DS+/DS- first unpredictable
             count += len(group)
+    elif sel_name == "generate_examples":
+        sorted = find_folder_path("7-SORTED")
+        for group in videos:
+            output_folder = makefolder(sorted,os.path.dirname(os.path.dirname(group[0])),start_at_1=False)
+            for vid in group:  
+                sel(vid, output_folder=output_folder)
+                count +=1
+
     else:
         for group in videos:
             output_folder = makefolder(group[0],"Processed videos-")

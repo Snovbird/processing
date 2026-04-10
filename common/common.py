@@ -1,8 +1,9 @@
 import os
 import wx
-
 if __name__ == "__main__":
     from exceptions import *
+else:
+    from .exceptions import *
 # Get the absolute path to the directory containing this file (common.py)
 COMMON_CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_PATH = os.path.dirname(COMMON_CURRENT_DIR)
@@ -11,14 +12,13 @@ SCRIPTS_PATH = os.path.dirname(COMMON_CURRENT_DIR)
 JSON_PATH = os.path.join(COMMON_CURRENT_DIR, 'data.json')
 
 # no need to import modules present in __init__ (will be run first) # NOT SURE ABOUT THAT ACTUALLY
-# answer = CustomDialog(None, title="", message="", option1="", option2="")
 
 def windowpath() -> str:
     import win32gui
     window = win32gui.GetForegroundWindow()
     return str(win32gui.GetWindowText(window)).replace(' - File Explorer','').replace("\\\\","/")
 
-def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple[int,int] = (300, 150)) -> str|None:
+def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple[int,int] = (300, 150),raiseerror:bool=False) -> str|None:
 
     class custom_dialog(wx.Dialog):
         def __init__(self, parent, title, message, option1="Proceed", option2="Skip",option3=None):
@@ -88,7 +88,10 @@ def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple[i
         return dialog.result
     else:
         dialog.Destroy()  # Clean up the dialog
-        return dialog.result
+        if raiseerror:
+            raise CancelledDialog("Cancelled the operation.")
+        else:
+            return dialog.result # None
 
 def select_folder(title="Choose a directory",path='') -> str|None:
     """Show folder selection dialog and return selected path"""
@@ -450,7 +453,7 @@ def find_folder_path(foldername:str) -> str:
     
     def longfind():
         if custom_dialog(f"Cannot find {foldername}, begin full search?","Long search") == "no":
-            return
+            raise Exception(f"Interrupted {foldername} search")
         desktop_path = os.path.expanduser("~")
         for root, dirs, files in os.walk(desktop_path):
             if foldername in dirs:
