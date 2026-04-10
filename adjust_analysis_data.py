@@ -1,3 +1,4 @@
+from common.common import grid_selector
 import json, os, pandas
 from common.common import *
 from excel.writer_complex import writer_complex 
@@ -5,31 +6,28 @@ from excel.general import fit_columns,excel_to_list
 from excel.outdated.export import export_excel
 
 
-def step0_pair_detectorExcels_analysisExcel(detectorExcels_folder:str, analysisExcels_folder:str) -> list[tuple[str,str]]:
+def step0_pair_detectorExcels_analysisExcel(detectorResults_folder:str, analysisResults_folder:str) -> list[tuple[str,str]]:
     """
-    Returns:
-        {"analysisExcel_path.xlsx" : ["cue1.xlsx", "cue2.xlsx", ...], ...}
-
+    Returns a tuple of ( {"analysisExcel_path.xlsx" : ["cue1.xlsx", "cue2.xlsx", ...], ...}, (obj1,obj2,...) )
     """
     
-
     paired_excels = {}
     while True:
-        for analysisFolder, detectorFolder in zip(list_folderspaths(analysisExcels_folder), list_folderspaths(detectorExcels_folder)):
+        for analysisFolder, detectorFolder in zip(list_folderspaths(analysisResults_folder), list_folderspaths(detectorResults_folder)):
             if analysis_xlsx_list != list_files_ext(analysisFolder, "xlsx") or detector_xlsx_list != list_files_ext(detectorFolder, "xlsx"):
-                raise(Exception(f"'{os.path.basename(analysisFolder)}' and '{os.path.basename(detectorFolder)}' do not contain the same detected objects. \nPlease check that the folders are all detection results in '{detectorExcels_folder}'"))
+                raise(Exception(f"'{os.path.basename(analysisFolder)}' and '{os.path.basename(detectorFolder)}' do not contain the same detected objects. \nPlease check that the folders are all detection results in '{detectorResults_folder}'"))
             analysis_xlsx_list = list_files_ext(analysisFolder, "xlsx")
             detector_xlsx_list = list_files_ext(detectorFolder, "xlsx")
             if len(analysis_xlsx_list) > 1 and len(detector_xlsx_list) == 1: # mixed up the two
                 error("Next time, choose the analysis results folder first, then the detector results folder","WARNING")
-                saved_ana = analysisExcels_folder
-                analysisExcels_folder:str = detectorExcels_folder
-                detectorExcels_folder:str = saved_ana
+                saved_ana = analysisResults_folder
+                analysisResults_folder:str = detectorResults_folder
+                detectorResults_folder:str = saved_ana
                 break
                 
             
             if os.path.basename(analysisFolder) != os.path.basename(detectorFolder):
-                raise(Exception(f"'{os.path.basename(analysisFolder)}' and '{os.path.basename(detectorFolder)}' are not the same video name. \nPlease check that the folders in '{analysisExcels_folder}' and '{detectorExcels_folder}' are the same."))
+                raise(Exception(f"'{os.path.basename(analysisFolder)}' and '{os.path.basename(detectorFolder)}' are not the same video name. \nPlease check that the folders in '{analysisResults_folder}' and '{detectorResults_folder}' are the same."))
             paired_excels[os.path.join(analysisFolder, analysis_xlsx_list[0])] = [os.path.join(detectorFolder, f) for f in list_files_ext(detectorFolder, "xlsx")]
         else:
             break
@@ -127,9 +125,16 @@ def step1_detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict
     
     return detector_data
 
-def determine_interval_times_from_detector(detector_data: dict[str, list[dict[str, int]]],cues=["light_BL","light_BR","light_FR"],min_detection_duration_frames=3) -> dict[str, list[dict[str, int]]]:
+def step2_determine_interval_times_from_detector(detector_data: dict[str, list[dict[str, int]]],cues=["light_BL","light_BR","light_FR"],min_detection_duration_frames=3) -> dict[str, list[dict[str, int]]]:
     """
     min_detection_duration_frames: minimum (>=) number of frames of presence to be considered a valid interval (ex: 3 frames = 0.2 seconds at 15 fps)
+    
+    (1) Groups light (CS+/DS+/DS-) and lever presence into intervals of presence 
+    (2) Using presence of left and right levers, combines their presence into one "lever presence" interval 
+        - uses the first frame of lever presence if a light is illuminated and the last frame of light cue presence (can be for the other lever if the initial lever got hidden before the end of trial interval)
+    (3) Creates new intervals of CS+/DS+/DS- presence qualified as "prime" or "trial"
+        - prime: from cue onset to lever presence onset
+        - trial: from lever presence onset to cue offset
     """
     
     cue_presence = {}
@@ -160,12 +165,12 @@ def determine_interval_times_from_detector(detector_data: dict[str, list[dict[st
                       else group 
                       # otherwise keep current group that does not intersect with anything
                       for group_number, group in enumerate(lever_presence) 
-                      if group_number == 0 or not (lever_presence[group_number-1]['last_frame'] >= group['first_frame'] # if current group starts after and ends before previous ends, ignore
+                      if group_number == 0 # first group, so cannot index at [group_number-1]
+                      or not (lever_presence[group_number-1]['last_frame'] >= group['first_frame'] # if current group starts after and ends before previous ends, ignore
                               and lever_presence[group_number-1]['first_frame'] <= group['last_frame'])
                               ] 
     
-
-    intervals = []
+    intervals:list[ dict[str,str|int] ] = []
     for cue, cue_groups in cue_presence.items():
         for cuegroup in cue_groups:
             for lever_groups in lever_presence:
@@ -189,45 +194,6 @@ def determine_interval_times_from_detector(detector_data: dict[str, list[dict[st
     #cleanup short lever presence?
 
     return intervals
-
-
-def group_remove_2NA(list_of_behaviors_strings:list[str]):
-    """
-    Group consecutive identical elements and removes consecutive 2 "NA"
-
-    [
-    {"behavior": "name", "frame_duration": int, "first_frame": int}, ...
-    ]
-    
-    
-    Args:
-        list_of_behaviors_strings: Input list of consecutive behavior names
-
-    
-    Returns:
-        List of dictionaries 
-    """
-    result = []
-    current_item:str = list_of_behaviors_strings[0]
-    current_count = 1
-    
-    for i in range(1, len(list_of_behaviors_strings)):
-        # 1 more frame if consecutive
-        if list_of_behaviors_strings[i] == current_item:
-            current_count += 1
-        else: # first encounter (beginning) of a set
-            result.append({"behavior": current_item, "frame_duration": current_count,"first_frame": i}) # NOTE: first frame is 1 (not 0) 
-            # Start new group
-            if list_of_behaviors_strings[i] == "NA" and list_of_behaviors_strings[i+2] != 'NA':
-                pass # keep same current item
-            else:
-                current_item = list_of_behaviors_strings[i]
-                current_count = 1
-    
-    # Don't forget the last group
-    result.append({"behavior": current_item, "frame_duration": current_count, "first_frame": len(list_of_behaviors_strings) - current_count + 1})
-    
-    return result
 
 def get_countsandduration(grouped_list:list[dict[str,str | int]]) -> dict[str, dict[str,str | int]]:
     """
@@ -311,23 +277,45 @@ def lists_for_export(cd_list:dict,behaviors_in_final_output:list[str]) -> dict[s
                 ]
     return clean
 
-def export_to_excel(input_dict, output_name:str):
+def export_to_excel(input_dict):
     """
     reorganize behavior counts, latencies and durations for each cage into an excel where sheets are behaviors and columns are "Count", "Duration (s)", "Latencies (s)" for each cue
     """
-    input_dict = {"sessionname" : 
-                  {"cage 3" {"date"}
-                  }
+    input_dict = {"date-session name" : #excel filename
+                  {"cage 3":{}
+                  }}
+
 
 def main():
-    detectorExcels_folder = select_folder("Select folder containing detection result folders")
-    if not detectorExcels_folder:
+    detectorResults_folder = select_folder("Select folder containing detection result folders")
+    if not detectorResults_folder:
         return
-    analysisExcels_folder = select_folder("Select folder containing analysis excels (ex: all_events.xlsx)")
-    if not analysisExcels_folder:
+    analysisResults_folder = select_folder("Select folder containing analysis subfolders each corresponding to a video (ex: all_events.xlsx)")
+    if not analysisResults_folder:
         return
 
-    paired_analysisExcel_detectorExcels, object_names = step0_pair_detectorExcels_analysisExcel(detectorExcels_folder, analysisExcels_folder)
+    behavior_names = set()
+    light_positions = set()
+
+    for video_folder in list_folderspaths(analysisResults_folder):
+        for behavior_name in list_folders(video_folder):
+            behavior_names.add(behavior_name)
+            if "light" in behavior_name:
+                light_positions.add(behavior_name.split(" ")[0]) # FL light interaction
+
+    light_positions = list(light_positions)
+    light_positions.sort()
+    behavior_names = list(behavior_names)
+    behavior_names.sort()
+    light_position_significance:dict[str,str] = grid_selector(light_positions, ["DS+","DS-","CS+"])
+    
+    included_behaviors = check(behavior_names)
+
+
+    
+
+
+    paired_analysisExcel_detectorExcels, object_names = step0_pair_detectorExcels_analysisExcel(detectorResults_folder, analysisResults_folder)
     for analysisExcel, detectorExcels in paired_analysisExcel_detectorExcels.items():
         detector_data = {}
         for det_excel in detectorExcels:
@@ -338,9 +326,6 @@ def main():
         # future implementation: use interval times to adjust the analysis Excel data (ex: all_events.xlsx) and export a new Excel sheet with adjusted data (ex: "all_events_adjusted.xlsx")
 
 
-
-        
-    
 
 if __name__ == "__main__":
     main()
