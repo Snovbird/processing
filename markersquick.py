@@ -4,12 +4,13 @@ from common.common import *
 import sys
 from common.exceptions import *
 
-def find_overlay_path(date_provided:str,room:str,cage_number:int | str) -> str:
+def find_overlay_path(date_provided:str=None,room:str=None,cage_number:int | str=None,img_path_optional=None) -> str:
     """
     Args:
         date_provided (str): date as YYYYMMSS 
         room (str): specific room name. Should be listed inside of `2-markers` folder
         cage_number (int | str): cage number. Will be converted to dual digit string (ex: `02`)
+        img_path_optional (str): if `date_provided`, `room` and `cage_number` are None, will extract these values from file basename as 01-20251022 and room will be 
     
     """
     cage_number = str(cage_number).zfill(2)

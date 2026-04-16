@@ -1,6 +1,7 @@
 from PIL import Image, ImageEnhance
 import os
 from common.common import is_dir
+from markersquick import find_overlay_path
 def combine_and_resize_images(photo1_path, photo2_path, output_folder=None, 
                             target_width=1024, target_height=768, overlay_opacity=1.0,suffix="_combined"):
     """
@@ -85,9 +86,10 @@ def resize_img(imgpath,width,height=None,output_suffix="_resized",output_folder=
 if __name__ == "__main__":
     from common.common import select_anyfile,select_folder
     
-    videos = select_anyfile()
+    imgs = select_anyfile()
     outpath = select_folder()
 
-    for vidpath in videos:
-        resize_img(vidpath,1440,output_folder=outpath)
-
+    for img in imgs:
+        # resize_img(img,1440,output_folder=outpath)
+        find_overlay_path
+        combine_and_resize_images(img,
