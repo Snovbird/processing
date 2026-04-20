@@ -269,7 +269,7 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
     room: name of the room to put the overlay in. If None, will ask for it
     date: date to put in the overlay name. If None, will ask for it
     videos: list of videos to extract the image from. If None, will ask for it
-    pngpath: path to png to move in the overlay folder. Cannot be provided with videos. If None, will ask for videos
+    pngpath: path to png to copy in the overlay folder. Cannot be provided with videos. If None, will ask for videos
     """
     marker_overlays_path = find_folder_path("2-MARKERS")
     if not date:
@@ -287,12 +287,12 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         if not cage_numbers:
             return
     
-    if not videos and not pngpath:
+    if not videos and not pngpath: 
         msgbox("A file explorer window will open next. From the explorer, select a video from which an image will be extracted to align the markers.\nThis image will be automatically added to the opened folder.")
         videos:str = select_video("Select video from which an image will be extracted. It will be used to align the markers")
         if not videos:
             return
-    # msgbox(f"EMERGENCY:\n{videos=}\n\n{cage_numbers=}\n\n{room=}\n\n{date=}")
+        
     for n,cage_number in enumerate(cage_numbers):
         if not room: # 2-MARKERS/ NEWROOMNAME /
             room = askstring("Provide the name of the new room:","New room name",fill="ROOMNAME (numberofcages)")
@@ -305,9 +305,9 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         os.rename(unnamed_project_folderpath,renamed_project_path)
 
         if not pngpath and videos:
-            screenshot(video=videos[0],frame_number=0,output_path=os.path.join(project_folderpath,os.path.basename(video).replace(".mp4", ".png")))
+            screenshot(video_path=videos[0],frame_number=0,output_path=os.path.join(project_folderpath,os.path.basename(videos[0]).replace(".mp4", ".png")))
         else:
-            shutil.move(pngpath,project_folderpath)
+            shutil.copy(pngpath,project_folderpath)
         
         # while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
         #     os.remove(imgpath)

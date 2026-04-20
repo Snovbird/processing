@@ -5,7 +5,7 @@ from concatenate import concatenate, group_files_by_digits
 from photo_carrousel import photo_carrousel
 from image_combine import combine_and_resize_images
 from extractpng import extractpng
-from markersquick import apply_png_overlay, find_overlay_path
+from markersquick import apply_png_overlay,find_overlay_path
 from newtrim import trim_DS_auto
 from process_folders import group_by_date_and_sessionTime, emergency_overlay_maker
 
@@ -235,19 +235,19 @@ def step4_created_combined_and_photo_carrousel():
     for photopath in photos_to_add_:
 
         basename = os.path.splitext(os.path.basename(photopath))[0]
-        combpath = os.path.join(os.path.dirname(photopath), f"{basename}_combined.png")
+        combpath = os.path.join(os.path.dirname(photopath), f"{basename}_combined.png") # not supposed to exist yet if this is the first time
         if combpath in created_photos:
             continue
         # naming convention: cage-date-time-time
         # e.g. 01-20251103-104708-113000
         parts = basename.split("-")
-        cage_string = parts[0]
+        cage_number = parts[0].zfill(2)
         date = parts[1]
-        cage_number = "".join([i for i in cage_string if i.isdigit()])
-        
-        overlay = find_overlay_path(basename, room=room)
-        
-        outpath = os.path.dirname(photopath)
+        try:
+            overlay = find_overlay_path(basename, room=room)
+        except ImageNotFoundError as e:      
+            print(e)
+            emergency_overlay_maker(cage_numbers=[cage_number], room=room, date=date)
         
         # image_combine.combine_and_resize_images
         created_combined_paths = combine_and_resize_images(photo1_path=photopath,
@@ -273,13 +273,12 @@ def step4_created_combined_and_photo_carrousel():
             problematic_videopath = None
             for video in list_filespaths(session_dir):
                 vid_basename = os.path.splitext(os.path.basename(video))[0]
-                if vid_basename == basename:
+                if vid_basename in basename or basename in vid_basename:
                     problematic_videopath = video
                     break
             
             if not problematic_videopath:
-                error(f"No matching video file found for {basename} in {session_dir}")
-                return
+                raise Exception(f"No matching video file found for {basename} in {session_dir}")
 
             return emergency_overlay_maker(cage_numbers=[cage_number], room=room, date=date, videos=[problematic_videopath])
 

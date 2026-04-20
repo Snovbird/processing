@@ -89,7 +89,4 @@ if __name__ == "__main__":
     imgs = select_anyfile()
     outpath = select_folder()
 
-    for img in imgs:
-        # resize_img(img,1440,output_folder=outpath)
-        find_overlay_path
-        combine_and_resize_images(img,
+    # add action here
