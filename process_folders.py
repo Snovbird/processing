@@ -261,19 +261,15 @@ class process_recordings():
         for folder in marker_folders:
             shutil.move(folder,self.final_outputpath)
 
-def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,videos=None,pngpath=None):
+def emergency_overlay_maker(path,room=None):
     """
-    Creates a gimp project named after the cage number and date, with an image of the problematic cage inside
+    Creates a gimp project 
 
-    cage_numbers: list of cage numbers to create overlays for. If None, will ask for one cage number
+    path: path to a png image or mp4 video. Creates a copy of the png inside the gimp folder, and takes a screenshot if a video is provided. Formatted as NN-YYYYMMDD-HHMMSS (rest is ignored)
     room: name of the room to put the overlay in. If None, will ask for it
-    date: date to put in the overlay name. If None, will ask for it
-    videos: list of videos to extract the image from. If None, will ask for it
-    pngpath: path to png to copy in the overlay folder. Cannot be provided with videos. If None, will ask for videos
     """
     marker_overlays_path = find_folder_path("2-MARKERS")
-    if not date:
-        date = askstring("Please enter the date as YYYYMMDD for this overlay. \nDefault is today's date.",fill=get_date_yyyymmdd())
+
     if not room:
         room = dropdown(list_folders(marker_overlays_path) + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_name="star",hide=("MARKERS-TEMPLATES",))
         if room == "ENTER NEW ROOM NAME":
@@ -282,44 +278,35 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         else:
             room_folder_path = os.path.join(marker_overlays_path,room)
     
-    if not cage_numbers:
-        cage_numbers:list[int] = [ f"{askint('Enter the cage number:','Cage number'):02d}" ]
-        if not cage_numbers:
-            return
+    cage_number, date, *rest = os.path.splitext(os.path.basename(path))[0].split("-")        
+    if rest:
+        start_time = rest[0]
+    else:
+        start_time = None
+
+         # 2-MARKERS/OPTO-ROOM/cage2_20250806/
+
+    project_name = f"{cage_number.zfill(2)}-{date}" + f"-{start_time}" if start_time else ""
+    project_folderpath = makefolder(room_folder_path,project_name,start_at_1=False)
     
-    if not videos and not pngpath: 
-        msgbox("A file explorer window will open next. From the explorer, select a video from which an image will be extracted to align the markers.\nThis image will be automatically added to the opened folder.")
-        videos:str = select_video("Select video from which an image will be extracted. It will be used to align the markers")
-        if not videos:
-            return
-        
-    for n,cage_number in enumerate(cage_numbers):
-        if not room: # 2-MARKERS/ NEWROOMNAME /
-            room = askstring("Provide the name of the new room:","New room name",fill="ROOMNAME (numberofcages)")
-            project_folderpath = makefolder(marker_overlays_path,foldername=room,start_at_1=False)
-        else: # 2-MARKERS/OPTO-ROOM/cage2_20250806/
-            project_folderpath = makefolder(room_folder_path,f"{cage_number.zfill(2)}-{date}",start_at_1=False)
-        
-        unnamed_project_folderpath = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),project_folderpath)
-        renamed_project_path = os.path.join(project_folderpath,f"{cage_number}-{date}.xcf")
-        os.rename(unnamed_project_folderpath,renamed_project_path)
+    template_project_path = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),project_folderpath)
+    renamed_project_path = os.path.join(project_folderpath,f"{project_name}.xcf")
+    os.rename(template_project_path,renamed_project_path)
 
-        if not pngpath and videos:
-            screenshot(video_path=videos[0],frame_number=0,output_path=os.path.join(project_folderpath,os.path.basename(videos[0]).replace(".mp4", ".png")))
-        else:
-            shutil.copy(pngpath,project_folderpath)
+    if path.endswith(".mp4"):
+        screenshot(video_path=path,frame_number=0,output_path=os.path.join(project_folderpath,f"{project_name}.png"))
+    elif path.endswith(".png"):
+        shutil.copy(path,project_folderpath)
+        new_path = os.path.join(project_folderpath,os.path.basename(path))
+        os.rename(new_path,os.path.join(project_folderpath,f"{project_name}.png"))
         
-        # while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
-        #     os.remove(imgpath)
-        #     times += 5
-        #     imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
+    
+    # while photo_carrousel(imgpath,"OK. All cue lights are lit.","NO. Jump 5s to find all 4 cue lights ON") !="OK. All cue lights are lit.":
+    #     os.remove(imgpath)
+    #     times += 5
+    #     imgpath = extractpng(video=select_video("Select video from which an image will be extracted. It will be used to align the markers"),times=(times,),output_folder=room_folder_path)[0]
         
-        dates:list[str] = findval("dates")
-        if date not in dates:
-            dates.append(date)
-            assignval("dates",dates)
-
-    os.startfile(room_folder_path)
+    os.startfile(project_folderpath)
          
 def main():
     recordings_folder = select_folder("Select the folder containing the recordings to process",path=find_folder_path("0-RECORDINGS"))
