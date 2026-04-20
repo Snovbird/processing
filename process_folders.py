@@ -54,7 +54,7 @@ def group_by_date_and_sessionTime(videos_folderpath: str,max_pause=15,warn_for_l
                 elif seconds - last_endtime < max_pause: # technically supposed to be identical end & start times, but allow for small variations
                     if warn_for_lost_time:
                         error(f"""Note: {seconds - last_endtime} seconds have been lost between\n
-                              {format_time_colons(str(last_endtime))} and {format_time_colons(str(session_starttime))}\n
+                              {format_time_colons(str(session_endtime))} and {format_time_colons(str(session_starttime))}\n
                               for cage {cage} on the date (YYYYMMDD): {date}\n
                               ""","Warning")
                     "f".format()
@@ -70,7 +70,7 @@ def group_by_date_and_sessionTime(videos_folderpath: str,max_pause=15,warn_for_l
                 if video_number == len(grouped_recordings[date][cage]) - 1:
                     cage_exp_groups.append(cage_exp_group) # append last group
 
-                session_endtime = recording.split('-')[3]
+                session_endtime = recording.split('-')[3].replace(".mp4","")
                 hours = int(session_endtime[:2])
                 minutes = int(session_endtime[2:4])
                 last_endtime = int(session_endtime[4:6]) + minutes*60 + hours*3600
@@ -275,8 +275,8 @@ def emergency_overlay_maker(path,room=None):
         if room == "ENTER NEW ROOM NAME":
             room = askstring("Enter the room name:","Room name")
             room_folder_path = makefolder(marker_overlays_path,room,start_at_1=False)
-        else:
-            room_folder_path = os.path.join(marker_overlays_path,room)
+            
+    room_folder_path = os.path.join(marker_overlays_path,room)
     
     cage_number, date, *rest = os.path.splitext(os.path.basename(path))[0].split("-")        
     if rest:

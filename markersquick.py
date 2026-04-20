@@ -42,8 +42,12 @@ def find_overlay_path(img_path, room) -> str:
 
     # find overlay closest to provided date and time (if provided)
     fallback_overlay = None
-    for ov_date in overlays_for_cage_per_date.keys():
-        
+
+    dates = list(overlays_for_cage_per_date.keys())
+    dates.sort(reverse=True)
+    
+    for n,ov_date in enumerate(dates):
+        previous_date = dates[n+1] if n+1 < len(dates) else None
         if ov_date == date_provided:
             number_of_overlays_for_date = len(overlays_for_cage_per_date[ov_date])
             if not img_starttime:
@@ -69,8 +73,12 @@ def find_overlay_path(img_path, room) -> str:
             elif number_of_overlays_for_date == 1:
                 overlay_path = overlays_for_cage_per_date[ov_date][0]
                 return overlay_path
+        elif previous_date and previous_date < date_provided < ov_date:
+            return overlays_for_cage_per_date[previous_date][0] # most recent overlay before provided date
+        elif ov_date < date_provided:
+            return overlays_for_cage_per_date[ov_date][0] # most recent overlay before provided date
     else:
-        raise ImageNotFoundError(f"No overlay found for cage {cage_number} on {date_provided}" + f" at {img_starttime}" if img_starttime else '' + f"\n Image path: {img_path}")
+        raise ImageNotFoundError(f"No overlay found for cage {cage_number} on {date_provided}" + (f" at {img_starttime}" if img_starttime else '') + f"\n Image path: {img_path}")
 
 def apply_png_overlay(video_path, output_folder,overlay_path= None,room="OPTO-ROOM (12 cages)",cage_number=None,date_to_provide=None):
     """

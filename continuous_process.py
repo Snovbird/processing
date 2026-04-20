@@ -19,10 +19,6 @@ def step1_organize_recordings_DATASAVE():
 
     recording_folderpath = last_step["step1_organize_recordings_DATASAVE"]["recordings_folder"]
     grouped_recordings = last_step["step1_organize_recordings_DATASAVE"]["grouped_recordings"]
-    {'20251103': [['01-20251103-104708-113000.mp4', '01-20251103-113000-114505.mp4','03-20251103-104708-113000.mp4'], #exp1
-                  ['01-20251103-122945-130000.mp4', '01-20251103-130000-133000.mp4']], #session 2
-    '20251104': [['01-20251104-093838-100000.mp4', '01-20251104-100000-103000.mp4'], 
-                 ['01-20251104-112135-120000.mp4', '01-20251104-120000-122642.mp4']]}
 
     override_first_cue = findval("salvage_processing_step")["step1_organize_recordings_DATASAVE"]["override_first_cue"]
 
@@ -150,8 +146,12 @@ def step2_create_folders_and_move():
                     continue
                 video_path = os.path.join(recording_folderpath, video)
                 dst = session_folder
-                shutil.move(video_path, dst)
-                
+                try:
+                    shutil.move(video_path, dst)
+                except Exception as e:
+                    print(f"Error occurred while moving {video}: {e}")
+                    continue
+
                 last_step["moved"].append(video)
 
                 assignval("salvage_processing_step", last_step)
@@ -215,7 +215,7 @@ def step4_created_combined_and_photo_carrousel():
         return step5_concatenate_videos()
 
     session_folders:list[str] = list(last_step["step4_created_combined_and_photo_carrousel"]["session_and_png_folders"].keys())
-    session_and_png_folders:dict[str,str] = list(last_step["step4_created_combined_and_photo_carrousel"]["session_and_png_folders"].values())
+    png_folders:list[str] = list(last_step["step4_created_combined_and_photo_carrousel"]["session_and_png_folders"].values())
     photos_to_add_:list[str] = last_step["step4_created_combined_and_photo_carrousel"]["photos_to_add_"]
 
     created_photos:list[str] = last_step["step4_created_combined_and_photo_carrousel"].get("created_photos", []) 
@@ -240,21 +240,18 @@ def step4_created_combined_and_photo_carrousel():
             continue
         # naming convention: cage-date-time-time
         # e.g. 01-20251103-104708-113000
-        parts = basename.split("-")
-        cage_number = parts[0].zfill(2)
-        date = parts[1]
         try:
-            overlay = find_overlay_path(basename, room=room)
+            overlay = find_overlay_path(photopath, room=room)
         except ImageNotFoundError as e:      
             print(e)
-            emergency_overlay_maker(cage_numbers=[cage_number], room=room, date=date)
+            emergency_overlay_maker(photopath, room=room)
         
         # image_combine.combine_and_resize_images
-        created_combined_paths = combine_and_resize_images(photo1_path=photopath,
+        created_combined_path = combine_and_resize_images(photo1_path=photopath,
                                                              photo2_path=overlay,
-                                                             output_folder=outpath)
-        if created_combined_paths == combpath:
-            created_photos.append(created_combined_paths)
+                                                             output_folder=os.path.dirname(photopath))
+        if created_combined_path == combpath:
+            created_photos.append(created_combined_path)
 
     for overlaid_png in created_photos:
         result = photo_carrousel(overlaid_png) 
@@ -283,7 +280,7 @@ def step4_created_combined_and_photo_carrousel():
             return emergency_overlay_maker(cage_numbers=[cage_number], room=room, date=date, videos=[problematic_videopath])
 
     # Cleanup photos folders
-    for folder in session_and_png_folders:
+    for folder in png_folders:
         try:
             shutil.rmtree(folder)
         except OSError as e:
@@ -443,7 +440,7 @@ def step7_apply_markers_and_move(last_step=None):
         try:
             shutil.move(folder, final_outputpath)
         except Exception as e:
-            error(f"Error moving {folder} to {final_outputpath}: {e}")
+            raise Exception(f"Error moving {folder} to {final_outputpath}: {e}")
             
     msgbox(f"Video processing complete!\n\nPrepared videos are stored in {final_outputpath}.\nClose this message to open the folder.")
     assignval("salvage_processing_step", {})
@@ -483,12 +480,13 @@ def continuous_process(recordings_folder=None):
             created_marker_folders = last_step[stepname].get("created_marker_folders")
             if created_marker_folders: # step 7
                 if custom_dialog("Are you sure? This will delete the marked videos and you will need to re-mark them","warning",op1="delete",op2="Cancel") == "delete":
-                    for folder in created_marker_folders:
+                    for folder in created_marker_folders.values():
                         walk_delete(folder)
                     for folder in session_folders:
                         walk_delete(folder)
                     assignval("salvage_processing_step", {})
                     continuous_process()
+                    return
             elif session_folders: #step 3,4,5,6
                 print(f"{session_folders=}")
                 if custom_dialog("Are you sure? This will delete the video recordings and you will need to transfer the videos from the LOREX software again","warning",op1="delete",op2="Cancel") == "delete":
@@ -496,18 +494,30 @@ def continuous_process(recordings_folder=None):
                         walk_delete(folder)
                     assignval("salvage_processing_step", {})
                     continuous_process()
-            elif recordings_folder: #step 1,2
+                    return
+                
+            # If we reached here without returning, handle recording_folder logic
+            recordings_folder = last_step[stepname].get("recordings_folder")
+            if recordings_folder: #step 1,2
                 print(f"{recordings_folder=}")
                 assignval("salvage_processing_step", {}) 
                 if os.path.exists(recordings_folder):
                     if custom_dialog(f"Restart process using the same folder?\n\n{recordings_folder=}", title="Transfer videos",dimensions=(450,250)) == "yes":
                         continuous_process(recordings_folder=recordings_folder)
                         return
-                
-                continuous_process() #otherwise
+            
+            assignval("salvage_processing_step", {})
+            continuous_process() #otherwise
+            return
 
-        last_command = list(findval("salvage_processing_step").keys())[0]
-        exec(f"{last_command}()")
+        # Only execute if we haven't restarted/returned
+        current_step_data = findval("salvage_processing_step")
+        if current_step_data:
+            last_command = list(current_step_data.keys())[0]
+            try:
+                exec(f"{last_command}()")
+            except Exception as e:
+                error(f"Error executing {last_command}: {e}")
 
 if __name__ == "__main__":
     continuous_process()
