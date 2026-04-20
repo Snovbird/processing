@@ -276,8 +276,12 @@ def emergency_overlay_maker(cage_numbers:list[str]=None,room=None,date=None,vide
         date = askstring("Please enter the date as YYYYMMDD for this overlay. \nDefault is today's date.",fill=get_date_yyyymmdd())
     if not room:
         room = dropdown(list_folders(marker_overlays_path) + ["ENTER NEW ROOM NAME"],title="Select lab test room",icon_name="star",hide=("MARKERS-TEMPLATES",))
-        
-    room_folder_path = os.path.join(marker_overlays_path,room)
+        if room == "ENTER NEW ROOM NAME":
+            room = askstring("Enter the room name:","Room name")
+            room_folder_path = makefolder(marker_overlays_path,room,start_at_1=False)
+        else:
+            room_folder_path = os.path.join(marker_overlays_path,room)
+    
     if not cage_numbers:
         cage_numbers:list[int] = [ f"{askint('Enter the cage number:','Cage number'):02d}" ]
         if not cage_numbers:

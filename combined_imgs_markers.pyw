@@ -1,5 +1,5 @@
 from common.common import *
-from markersquick import find_imgpath_overlay_date
+from markersquick import find_overlay_path
 from image_combine import combine_and_resize_images
 import os
 
@@ -30,7 +30,7 @@ def main():
             cage_number = parts[0]
             date = parts[1]
             room = "OPTO-ROOM (12 cages)"
-            overlay = find_imgpath_overlay_date(date,room,cage_number)
+            overlay = find_overlay_path(os.path.basename(img), room=room)
 
             combine_and_resize_images(img,overlay,overlaid,target_width=2048,target_height=1536)
             

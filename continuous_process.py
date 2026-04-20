@@ -5,7 +5,7 @@ from concatenate import concatenate, group_files_by_digits
 from photo_carrousel import photo_carrousel
 from image_combine import combine_and_resize_images
 from extractpng import extractpng
-from markersquick import apply_png_overlay,find_imgpath_overlay_date
+from markersquick import apply_png_overlay, find_overlay_path
 from newtrim import trim_DS_auto
 from process_folders import group_by_date_and_sessionTime, emergency_overlay_maker
 
@@ -245,7 +245,7 @@ def step4_created_combined_and_photo_carrousel():
         date = parts[1]
         cage_number = "".join([i for i in cage_string if i.isdigit()])
         
-        overlay = find_imgpath_overlay_date(date, room=room, cage_number=cage_number)
+        overlay = find_overlay_path(basename, room=room)
         
         outpath = os.path.dirname(photopath)
         
@@ -359,7 +359,7 @@ def step5_concatenate_videos():
 
     return step6_trim_intervals()
 
-def step6_trim_intervals():
+def step6_trim_intervals(): # currently unusable
     last_step = findval("salvage_processing_step")
     if "step6_trim_intervals" not in last_step:
         return step7_apply_markers_and_move()
@@ -464,8 +464,9 @@ def continuous_process(recordings_folder=None):
             print("Cages already renamed")
             pass
 
-        override_first_cue = True if custom_dialog("Separate each video into DS+/DS- intervals (for training only)?", title="Specify first cue for each session?") == "yes" else False
-        
+        # override_first_cue = True if custom_dialog("Separate each video into DS+/DS- intervals (for training only)?", title="Specify first cue for each session?") == "yes" else False
+        override_first_cue = False
+
         grouped_recordings = group_by_date_and_sessionTime(recordings_folder,max_pause=750,warn_for_lost_time=True)
 
         assignval("salvage_processing_step", {"step1_organize_recordings_DATASAVE": 

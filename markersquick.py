@@ -4,35 +4,73 @@ from common.common import *
 import sys
 from common.exceptions import *
 
-def find_overlay_path(date_provided:str=None,room:str=None,cage_number:int | str=None,img_path_optional=None) -> str:
+def find_overlay_path(img_path, room) -> str:
     """
     Args:
-        date_provided (str): date as YYYYMMSS 
-        room (str): specific room name. Should be listed inside of `2-markers` folder
-        cage_number (int | str): cage number. Will be converted to dual digit string (ex: `02`)
-        img_path_optional (str): if `date_provided`, `room` and `cage_number` are None, will extract these values from file basename as 01-20251022 and room will be 
-    
+        img_path (str): full png image path where basename is formatted as `01-20251022.png` or `01-20251022-018010-3080.png`, which is nn-YYYYMMDD-HHMMSS-HHMMSS.png (nn = cage number, uses zfill to make sure it is 2 digits)
+        room (str): room folder name in 2-markers
     """
-    cage_number = str(cage_number).zfill(2)
-    overlays_path = find_folder_path("2-markers")
-    alldates = findval("dates")[::-1] # invert it to loop from latest dates first then to earlier ones
-    if date_provided not in alldates:
-        for date in alldates: 
-            if int(date) < int(date_provided): #get img from date right before
-                overlay_path = os.path.join(overlays_path, room, f"{cage_number}-{date}.png")
-                if os.path.exists(overlay_path):
-                    break
-        else:
-            raise ImageNotFoundError(f"No overlays for cage {cage_number} on {date_provided} in room {room}")
-    else:
-        for date_index in range(alldates.index(date_provided),len(alldates)):
-            overlay_path = os.path.join(overlays_path, room,f"{cage_number}-{alldates[date_index]}.png") # f"{width}/cage{cage_number}_{alldates[d]}_{width}.png")
-            if os.path.exists(overlay_path):
-                break
-        else:
-            raise ImageNotFoundError(f"No overlays for cage {cage_number} on {date_provided} in room {room}")
-    return overlay_path
+    basename = os.path.splitext(os.path.basename(img_path))[0]
+    parts = basename.split("-")
+    
+    if not parts or len(parts) < 2:
+        raise ValueError(f"Invalid image path format: {img_path}")
+        
+    cage_number = parts[0].zfill(2)
+    date_provided = parts[1]
+    
+    img_starttime = None
+    if len(parts) >= 3 and parts[2].isdigit():
+        img_starttime = int(parts[2]) 
+    
+    markers_folder = find_folder_path("2-markers")
+    overlay_path = os.path.join(markers_folder, room)
 
+    # Gather all overlays for this cage
+    all_overlays = list_filespaths(overlay_path)
+    overlays_for_cage = [ov for ov in all_overlays if os.path.basename(ov).split("-")[0].zfill(2) == cage_number]
+    overlays_for_cage.sort(reverse=True)
+    
+    overlays_for_cage_per_date = {}
+    for ov in overlays_for_cage:
+        date = os.path.splitext(os.path.basename(ov))[0].split("-")[1]
+        overlays_for_cage_per_date[date] = overlays_for_cage_per_date.get(date, []) + [ov] # if only one overlay for this date: 
+
+    
+    if not overlays_for_cage:
+        raise ImageNotFoundError(f"No overlays found for cage {cage_number} in room {room}")
+
+    # find overlay closest to provided date and time (if provided)
+    fallback_overlay = None
+    for ov_date in overlays_for_cage_per_date.keys():
+        
+        if ov_date == date_provided:
+            number_of_overlays_for_date = len(overlays_for_cage_per_date[ov_date])
+            if not img_starttime:
+                overlay_path = overlays_for_cage_per_date[ov_date][-1]
+                return overlay_path # least recent for the date (shouldn't have a start time)
+            elif number_of_overlays_for_date > 1:
+                for n,ov_path in enumerate(overlays_for_cage_per_date[date]):
+                    ov_basename = os.path.splitext(os.path.basename(ov_path))[0]
+                    ov_parts = ov_basename.split("-") # 01-20250925-100000
+                    ov_start = int(ov_parts[2])
+                    if ov_start > img_starttime: # if the image provided is older than the most recent item
+                        continue
+                    else:
+                        if n + 1 > (number_of_overlays_for_date-1): # reminder: n starts at 0, but length starts at 1 item
+                            return ov_path # there is no previous overlay for this date
+                        else:
+                            next_ov_path = overlays_for_cage_per_date[ov_date][n+1]
+                            next_ov_basename = os.path.splitext(os.path.basename(next_ov_path))[0]
+                            next_ov_parts = next_ov_basename.split("-") # 01-20250925-100000
+                            next_ov_start = int(next_ov_parts[2])
+                            if next_ov_start < img_starttime:
+                                return next_ov_path
+            elif number_of_overlays_for_date == 1:
+                overlay_path = overlays_for_cage_per_date[ov_date][0]
+                return overlay_path
+    else:
+        raise ImageNotFoundError(f"No overlay found for cage {cage_number} on {date_provided}" + f" at {img_starttime}" if img_starttime else '' + f"\n Image path: {img_path}")
 
 def apply_png_overlay(video_path, output_folder,overlay_path= None,room="OPTO-ROOM (12 cages)",cage_number=None,date_to_provide=None):
     """
@@ -54,13 +92,11 @@ def apply_png_overlay(video_path, output_folder,overlay_path= None,room="OPTO-RO
         if not cage_number:
             cage_number = ''.join(char for char in video_name[0:2] if char.isdigit()) 
 
-        if not date_to_provide: # If a date is inside of the video name,but today's date was not provided (date_today = today's date)
-            
-            date_to_provide = video_name.split("-")[1]
-            if not is_date(date_to_provide):
-                date_to_provide = findval("dates")[-1] # will loop through known dates
-        #today's date was provided
-        overlay_path = find_overlay_path(date_to_provide,room,cage_number)
+        if cage_number and date_to_provide:
+            mock_basename = f"{cage_number}-{date_to_provide}"
+            overlay_path = find_overlay_path(mock_basename, room)
+        else:
+            overlay_path = find_overlay_path(video_name, room)
 
         # no matter what check if image works
         if not os.path.exists(overlay_path):

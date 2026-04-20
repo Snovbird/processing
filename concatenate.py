@@ -24,9 +24,20 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
 
         try:
             # STAGE 1: Transcode each file to ensure consistency
+            basename,ext = os.path.splitext(os.path.basename(input_files[0]))
+            cage, date, *_ = basename.split("-")
+            output_name_noext = f"{cage}-{date}" # Output should be named after the cage number
+
+
             filespaths_joined = "\n".join(input_files)
             print(f"Processing files:\n{filespaths_joined}\n\n{output_folder=}")
             for i, file in enumerate(input_files):
+
+                filename = os.path.basename(file)
+                n,e = os.path.splitext(filename)
+                cage, date, start_time, end_time = n.split("-")
+                output_name_noext += f"-{start_time}-{end_time}"
+
                 temp_output = os.path.join(temp_dir, f"temp_{i}.mp4")
                 intermediate_files.append(temp_output)
                 
@@ -41,7 +52,9 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
                     temp_output
                 ]
                 subprocess.run(cmd, check=True)
-            
+
+            output_path = os.path.join(output_folder, output_name_noext + ext)
+
             # STAGE 2: Concatenate the uniformly encoded files
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as temp:
                 for file in intermediate_files:
@@ -49,10 +62,6 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
                     temp.write(f"file '{escaped_file}'\n")
                 concat_list_txt = temp.name
             
-            basename,ext = os.path.splitext(os.path.basename(input_files[0]))
-            cage, date, *_ = basename.split("-")
-            output_name = f"{cage}-{date}{ext}" # Output should be named after the cage number
-            output_path = os.path.join(output_folder, output_name)
             
             # Simple concatenation of consistently encoded files (no CUDA needed for this stage)
             cmd = [
@@ -89,11 +98,11 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
         filepath = input_files[0]
         name,ext = os.path.splitext(os.path.basename(filepath))
         folder = os.path.dirname(filepath)
-        cage,date, *_ = name.split("-")
-        newpathname = os.path.join(folder,f"{cage}-{date}{ext}")
-        os.rename(filepath,newpathname)
+        cage,date, start_time, *_ = name.split("-")
+        renamed_path = os.path.join(folder,f"{cage}-{date}-{start_time}{ext}")
+        os.rename(filepath,renamed_path)
         if output_folder != os.path.dirname(filepath):
-            moved_path = shutil.move(newpathname, output_folder)
+            moved_path = shutil.move(renamed_path, output_folder)
             return moved_path
     else:
         error("Error processing:\n" + '\n\n'.join(input_files))

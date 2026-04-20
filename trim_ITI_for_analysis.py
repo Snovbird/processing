@@ -1,28 +1,47 @@
 from common.common import *
 import pandas, os
+from os.path import splitext,basename
 
 def start_trimming():
-    detectorResults_folder = select_folder("Select folder containing detection result folders")
-    if not detectorResults_folder:
+    # chosen_excel = select_anyfile("Select any excel file from detection results",specific_ext="xlsx")
+    chosen_excel = r"C:\Users\matts\Downloads\test\01-20250925\light BL_all_centers.xlsx"
+    if not chosen_excel:
         return
+    detection_dir = os.path.dirname(os.path.dirname(chosen_excel))
+    excel_files = [{"vid":basename(dirpath), "excels":[os.path.join(dirpath,f) for f in list_files_ext(dirpath,"xlsx")]} for dirpath in list_folderspaths(detection_dir)]
+    for file in excel_files:
+        if "~" in file:
+            raise Exception("An excel file is opened. Please close all excel windows, then start this program again")
+
+
+    # videos_to_trim = select_anyfile("Select the video files corresponding to detection results",specific_ext="mp4")
+    videos_to_trim = [r"C:\Users\matts\Downloads\01-20250925.mp4"]
+    if not videos_to_trim:
+        return
+    vid_dir = os.path.dirname(videos_to_trim[0])
+    mp4_in_dir = list_files_ext(vid_dir,"mp4")
+    if len(videos_to_trim) != len(mp4_in_dir):
+        action = custom_dialog(f"You did not select all the videos ({len(videos_to_trim)}/{len(mp4_in_dir)} inside of {vid_dir}",op1="Continue with selected videos",op2=f"Select all videos in {os.path.basename(vid_dir)}")
+        if action != "Continue with selected videos":
+            videos_to_trim = list_files_ext(vid_dir,"mp4")
+
+    paired_detection_and_vids = []
+    for vid in videos_to_trim:
+        for excel_file in excel_files:
+            if splitext(basename(vid))[0] == excel_file["vid"]:
+                paired_detection_and_vids.append({"vid":vid, "excels":excel_file["excels"]})
     
-    videos_to_trim = select_folder("Select a folder with the corresponding videos")
+    for paired in paired_detection_and_vids:
+        vidpath = paired["vid"]
+        lights_xlsx = [os.path.join(detection_dir,excel) for excel in paired["excels"] if "light" in excel.lower()]
 
-    # verify if mixed up the two folders:
-    mp4_in_detector  = len(list_files_ext(detectorResults_folder, "mp4"))
-    mp4_in_videos    = len(list_files_ext(videos_to_trim, "mp4"))
-    xlsx_in_detector = len(list_files_ext(detectorResults_folder, "xlsx"))
-    xlsx_in_videos   = len(list_files_ext(videos_to_trim, "xlsx"))
+        light_presence = [step1_detector_excel_to_object_times(light_xlsx) for light_xlsx in lights_xlsx]
+        
+        print(light_presence)
 
-    if mp4_in_detector < mp4_in_videos and xlsx_in_detector > xlsx_in_videos: # ok
-        videos = list_filespaths(videos_to_trim)
-        detectorResults = list_filespaths(detectorResults_folder)
-    elif mp4_in_videos == 0 and xlsx_in_detector == 0: # mixed up the two
-        videos = list_filespaths(detectorResults_folder) 
-        detectorResults = list_filespaths(videos_to_trim)
-    else:
-        error("Make sure you selected a parent folder with detection results FOLDERS inside, which is a file named '1-RAT_all_centers.xlsx'.\nYou also need the prepared videos from '3-PROCESSED'")
 
+
+    
 
 
 def step1_detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict[str, int]]]:
@@ -115,5 +134,4 @@ def step1_detector_excel_to_object_times(excel_path: str) -> dict[str, list[dict
     
     return detector_data
 
-
-
+start_trimming()
