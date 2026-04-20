@@ -999,7 +999,7 @@ def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,h
     Args:
         file_or_folder_path (str): The path to the file or folder.
         foldername (str): The name of the created folder. Default is empty. If start_at_1 is False, first folder will be named `-`. Subsequent folders will be named after their count value  
-        start_at_1 (bool): if False, first unique created folder in dir does not have "-1" in its name. If exists, will have `-2` appended. Default is `True`.
+        start_at_1 (bool): if False, first unique created folder in dir does not have "-1" in its name. If exists, will have `-2` appended. Default is `True`. 
         hide (bool): created folder will be hidden. Default is `False`.
         count (int): Initial count for folder. If start_at_1 is false,  first `-count` will be hidden, but following will keep this sequence start. Default is `-1`.
     
@@ -1013,14 +1013,13 @@ def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,h
         folder_path = os.path.dirname(file_or_folder_path)
         # file_name = os.path.splitext(os.path.basename(file_or_folder_path))[0]    # Get filename without extension
     
-    # Create folder name
-    if not start_at_1 and count == 1:
-        new_folder_name = f"{foldername if foldername != '' else '-'}"
+    if not start_at_1 and count == 1: # Start_at_1 == False --> 
+        new_folder_name = f"{foldername if foldername != '' else '-'}" # make sure the name isn't blank for 1st item (where count would be hiden)
     else:
         if foldername == '':
             new_folder_name = f"{count}"
         else:
-            new_folder_name = f"{foldername.replace('-','')}-{count}"
+            new_folder_name = f"{foldername[:-1] if foldername.endswith('-') else foldername}-{count}"
     # Create full path to new folder
     new_folder_path = os.path.join(folder_path, new_folder_name)
     
