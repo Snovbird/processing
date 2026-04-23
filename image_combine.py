@@ -5,12 +5,12 @@ from markersquick import find_overlay_path
 def combine_and_resize_images(photo1_path, photo2_path, output_folder=None, 
                             target_width=1024, target_height=768, overlay_opacity=1.0,suffix="_combined"):
     """
-    Combines two PNG images with advanced transparency handling.
+    Combines two PNG images with advanced transparency handling. Names the outputs file based on the first provided image
     
     Args:
         photo1_path (str): Path to the base PNG image.
         photo2_path (str): Path to the transparent overlay PNG image.
-        output_folder (str): Path to save the combined and resized image.
+        output_folder (str): Dir path to save png output. If none, saves in same dir as photo1_path and adds the suffix to the name
         target_width (int): Desired width for the output image.
         target_height (int): Desired height for the output image.
         overlay_opacity (float): Opacity of the overlay image (0.0 to 1.0).
@@ -21,7 +21,8 @@ def combine_and_resize_images(photo1_path, photo2_path, output_folder=None,
     count = 0
     if not output_folder:
         output_folder = os.path.dirname(photo1_path)
-    
+    else:
+        suffix = "" # if output folder is provided, output file can be the same as photo1_path
 
     photo_name = os.path.splitext(os.path.basename(photo1_path))[0]
     full_output_path = os.path.join(output_folder, f'{photo_name}{suffix}.png')

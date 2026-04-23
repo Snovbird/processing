@@ -192,32 +192,25 @@ def select_video(title:str="Select videos",path:str='',avi:bool = False) -> list
 def select_anyfile(title="Select files",path='',specific_ext:list[str] | str=None) -> list[str]:
     """
     Returns a **`LIST`**
-
-    
-    Default wildcard: Any files (\*.\*)|\*.\*
-
-    **If specific_ext**:
-    provide extensions as ["txt","xlsx","csv"] without periods 
-
-    Args:
-    title: Message displayed in the topleft of the explorer window
-    path: start directory where the navigation begins (startpath)
-    specific_ext: The extension(s) name(s) WITHOUT PERIOD displayed while browsing 
     """
-    app = wx.App(False)
+    app = wx.GetApp()
+    if not app:
+        app = wx.App(False)
+
     if not specific_ext:
         wildcard = "Any files (*.*)|*.*"
-    elif type(specific_ext) == str:
-        ext_filtered = ';*.'.join([specific_ext.replace(".",'')])
-        wildcard = f"Files (*.{ext_filtered})|*.{ext_filtered}"
+    else:
+        if isinstance(specific_ext, str):
+            ext_list = [specific_ext]
+        else:
+            ext_list = specific_ext
+        
+        # Clean extensions (remove dots) and format for wx: "Description (*.ext)|*.ext"
+        clean_exts = [e.replace('.', '') for e in ext_list]
+        ext_pattern = ";".join([f"*.{e}" for e in clean_exts])
+        wildcard = f"Files ({ext_pattern})|{ext_pattern}"
 
-    else: # string or tuple
-        ext_filtered = ';*.'.join([ext.replace(".",'') for ext in specific_ext])
-        wildcard = f"Files (*.{ext_filtered})|*.{ext_filtered}"
     def pathDNE():
-        app = wx.GetApp()
-        if not app:
-            app = wx.App(False)
         with wx.FileDialog(
             None,
             message=title,
@@ -250,8 +243,8 @@ def select_anyfile(title="Select files",path='',specific_ext:list[str] | str=Non
                     return []  # Return empty list if canceled
                     
                 # Get the selected paths
-                video_paths = file_dialog.GetPaths()
-                return video_paths
+                file_paths = file_dialog.GetPaths()
+                return file_paths
         except:
             return pathDNE()
     else:

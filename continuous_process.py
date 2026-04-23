@@ -252,7 +252,7 @@ def step4_created_combined_and_photo_carrousel():
                                                              output_folder=os.path.dirname(photopath))
         if created_combined_path == combpath:
             created_photos.append(created_combined_path)
-
+    created_photos.sort(key= lambda x: x.split("-")[1] + x.split("-")[2])
     for overlaid_png in created_photos:
         result = photo_carrousel(overlaid_png) 
         if result == "STOP markers NOT aligned":
@@ -263,8 +263,8 @@ def step4_created_combined_and_photo_carrousel():
             # The photo is in .../Experiment/photos/
             # The video is in .../Experiment/
             session_dir = os.path.dirname(parent_combinedpng_folder)
-
-            created_photos.remove(overlaid_png)
+            
+            created_photos.remove(overlaid_png) # note: re-created images will be put at the end of the carroussel, but still be present (only order will be different)
             assignval("salvage_processing_step",last_step) # remove problematic image
             
             problematic_videopath = None
@@ -277,7 +277,7 @@ def step4_created_combined_and_photo_carrousel():
             if not problematic_videopath:
                 raise Exception(f"No matching video file found for {basename} in {session_dir}")
 
-            return emergency_overlay_maker(cage_numbers=[cage_number], room=room, date=date, videos=[problematic_videopath])
+            return emergency_overlay_maker(problematic_videopath,room=room)
 
     # Cleanup photos folders
     for folder in png_folders:

@@ -4,7 +4,7 @@ from common.common import *
 import sys
 from common.exceptions import *
 
-def find_overlay_path(img_path, room) -> str:
+def find_overlay_path(img_path, room=None) -> str:
     """
     Args:
         img_path (str): full png image path where basename is formatted as `01-20251022.png` or `01-20251022-018010-3080.png`, which is nn-YYYYMMDD-HHMMSS-HHMMSS.png (nn = cage number, uses zfill to make sure it is 2 digits)
@@ -22,8 +22,11 @@ def find_overlay_path(img_path, room) -> str:
     img_starttime = None
     if len(parts) >= 3 and parts[2].isdigit():
         img_starttime = int(parts[2]) 
-    
+
     markers_folder = find_folder_path("2-markers")
+
+    if not room:
+        room = simple_dropdown(title="Select Room", msg="Select the room for the overlay:", choices=[i for i in list_folders(markers_folder) if "template" not in i.lower()])
     overlay_path = os.path.join(markers_folder, room)
 
     # Gather all overlays for this cage
