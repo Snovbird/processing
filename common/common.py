@@ -88,10 +88,7 @@ def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple[i
         return dialog.result
     else:
         dialog.Destroy()  # Clean up the dialog
-        if raiseerror:
-            raise CancelledDialog("Cancelled the operation.")
-        else:
-            return dialog.result # None
+        raise DialogExit(f"Exitted option dialog\n{title}: {msg}\noptions: {op1}, {op2}" + (f", {op3}" if op3 else ""))  # Return empty list if canceled
 
 def select_folder(title="Choose a directory",path='') -> str|None:
     """Show folder selection dialog and return selected path"""
@@ -104,7 +101,8 @@ def select_folder(title="Choose a directory",path='') -> str|None:
             if dlg.ShowModal() == wx.ID_OK:
                 folder_path = dlg.GetPath()
                 return folder_path
-            return None
+            elif dlg.ShowModal() == wx.ID_CANCEL:
+                raise DialogExit(f"Cancelled selection of a directory\n{title}")  # Return empty list if canceled
     if path:
         try:
             with wx.DirDialog(None, title, defaultPath=path,style=wx.DD_DEFAULT_STYLE) as dlg:
@@ -128,10 +126,10 @@ def askstring(msg="Enter a string:",title="String Input",fill='') -> str:
         result = dlg.GetValue()  # Get the entered string
         print(f"{msg.replace('?','').replace(':','')}: {result}")
         return result
+    elif dlg.ShowModal() == wx.ID_CANCEL:
+        raise DialogExit(f"Cancelled selection of files \n{title}: {msg}")  # Return empty list if canceled
     dlg.Destroy()  # Clean up the dialog
-    
-    return None
-  
+      
 def select_video(title:str="Select videos",path:str='',avi:bool = False) -> list[str]:
     
     app = wx.App(False)
@@ -147,7 +145,7 @@ def select_video(title:str="Select videos",path:str='',avi:bool = False) -> list
             # Show the dialog and check if user clicked OK
             if file_dialog.ShowModal() == wx.ID_CANCEL:
                 
-                return []  # Return empty list if canceled
+                raise DialogExit(f"Cancelled selection of mp4 files\n'{title}'")  # Return empty list if canceled
                 
             # Get the selected paths
             video_paths = file_dialog.GetPaths()
@@ -177,7 +175,7 @@ def select_video(title:str="Select videos",path:str='',avi:bool = False) -> list
                 
                 # Show the dialog and check if user clicked OK
                 if file_dialog.ShowModal() == wx.ID_CANCEL:
-                    return []  # Return empty list if canceled
+                    raise DialogExit(f"Cancelled selection of mp4 files\n'{title}'")  # Return empty list if canceled
                     
                 # Get the selected paths
                 video_paths = file_dialog.GetPaths()
@@ -220,7 +218,7 @@ def select_anyfile(title="Select files",path='',specific_ext:list[str] | str=Non
             
             # Show the dialog and check if user clicked OK
             if file_dialog.ShowModal() == wx.ID_CANCEL:
-                return []  # Return empty list if canceled
+                raise DialogExit(f"Cancelled selection of files {specific_ext if specific_ext else ''}\n'{title}'")  # Return empty list if canceled
                 
             # Get the selected paths
             file_paths = file_dialog.GetPaths()
@@ -240,7 +238,7 @@ def select_anyfile(title="Select files",path='',specific_ext:list[str] | str=Non
                 
                 # Show the dialog and check if user clicked OK
                 if file_dialog.ShowModal() == wx.ID_CANCEL:
-                    return []  # Return empty list if canceled
+                    raise DialogExit(f"Cancelled selection of files {specific_ext if specific_ext else ''}\n'{title}'") # Return empty list if canceled
                     
                 # Get the selected paths
                 file_paths = file_dialog.GetPaths()

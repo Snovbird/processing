@@ -4,12 +4,13 @@ import os,shutil,sys
 from common.common import select_video,askint,clear_gpu_memory,makefolder,custom_dialog,select_folder,error,msgbox
 
 
-def concatenate(input_files:list[str], output_folder:str) -> str | None:
+def concatenate(input_files:list[str], output_folder:str,override_output_name:str = None) -> str | None:
     """
     Example video output basename: `11-20250925.mp4` (removes times)
     Args:
         input_files (list): Array of mp4 video files paths to concatenate if 2+ items. If single item in array: moves to output_folder (concatenation skipped)
         output_folder: where concatenated videos are stored
+        override_output_name: name WITHOUT extension of the final output
     Returns:
         output_path: path to the concatenated video file (`None` if single item in array)
     """
@@ -52,8 +53,10 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
                     temp_output
                 ]
                 subprocess.run(cmd, check=True)
-
-            output_path = os.path.join(output_folder, output_name_noext + ext)
+            if not override_output_name:
+                output_path = os.path.join(output_folder, output_name_noext + ext)
+            else:
+                output_path = os.path.join(output_folder, override_output_name + ext)
 
             # STAGE 2: Concatenate the uniformly encoded files
             with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as temp:
@@ -62,8 +65,6 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
                     temp.write(f"file '{escaped_file}'\n")
                 concat_list_txt = temp.name
             
-            
-            # Simple concatenation of consistently encoded files (no CUDA needed for this stage)
             cmd = [
                 'ffmpeg', '-y',
                 '-f', 'concat',
@@ -72,7 +73,6 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
                 '-c', 'copy',  # Just copy streams without re-encoding
                 output_path
             ]
-            print(f"{'CONCATENATE':^40}")
             print(cmd)
             subprocess.run(cmd, check=True)
             return output_path
@@ -91,21 +91,24 @@ def concatenate(input_files:list[str], output_folder:str) -> str | None:
                 os.rmdir(temp_dir)
             except:
                 pass
-    elif len(input_files) == 1: # move to output folder if single item in group
-        if len(input_files) == 0:
-            error("Empty array of input files for concatenation. Skipping...","Simple warning")
-            return None
-        filepath = input_files[0]
-        name,ext = os.path.splitext(os.path.basename(filepath))
-        folder = os.path.dirname(filepath)
-        cage,date, start_time, *_ = name.split("-")
-        renamed_path = os.path.join(folder,f"{cage}-{date}-{start_time}{ext}")
-        os.rename(filepath,renamed_path)
-        if output_folder != os.path.dirname(filepath):
+    elif len(input_files) == 1: # rename and to move to output folder if one item in input_files
+        only_file = input_files[0]
+        name,ext = os.path.splitext(os.path.basename(only_file))
+        workdir = os.path.dirname(only_file)
+
+        if not override_output_name:
+            cage,date, start_time, end_time, *_ = name.split("-")
+            renamed_path = os.path.join(workdir,f"{cage}-{date}-{start_time}-{end_time}{ext}")
+        elif override_output_name:
+            renamed_path = os.path.join(workdir, override_output_name + ext)
+        
+        os.rename(only_file, renamed_path)
+
+        if output_folder != os.path.dirname(input_files[0]):
             moved_path = shutil.move(renamed_path, output_folder)
             return moved_path
     else:
-        error("Error processing:\n" + '\n\n'.join(input_files))
+        error("Error processing (empty array?):\n" + '\n\n'.join(input_files))
 
 def main():
     startpath = None

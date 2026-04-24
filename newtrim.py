@@ -16,8 +16,9 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
         count (int, optional): The starting number for the output file naming sequence (e.g., `basename_001.mp4`). Defaults to 1. Necessary since a same video might need to be batch trimmed twice due to the batch limit of 7 (memory limitation of GPU)
         skip_overflow (bool, optional): if True (default), will compare start_times to video length. If start time > total len --> timestamp will be skipped 
     Returns:
-        bool: True if the FFmpeg command executes successfully. Raises a `subprocess.CalledProcessError` on failure.
+        list of all the video outputs
     """
+    output_vidpaths = []
     if skip_overflow:
         vidlen = get_duration(input_path)[1]
         ok = []
@@ -57,10 +58,11 @@ def batch_trim(input_path: str, start_times: list[str], end_times: list[str],  o
         ])
         count += 1
 
-    if start_times:
-        print(cmd)
-        subprocess.run(cmd, check=True)
-        return output_path
+        output_vidpaths.append(output_path)
+
+    print(cmd)
+    subprocess.run(cmd, check=True)
+    return output_path
     
 def process_from_start(file_paths:list[str],start_times:list[str],end_times:list[str],trims_foldername = "Trims",batch_size:int = None):
     """
