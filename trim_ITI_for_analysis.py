@@ -1,5 +1,7 @@
+from common.common import askstring
+from adjuster.dependencies import list_files
 from common.common import *
-import pandas, os
+import pandas, os,datetime
 from os.path import splitext,basename
 from newtrim import batch_trim
 from concatenate import concatenate
@@ -10,35 +12,142 @@ class trimObtainIntervals():
         self.detection_results_dir = detection_results_dir
         if not self.detection_results_dir:
             chosen_excel = select_anyfile("Select any excel file from detection results",specific_ext="xlsx")
-            self.detection_results_dir = os.path.dirname(chosen_excel)
-        self.videos_to_trim = videos_to_trim
+            self.detection_results_dir = os.path.dirname(os.path.dirname(chosen_excel))
+            if len(list_files(self.detection_results_dir)) > 0:
+                raise ValueError(f"Invalid results directory. Make sure there are only folders containing detection results in {self.detection_results_dir}")
+        
+        self.videos_to_trim = videos_to_trim            
         if not self.videos_to_trim:
-            self.videos_to_trim = select_anyfile("Select the video files corresponding to detection results",specific_ext="mp4")
-    
-    detection_dir = os.path.dirname(os.path.dirname(chosen_excel))
-    excel_files = [{"vid":basename(dirpath), "excels":[os.path.join(dirpath,f) for f in list_files_ext(dirpath,"xlsx")]} for dirpath in list_folderspaths(detection_dir)]
-    for file in excel_files:
-        if "~" in file:
-            raise Exception("An excel file is opened. Please close all excel windows, then start this program again")
+            chosen_mp4s:list[str] = select_anyfile("Select the video files corresponding to detection results",specific_ext="mp4")
+            if chosen_mp4s != list_files_ext(os.path.dirname(chosen_mp4s[0]),"mp4"):
+                action = custom_dialog(f"You did not select all the videos ({len(chosen_mp4s)}/{len(list_files_ext(os.path.dirname(chosen_mp4s[0]),"mp4"))} inside of {os.path.dirname(chosen_mp4s[0])}",op1="Continue with selected videos",op2=f"Select all videos in {os.path.basename(os.path.dirname(chosen_mp4s[0]))}")
+                if action == "Continue with selected videos":
+                    self.videos_to_trim = chosen_mp4s
+                else:
+                    self.videos_to_trim = list_files_ext(os.path.dirname(chosen_mp4s[0]),"mp4")
+            else: # its all the videos in the dir
+                self.videos_to_trim = chosen_mp4s
 
+        self.excel_files = [{"vid":basename(dirpath), "excels":[os.path.join(dirpath,f) for f in list_files_ext(dirpath,"xlsx")]} for dirpath in list_folderspaths(self.detection_results_dir)]
+        for file in self.excel_files:
+            if "~" in file:
+                raise Exception("An excel file is opened. Please close all excel windows, then start this program again")
+        self.output_folder_name = askstring("Enter")
+        self.paired_vids_with_excel = []
+        self.object_presence = []
+        self.separated_presence = []
+        self.with_merged_light_presence = []
+        self.with_clean_lever_data = []
+
+    def pair_vids_with_excel(self):
+        for vid in self.videos_to_trim:
+            for excel_file in self.excel_files:
+                if splitext(basename(vid))[0] == excel_file["vid"]:
+                    self.paired_vids_with_excel.append({"vid":vid, "excels":excel_file["excels"]})
+        return self.paired_vids_with_excel
     
-    # videos_to_trim = select_anyfile("Select the video files corresponding to detection results",specific_ext="mp4")
-    videos_to_trim = [r"C:\Users\matts\Downloads\01-20250925.mp4"]
+    def object_times(self):
+        if not self.paired_vids_with_excel:
+            self.pair_vids_with_excel()
+        
+        for vid_excel in self.paired_vids_with_excel:
+            vid = vid_excel["vid"]
+            excels = vid_excel["excels"]
+            obj_presence_xlsx = [xlsx for xlsx in vid_excel["vid"] if "rat" not in xlsx.lower()]
+            obj_presence_data = [detector_excel_to_object_times(xlsx) for xlsx in obj_presence_xlsx]
+
+            self.object_presence_data.append(
+                {
+                    "vid": vid,
+                    "data": obj_presence_data
+                }
+            )
+    
+    def adjust_data(self,minblank:int = 0):
+        """
+        (1) separate light from lever presence data
+        (2) adjust data groups contents to remove blank groups to obtain:
+            {
+                "object": object_name,
+                "first_frame": presence_group["first_frame"],
+                "duration": presence_group["duration"],
+                "last_frame": presence_group["last_frame"]
+            }
+        (3) Provide a list of dicts of both light and presence data separately
+        """
+        if not self.object_presence_data:
+            self.object_times()
+        
+        for vid_data in self.object_presence_data:
+            vid = vid_data["vid"]
+            obj_presence_data = vid_data["data"]
+
+            lever_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"],minblank=minblank) for data in obj_presence_data if "lever" in data["object"]]
+            light_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"],minblank=minblank) for data in obj_presence_data if "light" in data["object"]]
+            
+            combined_light_data: list[dict] = [item for data in light_presence_data for item in data]
+            combined_lever_data: list[dict] = [item for data in lever_presence_data for item in data]
+            
+            self.separated_presence.append(
+                {
+                    "vid": vid,
+                    "lever": combined_lever_data,
+                    "light": combined_light_data
+                }
+            )
+        return self.separated_presence
+
+    def merge_light_presence(self):
+        if not self.separated_presence:
+            self.adjust_data()
+        
+        
+        for vid_data in self.separated_presence:
+            vid = vid_data["vid"]
+            light_data = vid_data["light"]
+            lever_data = vid_data["lever"]
+
+            clean_light_data = merge_light_presence(light_data)
+
+            self.with_merged_light_presence.append(
+                {
+                    "vid": vid,
+                    "lever": lever_data,
+                    "light": clean_light_data
+                }
+            )
+        return self.with_merged_light_presence
+    
+    def combined_lever_data(self,min_lever_detection:int = 2):
+        if not self.with_merged_light_presence:
+            self.merge_light_presence()
+        
+        for vid_data in self.with_merged_light_presence:
+            vid = vid_data["vid"]
+            lever_data = vid_data["lever"]
+            clean_light_data = vid_data["light"]
+
+            clean_lever_data = clean_lever_presence(lever_presence=lever_data,
+                light_presence=clean_light_data,
+                min_detection_duration_frames=min_lever_detection)
+
+            self.with_clean_lever_data.append(
+                {
+                    "vid": vid,
+                    "lever": clean_lever_data,
+                    "light": clean_light_data
+                }
+            )
+
+    def export_data_json(self):
+        with open 
+            
+
+        
+    
 
     output_path = select_folder("Choose an empty directory where to place the trimmed videos")
 
-    vid_dir = os.path.dirname(videos_to_trim[0])
-    mp4_in_dir = list_files_ext(vid_dir,"mp4")
-    if len(videos_to_trim) != len(mp4_in_dir):
-        action = custom_dialog(f"You did not select all the videos ({len(videos_to_trim)}/{len(mp4_in_dir)} inside of {vid_dir}",op1="Continue with selected videos",op2=f"Select all videos in {os.path.basename(vid_dir)}")
-        if action != "Continue with selected videos":
-            videos_to_trim = list_files_ext(vid_dir,"mp4")
-
-    paired_detection_and_vids = []
-    for vid in videos_to_trim:
-        for excel_file in excel_files:
-            if splitext(basename(vid))[0] == excel_file["vid"]:
-                paired_detection_and_vids.append({"vid":vid, "excels":excel_file["excels"]})
     
     intervals_per_vid = []
     for vid_excel in paired_detection_and_vids:
@@ -49,9 +158,7 @@ class trimObtainIntervals():
 
         lever_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"]) for data in obj_presence_data if "lever" in data["object"]]
         light_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"]) for data in obj_presence_data if "light" in data["object"]]
-        combined_light_data:list[dict] = []
-        for i in light_presence_data:
-            combined_light_data.extend(i)
+        combined_light_data: list[dict] = [item for sublist in light_presence_data for item in sublist]
 
         clean_light_data = merge_light_presence(combined_light_data)
 
@@ -62,7 +169,7 @@ class trimObtainIntervals():
                 {
                     "start frame":data["start frame"],
                     "duration": data["duration"],
-                    "last frame": data["last frame"]
+                    "last_frame": data["last_frame"]
                 }
             )
             
@@ -72,7 +179,7 @@ class trimObtainIntervals():
             end_times = []
             for interval in intervals:
                 start_times.append(interval["start frame"])
-                end_times.append(interval["last frame"])
+                end_times.append(interval["last_frame"])
             
             files_to_concatenate = batch_trim(vid, start_times, end_times, output_folder=light_folder)
             files_to_concatenate.sort()
@@ -84,9 +191,7 @@ class trimObtainIntervals():
 
 
     # obtain clean lever data for analysis (later) and prime-trial differentiation    
-        combined_lever_data = []
-        for data in lever_presence_data:
-            combined_lever_data.extend(data)
+        combined_lever_data = [item for sublist in lever_presence_data for item in sublist]
 
         clean_lever_data = merge_lever_presence(combined_lever_data)
         
@@ -161,21 +266,21 @@ def adjust_blank(object_name:str, presence_data: list[dict[str, int]], minblank:
             if not merged_previous:
                 newgroup = {
                     "object": object_name,
-                    "first frame": presence_group["first frame"],
+                    "first_frame": presence_group["first_frame"],
                     "duration": presence_group["duration"],
-                    "last frame": presence_group["last frame"]
+                    "last_frame": presence_group["last_frame"]
                 }
 
                 merged_presence.append(newgroup)
             elif merged_previous:
                 merged_presence[-1]["duration"] += presence_group["duration"]
-                merged_presence[-1]["last frame"] = presence_group["last frame"]
+                merged_presence[-1]["last_frame"] = presence_group["last_frame"]
                 merged_previous = False
 
         elif not presence_group["present"]:
             if presence_group["duration"] < minblank:
                 merged_presence[-1]["duration"] += presence_group["duration"]
-                merged_presence[-1]["last frame"] = presence_group["last frame"] # in case it ends with a <minblank
+                merged_presence[-1]["last_frame"] = presence_group["last_frame"] # in case it ends with a <minblank
                 merged_previous = True
             else:
                 if not removeblank:
@@ -188,11 +293,11 @@ def adjust_blank(object_name:str, presence_data: list[dict[str, int]], minblank:
 
 def merge_light_presence(light_data: list[dict[str, int]],) -> list[dict[str, int]]:
     """
-    Sorts in order of first frame and merges consecutive intervals with the same object present (ex: rat covers cue light so two DS+ intervals are consecutive)
+    Sorts in order of first_frame and merges consecutive intervals with the same object present (ex: rat covers cue light so two DS+ intervals are consecutive)
     """
 
 
-    light_data.sort(key= lambda x: x["first frame"])
+    light_data.sort(key= lambda x: x["first_frame"])
 
     new_light_data = []
     for n,data in enumerate(light_data):
@@ -200,8 +305,8 @@ def merge_light_presence(light_data: list[dict[str, int]],) -> list[dict[str, in
         previous = light_data[n-1] if n != 0 else None
 
         if data["object"] == previous["object"]: # two of the same cue follows each other = rat covered light --> merge them!
-            new_light_data[-1]["duration"] = data["last frame"] - previous["first frame"]
-            new_light_data[-1]["last frame"] = data["last frame"]
+            new_light_data[-1]["duration"] = data["last_frame"] - previous["first_frame"]
+            new_light_data[-1]["last_frame"] = data["last_frame"]
         else: # a different cue (which is expected)
             new_light_data.append(data)
     
@@ -215,7 +320,7 @@ def merge_lever_presence(lever_presence: list[dict[str, int]], light_presence: l
         max_delay: max number of frames between a light presence and a lever presence for them to be considered as related. Eg: max_delay=2 and we have a light presence from frames 8 to 12, and a lever presence from frames 13 to 20. The lever presence would be extended to start at frame 8 (instead of 13) because the delay between the light presence and the lever presence is only 1 frame (which is less than max_delay). If the lever presence started at frame 15 instead of 13, it would not be extended because the delay would be 3 frames (which is more than max_delay).
     """
 
-    lever_presence.sort(key=lambda x: x['first_frame']) # sort by first frame of presence
+    lever_presence.sort(key=lambda x: x['first_frame']) # sort by first_frame of presence
     lever_presence = [group for group in lever_presence if group['frame_duration'] >= min_detection_duration_frames] # remove short detections
     
     def add_durations(group1,group2):
@@ -241,6 +346,32 @@ def merge_lever_presence(lever_presence: list[dict[str, int]], light_presence: l
                               ] 
     return lever_presence
 
+def clean_lever_presence(lever_presence: list[dict[str, int]],light_presence: list[dict[str, int]], min_detection_duration_frames: int = 3) -> list[dict[str, int]]:
+    """
+    Removes lever presence that is not associated with a light presence. Ignores groups of lever presence under min_detection_duration_frames (default is 3)
+    """
+    clean_lever_presence = []
+    for nl, lever_group in enumerate(lever_presence):
+        if lever_group['frame_duration'] < min_detection_duration_frames:
+            continue
+        last_levergroup_first_frame = lever_presence[nl-1] if nl > 0 else -1
+        for nc, cue_group in enumerate(light_presence):
+            next_cuegroup_first_frame = light_presence[nc+1]['first_frame'] if nc != len(light_presence)-1 else float('inf')
+            if lever_group['first_frame'] > cue_group['last_frame']:
+                continue # the cue turns OFF before the lever extends -> move to next cue illumination
+            elif cue_group['first_frame'] <= lever_group['first_frame'] < next_cuegroup_first_frame: # lever extends after cue turns ON
+                if lever_group['first_frame'] < cue_group['last_frame']:
+                    
+
+                    clean_lever_presence.append(
+                        {"first_frame": lever_group['first_frame'], 
+                        "last_frame": cue_group['last_frame'], # the lever supposed to retract at the same time as the light turns OFF 
+                        "frame_duration": cue_group['last_frame'] - lever_group['first_frame'] + 1}
+                    )
+                break # lever retracts --> no need to continue iterating through cue illuminations 
+
+    return clean_lever_presence
+
 def obtain_primetrial_intervals(light_presence,lever_presence):
     intervals:list[ dict[str,str|int] ] = []
     for cue, cue_groups in light_presence.items():
@@ -261,11 +392,13 @@ def obtain_primetrial_intervals(light_presence,lever_presence):
 
                         intervals.append({"interval":f"{cue} trial", "first_frame": trial_interval_start, "last_frame": trial_interval_end})
 
-    intervals.sort(key=lambda x: x['first_frame']) # sort by first frame of interval
+    intervals.sort(key=lambda x: x['first_frame']) # sort by first_frame of interval
     
     #cleanup short lever presence?
 
     return intervals
+
+
 
 if __name__ == "__main__":
     trimObtainIntervals(detection_results_dir="C:/Users/matts/Downloads/test/",videos_to_trim=["C:/Users/matts/Downloads/01-20250925.mp4"])
