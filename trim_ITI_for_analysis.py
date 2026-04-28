@@ -45,7 +45,7 @@ class trimObtainIntervals():
         self.corresponding_cuenames = grid_selector(self.cuepositionnames,options_list=["DS+","DS-","CS+","CS-"],
                                                 message="Select corresponding cue names to the position name",
                                                 title="Corresponding Cue Names")
-        cue_folders = {cue: makefolder(self.output_folder,cue,start_at_1=False) for cue in self.corresponding_cuenames.values()}
+        self.cue_folders = {cue: makefolder(self.output_folder,cue,start_at_1=False) for cue in self.corresponding_cuenames.values()}
             
             
         self.paired_vids_with_excel = []
@@ -159,6 +159,7 @@ class trimObtainIntervals():
                     "light": clean_light_data
                 }
             )
+        return self.with_clean_lever_data
 
     def s6_primetrial(self):
         if not self.with_clean_lever_data:
@@ -189,15 +190,21 @@ class trimObtainIntervals():
             intervals:list[dict[str,str|int]] = timeseries["intervals"]
             for interval in intervals:
 
-                positionname = interval["interval"].split(" ")[0]
+                positionname = interval["interval_name"].split(" ")[0]
                 corresponding_cue = self.corresponding_cuenames[positionname]
                 cue_folder = self.cue_folders[corresponding_cue]
 
-                start_time = interval["first frame"]
-                end_time = interval["last frame"] + 1
-                interval_name = interval["interval"]
+                start_time = interval["first_frame"]
+                end_time = interval["last_frame"] + 1
+                interval_name = interval["interval_name"]
                 outpath = trim_frames(vid,start_time=start_time,end_time=end_time,output_folder=cue_folder)
-                self.to_reassemble[-1][corresponding_cue].append({"snippet_path": outpath, "interval_name": interval_name})
+                self.to_reassemble[-1][corresponding_cue].append({
+                    "snippet_path": outpath, 
+                    "interval_name": interval_name,
+                    "first_frame": interval["first_frame"],
+                    "duration": interval["duration"],
+                    "last_frame": interval["last_frame"]
+                })
 
         return self.to_reassemble
     
@@ -247,11 +254,10 @@ class trimObtainIntervals():
                 "path": concatenated_video,
                 "intervals": minus_ITI
             })
-
-
-    def s7_export_data_json(self,output_path:str = None):
+        return self.times_minus_ITI
+    def s10_export_data_json(self,output_path:str = None):
         
-        with open(os.path.join(output_path,"clean_lever_and_light_data.json"), "w") as f:
+        with open(os.path.join(output_path,"interval_times_and_names.json"), "w") as f:
             json.dump(self.times_minus_ITI, f, indent=4)
             
 
@@ -449,7 +455,7 @@ def obtain_primetrial_intervals(light_presence,lever_presence):
 
                 # prime
                 prime_duration = trial_interval_start - prime_interval_start
-                intervals.append({"interval_name":f"{cue} prime", "first_frame": prime_interval_start, "duration": prime_duration, "last_frame": trial_interval_start})
+                intervals.append({"interval_name":f"{cue} prime", "first_frame": prime_interval_start, "duration": prime_duration, "last_frame": trial_interval_start - 1})
 
                 # trial
                 trial_duration = trial_interval_end - trial_interval_start + 1
@@ -474,8 +480,9 @@ def times_minus_ITI(intervals:list):
         duration = interval["duration"] 
         new_last = new_first + duration -1
 
-        minus_ITI.append({"interval_name":interval["interval_name"], "first_frame":new_first, "last_frame":new_last})
+        minus_ITI.append({"interval_name":interval["interval_name"], "first_frame":new_first, "last_frame":new_last, "duration": duration})
         
+    return minus_ITI
 
 if __name__ == "__main__":
     test = trimObtainIntervals(detection_results_dir=r"C:\Users\samahalabo\Desktop\10-ANALYSIS\20260423 detector")
