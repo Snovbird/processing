@@ -1,3 +1,4 @@
+from common.common import grid_selector
 from common.common import askstring
 from adjuster.dependencies import list_files
 from common.common import *
@@ -5,7 +6,7 @@ import pandas, os,datetime
 from os.path import splitext,basename
 from newtrim import batch_trim
 from concatenate import concatenate
-
+from TRIM import trim_frames
 
 class trimObtainIntervals():
     def __init__(self,detection_results_dir:str = None,videos_to_trim:list[str]=None):
@@ -32,23 +33,34 @@ class trimObtainIntervals():
         for file in self.excel_files:
             if "~" in file:
                 raise Exception("An excel file is opened. Please close all excel windows, then start this program again")
-        self.output_folder_name = askstring("Enter")
+        self.output_folder_name = askstring("Enter the name of the output folder")
+        self.output_folder = makefolder(os.path.dirname(self.videos_to_trim[0]), self.output_folder_name, start_at_1=False)
+        self.positionnames = set([basename(xlsx).split("_")[0] for xlsx in self.excel_files[0]["excels"] if "rat" not in xlsx.lower()])
+        self.corresponding_cuenames = grid_selector(self.positionnames,options_list=["DS+","DS-","CS+","CS-"],
+                                                message="Select corresponding cue names to the position name",
+                                                title="Corresponding Cue Names")
+        cue_folders = {cue: makefolder(self.output_folder,cue,start_at_1=False) for cue in self.corresponding_cuenames.values()}
+            
+            
         self.paired_vids_with_excel = []
         self.object_presence = []
         self.separated_presence = []
         self.with_merged_light_presence = []
         self.with_clean_lever_data = []
+        self.trimmed_mp4s = []
+        self.primetrial = []
+        self.times_minus_ITI = []
 
-    def pair_vids_with_excel(self):
+    def s1_pair_vids_with_excel(self):
         for vid in self.videos_to_trim:
             for excel_file in self.excel_files:
                 if splitext(basename(vid))[0] == excel_file["vid"]:
                     self.paired_vids_with_excel.append({"vid":vid, "excels":excel_file["excels"]})
         return self.paired_vids_with_excel
     
-    def object_times(self):
+    def s2_object_times(self):
         if not self.paired_vids_with_excel:
-            self.pair_vids_with_excel()
+            self.s1_pair_vids_with_excel()
         
         for vid_excel in self.paired_vids_with_excel:
             vid = vid_excel["vid"]
@@ -56,14 +68,14 @@ class trimObtainIntervals():
             obj_presence_xlsx = [xlsx for xlsx in vid_excel["vid"] if "rat" not in xlsx.lower()]
             obj_presence_data = [detector_excel_to_object_times(xlsx) for xlsx in obj_presence_xlsx]
 
-            self.object_presence_data.append(
+            self.object_presence.append(
                 {
                     "vid": vid,
                     "data": obj_presence_data
                 }
             )
     
-    def adjust_data(self,minblank:int = 0):
+    def s3_adjust_data(self,minblank:int = 0):
         """
         (1) separate light from lever presence data
         (2) adjust data groups contents to remove blank groups to obtain:
@@ -75,10 +87,10 @@ class trimObtainIntervals():
             }
         (3) Provide a list of dicts of both light and presence data separately
         """
-        if not self.object_presence_data:
-            self.object_times()
+        if not self.object_presence:
+            self.s2_object_times()
         
-        for vid_data in self.object_presence_data:
+        for vid_data in self.object_presence:
             vid = vid_data["vid"]
             obj_presence_data = vid_data["data"]
 
@@ -97,9 +109,9 @@ class trimObtainIntervals():
             )
         return self.separated_presence
 
-    def merge_light_presence(self):
+    def s4_merge_light_presence(self):
         if not self.separated_presence:
-            self.adjust_data()
+            self.s3_adjust_data()
         
         
         for vid_data in self.separated_presence:
@@ -118,9 +130,9 @@ class trimObtainIntervals():
             )
         return self.with_merged_light_presence
     
-    def combined_lever_data(self,min_lever_detection:int = 2):
+    def s5_combined_lever_data(self,min_lever_detection:int = 2):
         if not self.with_merged_light_presence:
-            self.merge_light_presence()
+            self.s4_merge_light_presence()
         
         for vid_data in self.with_merged_light_presence:
             vid = vid_data["vid"]
@@ -139,70 +151,88 @@ class trimObtainIntervals():
                 }
             )
 
-    def export_data_json(self):
-        with open 
-            
+    def s6_primetrial(self):
+        if not self.with_clean_lever_data:
+            self.s5_combined_lever_data()
 
-        
-    
+        for timeseries in self.with_clean_lever_data:
+            vid = timeseries["vid"]
+            lever_times = timeseries["lever"]
+            light_times = timeseries["light"]
 
-    output_path = select_folder("Choose an empty directory where to place the trimmed videos")
+            primetrial = obtain_primetrial_intervals(light_times,lever_times)
 
-    
-    intervals_per_vid = []
-    for vid_excel in paired_detection_and_vids:
-        vid = vid_excel["vid"]
-        obj_presence_xlsx = [xlsx for xlsx in vid_excel["vid"] if "rat" not in xlsx.lower()]
-
-        obj_presence_data = [detector_excel_to_object_times(xlsx) for xlsx in obj_presence_xlsx]
-
-        lever_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"]) for data in obj_presence_data if "lever" in data["object"]]
-        light_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"]) for data in obj_presence_data if "light" in data["object"]]
-        combined_light_data: list[dict] = [item for sublist in light_presence_data for item in sublist]
-
-        clean_light_data = merge_light_presence(combined_light_data)
-
-        data_per_light:dict[str,int] = {}
-        for data in clean_light_data:
-            light_intervals = data_per_light.get(data["object"],[])
-            light_intervals.append(
+            self.primetrial.append(
                 {
-                    "start frame":data["start frame"],
-                    "duration": data["duration"],
-                    "last_frame": data["last_frame"]
+                    "vid": vid,
+                    "intervals": primetrial
                 }
             )
-            
-        for light,intervals in data_per_light.items():
-            light_folder = makefolder(output_path,light,start_at_1=False)
-            start_times = []
-            end_times = []
-            for interval in intervals:
-                start_times.append(interval["start frame"])
-                end_times.append(interval["last_frame"])
-            
-            files_to_concatenate = batch_trim(vid, start_times, end_times, output_folder=light_folder)
-            files_to_concatenate.sort()
-            output = concatenate(files_to_concatenate,output_folder=output_path,override_output_name=f"{light} {len(intervals)} intervals")
-
-            os.rename(output, os.path.join(output_path,f"{light} {len(intervals)} intervals.mp4"))
-        else:
-            os.startfile(output_path)
-
-
-    # obtain clean lever data for analysis (later) and prime-trial differentiation    
-        combined_lever_data = [item for sublist in lever_presence_data for item in sublist]
-
-        clean_lever_data = merge_lever_presence(combined_lever_data)
+        return self.primetrial
         
-        primetrial = obtain_primetrial_intervals(clean_light_data, clean_lever_data)
+    def s7_trim_for_analysis(self):
+        if not self.primetrial:
+            self.s6_primetrial()
+
+        self.to_reassemble = [] 
+        for n, timeseries in enumerate(self.primetrial):
+            vid = timeseries["vid"]
+            primetrial_intervals = timeseries["intervals"]
+            self.to_reassemble.append(
+                {cue: [] for cue in self.corresponding_cuenames.values()}
+            )
+            for props in timeseries:
+                interval = props["interval"]
+                positionname = interval.split(" ")[0]
+                corresponding_cue = self.corresponding_cuenames[positionname]
+                cue_folder = self.cue_folders[corresponding_cue]
+                start_time = props["first frame"]
+                end_time = props["last frame"] + 1
+                outpath = trim_frames(vid,start_time=start_time,end_time=end_time,output_folder=cue_folder)
+                self.to_reassemble[-1][corresponding_cue].append(outpath)
+    
+    def s8_reassemble_separated(self):
+        if not self.to_reassemble:
+            self.s7_trim_for_analysis()
         
-        intervals_per_vid.append(
-            {
-                "vid": vid,
-                "intervals": primetrial
-            }
-        )
+        for cue_vids in self.to_reassemble:
+            for cue, vids in cue_vids.items():
+                output = concatenate(vids,output_folder=self.output_folder)
+                oldname,ext = splitext(basename(output))
+                newname = f"{oldname} {cue}{ext}"
+                newpath = os.path.join(self.output_folder,newname)
+                os.rename(output)
+
+
+    def s9_times_minus_ITI(self): # to complete
+        if not self.primetrial:
+            self.s6_primetrial()
+
+        for n, timeseries in enumerate(self.primetrial):
+            if n == 0:
+                continue
+            vid = timeseries["vid"]
+            lever_times = timeseries["lever"]
+            light_times = timeseries["light"]
+
+
+
+
+
+
+
+            
+        
+
+    def s7_export_data_json(self,output_path:str = None):
+        
+        
+        with open(os.path.join(output_path,"clean_lever_and_light_data.json"), "w") as f:
+            json.dump(self.with_clean_lever_data, f, indent=4)
+            
+
+        
+
 
 def detector_excel_to_object_times(excel_path: str,minblank: int) -> dict[str, str | list[dict[str, int]]]:
     """
@@ -398,6 +428,25 @@ def obtain_primetrial_intervals(light_presence,lever_presence):
 
     return intervals
 
+def times_minus_ITI(intervals:list):
+    minus_ITI = []    
+
+
+    for n, interval in enumerate(intervals):
+        if n == 0:
+            minus_ITI.append(interval) 
+            continue
+        last_endtime = minus_ITI[-1]["last_frame"]
+
+        new_first = interval["first_frame"] + 1
+        duration = interval["frame_duration"]
+        new_last = new_first + duration -1
+
+        minus_ITI.append({"interval":interval["interval"], "first_frame":new_first, "last_frame":new_last, "frame_duration":duration})
+        
+
+        
+        
 
 
 if __name__ == "__main__":
