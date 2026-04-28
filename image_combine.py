@@ -1,6 +1,6 @@
 from PIL import Image, ImageEnhance
 import os
-from common.common import is_dir
+from common.common import is_dir,askint
 from markersquick import find_overlay_path
 def combine_and_resize_images(photo1_path, photo2_path, output_folder=None, 
                             target_width=1024, target_height=768, overlay_opacity=1.0,suffix="_combined"):
@@ -72,7 +72,7 @@ def resize_img(imgpath,width,height=None,output_suffix="_resized",output_folder=
 
     if not height:
         # Automatically calculate height to maintain the image's original aspect ratio
-        height = int(width * (img.height / img.width))
+        height = int(width * (img.height / img.width)) # should be 4:3 ratio 
     
     # Use LANCZOS resampling for high quality, matching combine_and_resize_images
     resized_img = img.resize((width, height), Image.Resampling.LANCZOS)
@@ -81,13 +81,17 @@ def resize_img(imgpath,width,height=None,output_suffix="_resized",output_folder=
     outputpath = os.path.join(output_folder,f"{os.path.splitext(os.path.basename(imgpath))[0]}{output_suffix}.png")
     resized_img.save(outputpath, "PNG", optimize=True, compress_level=6)
 
+    return outputpath
+
 
 
 
 if __name__ == "__main__":
     from common.common import select_anyfile,select_folder
     
-    imgs = select_anyfile()
-    outpath = select_folder()
-
+    imgs = select_anyfile("png to resize",specific_ext = "png")
+    outpath = select_folder("output folder")
+    width_to_resize = askint("Enter the width to resize imgs to (height will be automatically calculated to maintain aspect ratio): ")
+    for img in imgs:
+        resize_img(imgpath=img,width=width_to_resize,output_folder=outpath)
     # add action here

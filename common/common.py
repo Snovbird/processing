@@ -786,12 +786,15 @@ def list_folderspaths(dir:str) -> list[str]:
     """
     return [os.path.join(dir, folder) for folder in os.listdir(dir) if os.path.isdir(os.path.join(dir, folder))]
 
-def list_files_ext(dir:str,ext:str) -> list[str]:
+def list_files_ext(dir:str,ext:str,fullpath:bool=False) -> list[str]:
     """
     files names (ex: ['apples.mp4', 'banana.mp4'])
     """
     if os.path.isdir(dir):
-        return [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file)) and file.lower().endswith(ext.lower())]
+        if fullpath:
+            return [os.path.join(dir, file) for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file)) and file.lower().endswith(ext.lower())]
+        else:
+            return [file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file)) and file.lower().endswith(ext.lower())]
 
 def simple_file_walk(folder,filefunc = None) -> tuple[ set[str],set[str]] | int:
     """Simple version - just print all files"""
