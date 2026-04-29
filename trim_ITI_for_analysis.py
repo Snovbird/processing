@@ -197,7 +197,7 @@ class trimObtainIntervals():
                 start_time = interval["first_frame"]
                 end_time = interval["last_frame"] + 1
                 interval_name = interval["interval_name"]
-                outpath = trim_frames(vid,start_time=start_time,end_time=end_time,output_folder=cue_folder)
+                outpath = trim_frames(vid,start_time=start_time,end_time=end_time,output_folder=cue_folder,show_terminal=False)
                 self.to_reassemble[-1][corresponding_cue].append({
                     "snippet_path": outpath, 
                     "interval_name": interval_name,
@@ -268,12 +268,8 @@ def detector_excel_to_object_times(excel_path: str,minblank: int) -> dict[str, s
         excel_path: path to an excel file containing detector results for an object (ex: "C:\...\light BL_all_centers.xlsx")
         minblank: min number of consecutive frames to consider an object to be no longer present. Eg: minblank=2 and we have: 6-frame BL_light presence, then 1 blank frame, then 5 frames of BL_light presence. This would be considered as one continuous presence of BL_light for 12 frames (6+1+5) because the blank frame is less than minblank. If there were 2 or more consecutive blank frames, then it would be considered as two separate presences of BL_light (one for the first 6 frames, and one for the last 5 frames).
 
-    Returns: 
-        keys are object names
-        {"light BL": [
-            {"first_frame": ..., "duration": ..., "last_frame": ...},
-            ...
-            ]}
+    Returns: {"object":"light BL",
+        "data": [{"first_frame": ..., "duration": ..., "last_frame": ...}, ... ]}
     """
     df = pandas.read_excel(excel_path, sheet_name=None)  # Read all sheets
     interval_object_name = os.path.basename(excel_path).split("_")[1:-2] # ex: "lever_right_all_centers.xlsx" -> ["lever", "right"]
@@ -485,5 +481,11 @@ def times_minus_ITI(intervals:list):
     return minus_ITI
 
 if __name__ == "__main__":
-    test = trimObtainIntervals(detection_results_dir=r"C:\Users\samahalabo\Desktop\10-ANALYSIS\20260423 detector")
-    test.s9_times_minus_ITI()
+    # test = trimObtainIntervals(detection_results_dir=r"C:\Users\samahalabo\Desktop\10-ANALYSIS\20260423 detector")
+    # test.s9_times_minus_ITI()
+    det = detector_excel_to_object_times(r"C:\Users\samahalabo\Desktop\10-ANALYSIS\20260423 detector\03-20260411-140647-140708-140734-143000-143000-145939\6_light_FR_all_centers.xlsx",minblank=0)
+    
+    print(det)
+    clean = adjust_blank(object_name="light FR", presence_data=det["data"], minblank=2)
+    for group in clean:
+        print(group)
