@@ -261,9 +261,12 @@ class trimObtainIntervals():
                 "intervals": minus_ITI
             })
         return self.times_minus_ITI
-    def s10_export_data_json(self,output_path:str = None):
-        
-        with open(os.path.join(output_path,"interval_times_and_names.json"), "w") as f:
+    
+    def s10_export_data_json(self,):
+        if not self.times_minus_ITI:
+            self.s9_times_minus_ITI()
+
+        with open(os.path.join(self.output_folder,"interval_times_and_names.json"), "w") as f:
             json.dump(self.times_minus_ITI, f, indent=4)
             
 
@@ -360,7 +363,7 @@ def adjust_blank(object_name:str, presence_data: list[dict[str, int]], minblank:
 def light_min_duration(presence:list[dict], min_duration):
 
     new_presence = []
-    problematic = 
+    problematic = []
     for data in presence:
 
         if data["duration"] >= min_duration:
@@ -506,7 +509,8 @@ if __name__ == "__main__":
     # test.s9_times_minus_ITI()
     det = detector_excel_to_object_times(r"C:\Users\samahalabo\Desktop\10-ANALYSIS\20260423 detector\03-20260411-140647-140708-140734-143000-143000-145939\6_light_FR_all_centers.xlsx",minblank=0)
     
-    print(det)
     clean = adjust_blank(object_name="light FR", presence_data=det["data"], minblank=2)
-    for group in clean:
+    clean2 = light_min_duration(clean,min_duration=3)
+    
+    for group in clean2:
         print(group)
