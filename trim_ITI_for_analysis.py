@@ -106,6 +106,12 @@ class trimObtainIntervals():
             lever_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"],minblank=minblank) for data in obj_presence_data if "lever" in data["object"]]
             light_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"],minblank=minblank) for data in obj_presence_data if "light" in data["object"]]
             
+            minimum_light_duration = 3
+            light_presence_data, light_problematic = light_min_duration(light_presence_data,min_duration=minimum_light_duration)
+            if light_problematic:
+                frame_numbers = "\n".join([str(x) for x in light_problematic])
+                error(f"Light presence data for {vid} had {len(light_problematic)} instances where the duration was less than {minimum_light_duration} frames.\n{frame_numbers}\n\nOccurences:\n{frame_numbers}")
+
             combined_light_data: list[dict] = [item for data in light_presence_data for item in data]
             combined_lever_data: list[dict] = [item for data in lever_presence_data for item in data]
             
@@ -350,6 +356,21 @@ def adjust_blank(object_name:str, presence_data: list[dict[str, int]], minblank:
                     pass
 
     return merged_presence
+
+def light_min_duration(presence:list[dict], min_duration):
+
+    new_presence = []
+    problematic = 
+    for data in presence:
+
+        if data["duration"] >= min_duration:
+
+            new_presence.append(data)
+        else:
+            problematic.append(data["first_frame"])
+
+    return new_presence, problematic
+
 
 def merge_light_presence(light_data: list[dict[str, int]],) -> list[dict[str, int]]:
     """
