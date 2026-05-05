@@ -14,6 +14,9 @@ def reset_saved():
     assignval("salvage_processing_step", {})
 
 def step1_organize_recordings_DATASAVE():
+    """
+    create appropriate folders for each date and sessions for this date
+    """
     last_step = findval("salvage_processing_step")
     if last_step and "step1_organize_recordings_DATASAVE" not in last_step:
         return step2_create_folders_and_move()
@@ -49,7 +52,7 @@ def step1_organize_recordings_DATASAVE():
 
             for session_number, first_DS in enumerate(answer, start=0): 
                 # first_DS is either DS+, DS- or SEEKING_TEST
-                folder_name = makefolderpath(date_folderpath,f"{date}_{session_number+1} {first_DS}", start_at_1=False)
+                folder_name = makefolder(date_folderpath,f"{date}_{session_number+1} {first_DS}", start_at_1=False)
                 folders_to_create[date_number]["session_folders"].append(folder_name)
                 folders_to_create[date_number]["grouped_sessions"].append((session_groups[session_number]))
 
@@ -70,11 +73,9 @@ def step1_organize_recordings_DATASAVE():
                     merged_sessions.append(session_groups[i])
 
             for session_number,merged_sess in enumerate(merged_sessions): 
-                folder_name = makefolderpath(date_folderpath,f"{date}_{session_number+1} SEEKING_TEST", start_at_1=False)
+                folder_name = makefolder(date_folderpath,f"{date}_{session_number+1} SEEKING_TEST", start_at_1=False)
                 folders_to_create[date_number]["session_folders"].append(folder_name)
                 folders_to_create[date_number]["grouped_sessions"].append((merged_sess))
-
-    print(f"{folders_to_create=}")
 
     assignval("salvage_processing_step", {"step2_create_folders_and_move":{
         "recordings_folderpath": recording_folderpath,
@@ -89,43 +90,7 @@ def step2_create_folders_and_move():
         return step3_create_photos_for_carroussel()
 
     recording_folderpath = last_step["step2_create_folders_and_move"]["recordings_folderpath"]
-    folders_to_create = last_step["step2_create_folders_and_move"]["folders_to_create"]
-    [{
-        "date_folderpath": "D:\\0-RECORDINGS\\20251103",
-        "session_folders": [
-            "D:\\0-RECORDINGS\\20251103_0 SEEKING_TEST",
-            "D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST"
-        ],
-        "grouped_sessions": [
-            [
-                "01-20251103-104708-113000.mp4",
-                "01-20251103-113000-114505.mp4",
-                "01-20251103-114505-115321.mp4"
-            ],
-            [
-                "01-20251103-122945-130000.mp4",
-                "01-20251103-130000-133000.mp4",
-                "01-20251103-133000-133154.mp4"
-            ]
-        ]
-    },
-    {
-        "date_folderpath": "D:\\0-RECORDINGS\\20251104",
-        "session_folders": [
-            "D:\\0-RECORDINGS\\20251104_0 SEEKING_TEST",
-            "D:\\0-RECORDINGS\\20251104_1 SEEKING_TEST"
-        ],
-        "grouped_sessions": [
-            [
-                "01-20251104-093838-100000.mp4",
-                "01-20251104-100000-103000.mp4",
-                "01-20251104-103000-104158.mp4"
-            ],
-            [
-                "01-20251104-112135-120000.mp4",
-                "01-20251104-120000-122642.mp4"
-            ]]}]
-    
+    folders_to_create = last_step["step2_create_folders_and_move"]["folders_to_create"]    
     last_step["moved"] = last_step.get("moved",[])
     all_session_folders = []
 
@@ -135,10 +100,6 @@ def step2_create_folders_and_move():
         grouped_sessions = date_info["grouped_sessions"]
         
         all_session_folders.extend(session_folders)
-
-        os.makedirs(date_folderpath, exist_ok=True)
-        for session_folder in session_folders:
-            os.makedirs(session_folder, exist_ok=True)
 
         for session_folder, session_videos in zip(session_folders, grouped_sessions):
             
