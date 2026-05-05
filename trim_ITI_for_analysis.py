@@ -83,6 +83,7 @@ class trimObtainIntervals():
                     "data": obj_presence_data
                 }
             )
+        
     
     def s3_adjust_data(self,minblank:int = 0):
         """
@@ -265,8 +266,6 @@ class trimObtainIntervals():
         
         with open(os.path.join(output_path,"interval_times_and_names.json"), "w") as f:
             json.dump(self.times_minus_ITI, f, indent=4)
-            
-
 
 def detector_excel_to_object_times(excel_path: str,minblank: int) -> dict[str, str | list[dict[str, int]]]:
     """
