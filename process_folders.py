@@ -286,7 +286,7 @@ def emergency_overlay_maker(path,room=None):
 
          # 2-MARKERS/OPTO-ROOM/cage2_20250806/
 
-    project_name = f"{cage_number.zfill(2)}-{date}" + f"-{start_time}" if start_time else ""
+    project_name = f"{cage_number.zfill(2)}-{date}" + (f"-{start_time}" if start_time else "")
     project_folderpath = makefolder(room_folder_path,project_name,start_at_1=False)
     
     template_project_path = shutil.copy(os.path.join(find_folder_path("MARKERS-TEMPLATES"),"template.xcf"),project_folderpath)

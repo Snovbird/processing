@@ -8,6 +8,7 @@ from extractpng import extractpng
 from markersquick import apply_png_overlay,find_overlay_path
 from newtrim import trim_DS_auto
 from process_folders import group_by_date_and_sessionTime, emergency_overlay_maker
+    
 
 def reset_saved():
     assignval("salvage_processing_step", {})
@@ -252,7 +253,7 @@ def step4_created_combined_and_photo_carrousel():
                                                              output_folder=os.path.dirname(photopath))
         if created_combined_path == combpath:
             created_photos.append(created_combined_path)
-    created_photos.sort(key= lambda x: x.split("-")[1] + x.split("-")[2])
+    created_photos.sort(key= lambda x: os.path.basename(x).split("-")[1] + os.path.basename(x).split("-")[2])
     for overlaid_png in created_photos:
         result = photo_carrousel(overlaid_png) 
         if result == "STOP markers NOT aligned":

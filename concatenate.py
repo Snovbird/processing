@@ -36,8 +36,12 @@ def concatenate(input_files:list[str], output_folder:str,override_output_name:st
 
                 filename = os.path.basename(file)
                 n,e = os.path.splitext(filename)
-                cage, date, start_time, end_time = n.split("-")
-                output_name_noext += f"-{start_time}-{end_time}"
+                parts = n.split("-")
+                cage, date = parts[0], parts[1]
+                if len(parts) >= 4:
+                    output_name_noext += f"-{parts[2]}-{parts[3]}"
+                elif len(parts) == 3:
+                    output_name_noext += f"-{parts[2]}"
 
                 temp_output = os.path.join(temp_dir, f"temp_{i}.mp4")
                 intermediate_files.append(temp_output)
@@ -97,8 +101,9 @@ def concatenate(input_files:list[str], output_folder:str,override_output_name:st
         workdir = os.path.dirname(only_file)
 
         if not override_output_name:
-            cage,date, start_time, end_time, *_ = name.split("-")
-            renamed_path = os.path.join(workdir,f"{cage}-{date}-{start_time}-{end_time}{ext}")
+            parts = name.split("-")
+            renamed_name = "-".join(parts) + ext
+            renamed_path = os.path.join(workdir, renamed_name)
         elif override_output_name:
             renamed_path = os.path.join(workdir, override_output_name + ext)
         
