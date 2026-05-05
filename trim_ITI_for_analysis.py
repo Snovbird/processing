@@ -107,7 +107,7 @@ class trimObtainIntervals():
             lever_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"],minblank=minblank) for data in obj_presence_data if "lever" in data["object"]]
             light_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"],minblank=minblank) for data in obj_presence_data if "light" in data["object"]]
             
-            minimum_light_duration = 3
+            minimum_light_duration = 25
             light_presence_data, light_problematic = light_min_duration(light_presence_data,min_duration=minimum_light_duration)
             if light_problematic:
                 frame_numbers = "\n".join([str(x) for x in light_problematic])
@@ -204,7 +204,7 @@ class trimObtainIntervals():
                 start_time = interval["first_frame"]
                 end_time = interval["last_frame"] + 1
                 interval_name = interval["interval_name"]
-                outpath = trim_frames(vid,start_time=start_time,end_time=end_time,output_folder=cue_folder)
+                outpath = trim_frames(vid,start_time=start_time,end_time=end_time,output_folder=cue_folder,show_terminal=False)
                 self.to_reassemble[-1][corresponding_cue].append({
                     "snippet_path": outpath, 
                     "interval_name": interval_name,
@@ -262,9 +262,12 @@ class trimObtainIntervals():
                 "intervals": minus_ITI
             })
         return self.times_minus_ITI
-    def s10_export_data_json(self,output_path:str = None):
-        
-        with open(os.path.join(output_path,"interval_times_and_names.json"), "w") as f:
+    
+    def s10_export_data_json(self,):
+        if not self.times_minus_ITI:
+            self.s9_times_minus_ITI()
+
+        with open(os.path.join(self.output_folder,"interval_times_and_names.json"), "w") as f:
             json.dump(self.times_minus_ITI, f, indent=4)
 
 def detector_excel_to_object_times(excel_path: str,minblank: int) -> dict[str, str | list[dict[str, int]]]:
@@ -273,12 +276,8 @@ def detector_excel_to_object_times(excel_path: str,minblank: int) -> dict[str, s
         excel_path: path to an excel file containing detector results for an object (ex: "C:\...\light BL_all_centers.xlsx")
         minblank: min number of consecutive frames to consider an object to be no longer present. Eg: minblank=2 and we have: 6-frame BL_light presence, then 1 blank frame, then 5 frames of BL_light presence. This would be considered as one continuous presence of BL_light for 12 frames (6+1+5) because the blank frame is less than minblank. If there were 2 or more consecutive blank frames, then it would be considered as two separate presences of BL_light (one for the first 6 frames, and one for the last 5 frames).
 
-    Returns: 
-        keys are object names
-        {"light BL": [
-            {"first_frame": ..., "duration": ..., "last_frame": ...},
-            ...
-            ]}
+    Returns: {"object":"light BL",
+        "data": [{"first_frame": ..., "duration": ..., "last_frame": ...}, ... ]}
     """
     df = pandas.read_excel(excel_path, sheet_name=None)  # Read all sheets
     interval_object_name = os.path.basename(excel_path).split("_")[1:-2] # ex: "lever_right_all_centers.xlsx" -> ["lever", "right"]
@@ -363,7 +362,7 @@ def adjust_blank(object_name:str, presence_data: list[dict[str, int]], minblank:
 def light_min_duration(presence:list[dict], min_duration):
 
     new_presence = []
-    problematic = 
+    problematic = []
     for data in presence:
 
         if data["duration"] >= min_duration:
@@ -506,4 +505,4 @@ def times_minus_ITI(intervals:list):
 
 if __name__ == "__main__":
     test = trimObtainIntervals(detection_results_dir=r"C:\Users\samahalabo\Desktop\10-ANALYSIS\20260423 detector")
-    test.s9_times_minus_ITI()
+    # test.s9_times_minus_ITI()
