@@ -106,7 +106,7 @@ class trimObtainIntervals():
             lever_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"],minblank=minblank) for data in obj_presence_data if "lever" in data["object"]]
             light_presence_data:list[list[dict]] = [adjust_blank(data["object"],data["data"],minblank=minblank) for data in obj_presence_data if "light" in data["object"]]
             
-            minimum_light_duration = 3
+            minimum_light_duration = 25
             light_presence_data, light_problematic = light_min_duration(light_presence_data,min_duration=minimum_light_duration)
             if light_problematic:
                 frame_numbers = "\n".join([str(x) for x in light_problematic])
@@ -505,12 +505,5 @@ def times_minus_ITI(intervals:list):
     return minus_ITI
 
 if __name__ == "__main__":
-    # test = trimObtainIntervals(detection_results_dir=r"C:\Users\samahalabo\Desktop\10-ANALYSIS\20260423 detector")
+    test = trimObtainIntervals(detection_results_dir=r"C:\Users\samahalabo\Desktop\10-ANALYSIS\20260423 detector")
     # test.s9_times_minus_ITI()
-    det = detector_excel_to_object_times(r"C:\Users\samahalabo\Desktop\10-ANALYSIS\20260423 detector\03-20260411-140647-140708-140734-143000-143000-145939\6_light_FR_all_centers.xlsx",minblank=0)
-    
-    clean = adjust_blank(object_name="light FR", presence_data=det["data"], minblank=2)
-    clean2 = light_min_duration(clean,min_duration=3)
-    
-    for group in clean2:
-        print(group)
