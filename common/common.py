@@ -88,7 +88,9 @@ def custom_dialog(msg="",title='',op1="yes",op2="No",op3=None,dimensions:tuple[i
         return dialog.result
     else:
         dialog.Destroy()  # Clean up the dialog
-        raise DialogExit(f"Exitted option dialog\n{title}: {msg}\noptions: {op1}, {op2}" + (f", {op3}" if op3 else ""))  # Return empty list if canceled
+        return dialog.result
+
+        # raise DialogExit(f"Exitted option dialog\n{title}: {msg}\noptions: {op1}, {op2}" + (f", {op3}" if op3 else ""))  # Return empty list if canceled
 
 def select_folder(title="Choose a directory",path='') -> str|None:
     """Show folder selection dialog and return selected path"""
