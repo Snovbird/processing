@@ -29,7 +29,7 @@ def step1_organize_recordings_DATASAVE():
     folders_to_create = []
     for date_number, (date,session_groups) in enumerate(grouped_recordings.items()): # unpack dates
         
-        date_folderpath = makefolderpath(os.path.dirname(recording_folderpath), foldername=date, start_at_1=False)
+        date_folderpath = makefolder(os.path.dirname(recording_folderpath), foldername=date, start_at_1=False)
 
         folders_to_create.append({"date_folderpath": date_folderpath,"session_folders":[],"grouped_sessions":[]})
         
@@ -356,15 +356,13 @@ def step6_trim_intervals(): # currently unusable
     
     return step7_apply_markers_and_move()
 
-def step7_apply_markers_and_move(last_step=None):
-    if not last_step:
-        last_step = findval("salvage_processing_step")
-        if "step7_apply_markers_and_move" not in last_step:
-            # Done?
-            error("Error finding last saved step. Starting over.")
-            assignval("salvage_processing_step", {}) # Clear state
-            continuous_process()
-            return
+def step7_apply_markers_and_move():
+    last_step = findval("salvage_processing_step")
+    if "step7_apply_markers_and_move" not in last_step:
+        error("Error finding last saved step. Starting over.")
+        assignval("salvage_processing_step", {}) # Clear state
+        continuous_process()
+        return
 
     session_folders = last_step["step7_apply_markers_and_move"]["session_folders"]
     room = last_step["step7_apply_markers_and_move"]["room"]
@@ -375,34 +373,25 @@ def step7_apply_markers_and_move(last_step=None):
 
     final_outputpath = find_folder_path("3-PROCESSED")    
 
+    msgbox(f"PROBLEMATIC SESSION FOLDERS: {', '.join(created_marker_folders.keys())}\n\nPROBLEMATIC VIDEOS: {', '.join(created_marked_videos)}\n\nIf any videos or sessions are listed here, please review the marked videos and move them to the appropriate folders in 3-PROCESSED (with correct naming) before proceeding.\n\nClick OK to open the folder containing the marked videos.", title="Review Marked Videos")
     for session_folder in session_folders:
         basename = os.path.basename(session_folder)
         # Create folder for marked videos inside the session folder (temp)
         if session_folder not in created_marker_folders.keys():
-            marked_folder = makefolder(session_folder, basename, start_at_1=False)
+            marked_folder = makefolder(final_outputpath, basename, start_at_1=False)
             created_marker_folders[session_folder] = marked_folder
             assignval("salvage_processing_step", last_step)
         else:
             marked_folder = created_marker_folders[session_folder]
-        # Apply overlay to all videos in the session folder
-        # The videos here are presumably the concatenated (and possibly trimmed output?)
-        # process_folders logic: for concat_vid in list_filespaths(session)
         
         for vid in list_filespaths(session_folder):
              # markersquick.apply_png_overlay
-             if vid in created_marked_videos:
+            if vid in created_marked_videos:
                  continue
-             
-             apply_png_overlay(vid, marked_folder, room)
-             created_marked_videos.append(vid)
-             assignval("salvage_processing_step", last_step)
-
-    # Move content to final output
-    for folder in created_marker_folders.values():
-        try:
-            shutil.move(folder, final_outputpath)
-        except Exception as e:
-            raise Exception(f"Error moving {folder} to {final_outputpath}: {e}")
+            
+            apply_png_overlay(vid, marked_folder, room)
+            created_marked_videos.append(vid)
+            assignval("salvage_processing_step", last_step)
             
     msgbox(f"Video processing complete!\n\nPrepared videos are stored in {final_outputpath}.\nClose this message to open the folder.")
     assignval("salvage_processing_step", {})
@@ -450,7 +439,6 @@ def continuous_process(recordings_folder=None):
                     continuous_process()
                     return
             elif session_folders: #step 3,4,5,6
-                print(f"{session_folders=}")
                 if custom_dialog("Are you sure? This will delete the video recordings and you will need to transfer the videos from the LOREX software again","warning",op1="delete",op2="Cancel") == "delete":
                     for folder in session_folders:
                         walk_delete(folder)
@@ -467,7 +455,9 @@ def continuous_process(recordings_folder=None):
                     if custom_dialog(f"Restart process using the same folder?\n\n{recordings_folder=}", title="Transfer videos",dimensions=(450,250)) == "yes":
                         continuous_process(recordings_folder=recordings_folder)
                         return
-            
+            else:
+                pass
+
             assignval("salvage_processing_step", {})
             continuous_process() #otherwise
             return
