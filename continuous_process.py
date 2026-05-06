@@ -210,8 +210,7 @@ def step4_created_combined_and_photo_carrousel():
         
         # image_combine.combine_and_resize_images
         created_combined_path = combine_and_resize_images(photo1_path=photopath,
-                                                             photo2_path=overlay,
-                                                             output_folder=os.path.dirname(photopath))
+                                                             photo2_path=overlay)
         if created_combined_path == combpath:
             created_photos.append(created_combined_path)
     created_photos.sort(key= lambda x: os.path.basename(x).split("-")[1] + os.path.basename(x).split("-")[2])
