@@ -44,15 +44,18 @@ def step1_organize_recordings_DATASAVE():
             
         if override_first_cue:
             answer_dict:dict[str,str] = grid_selector(strings_list=grid_rownames, #time for each session (row names)
-                                                    options_list=["DS+","DS-","SEEKING_TEST"], # options for each row
+                                                    options_list=["DS+","DS-","session"], # options for each row
                                     title="First Cue",
                                     message=f"Select the first cue illuminated in sessions on {date}"
                                     )
-            answer = list(answer_dict.values())
+            answer = answer_dict
 
-            for session_number, first_DS in enumerate(answer, start=0): 
-                # first_DS is either DS+, DS- or SEEKING_TEST
-                folder_name = makefolder(date_folderpath,f"{date}_{session_number+1} {first_DS}", start_at_1=False)
+            for session_number, qna in enumerate(answer, start=0): 
+                question, first_DS = qna.items()
+
+                time = question[0].split(" at ")[-1].replace(":","")
+                # first_DS is either DS+, DS- or session
+                folder_name = makefolder(date_folderpath,f"{date} at {time} {first_DS}", start_at_1=False)
                 folders_to_create[date_number]["session_folders"].append(folder_name)
                 folders_to_create[date_number]["grouped_sessions"].append((session_groups[session_number]))
 
@@ -73,7 +76,7 @@ def step1_organize_recordings_DATASAVE():
                     merged_sessions.append(session_groups[i])
 
             for session_number,merged_sess in enumerate(merged_sessions): 
-                folder_name = makefolder(date_folderpath,f"{date}_{session_number+1} SEEKING_TEST", start_at_1=False)
+                folder_name = makefolder(date_folderpath,f"{date}_{session_number+1} session", start_at_1=False)
                 folders_to_create[date_number]["session_folders"].append(folder_name)
                 folders_to_create[date_number]["grouped_sessions"].append((merged_sess))
 
@@ -164,9 +167,9 @@ def step3_create_photos_for_carroussel():
             "photos_to_add_": photos_to_add_
         }
     })
-    # {'session_folders': ['D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST', ...],
-    #  'session_and_png_folders': {'D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST': 'D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST\\photos', ...},
-    #  'photos_to_add_': ['D:\\0-RECORDINGS\\20251103_1 SEEKING_TEST\\photos\\01-20251103-104708-113000.png', ...]}
+    # {'session_folders': ['D:\\0-RECORDINGS\\20251103_1 session', ...],
+    #  'session_and_png_folders': {'D:\\0-RECORDINGS\\20251103_1 session': 'D:\\0-RECORDINGS\\20251103_1 session\\photos', ...},
+    #  'photos_to_add_': ['D:\\0-RECORDINGS\\20251103_1 session\\photos\\01-20251103-104708-113000.png', ...]}
     
     return step4_created_combined_and_photo_carrousel()
 
@@ -191,7 +194,9 @@ def step4_created_combined_and_photo_carrousel():
     else:
         room = dropdown(room_options + ["ENTER NEW ROOM NAME"], title="Select lab test room", icon_name="star", hide=("MARKERS-TEMPLATES",))
         if room == "ENTER NEW ROOM NAME":
-            return emergency_overlay_maker()
+            newroom = askstring("Enter new room name", "New Room Name")
+
+            return emergency_overlay_maker(room=newroom)
         assignval("room_name", room)
 
     for photopath in photos_to_add_:
@@ -332,11 +337,11 @@ def step6_trim_intervals(): # currently unusable
         if session_folder in trimmed_folders:
             continue
             
-        # e.g. "D:\\...\\20251103_1 SEEKING_TEST"
+        # e.g. "D:\\...\\20251103_1 session"
         # The prompt says: DS_cue = session.split(" ")[-1]
         DS_cue = session_folder.split(" ")[-1]
         if DS_cue not in ["DS+","DS-"]:
-            continue # Skip trimming if not DS+ or DS- (e.g. SEEKING_TEST)
+            continue # Skip trimming if not DS+ or DS- (e.g. session)
 
         videos = list_filespaths(session_folder)
         try:
