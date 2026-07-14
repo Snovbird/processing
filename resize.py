@@ -19,7 +19,9 @@ def resize_width(input_path,width:int,output_folder=None):
     file_name = os.path.splitext(os.path.basename(input_path))[0]
     while int(width) % 32 != 0:
         error("ERROR", "Width MUST be a multiple of 32\nExamples: 1920, 1280, 1024, 480")
-        width = askint("Input Width", "Enter the desired width (must be a multiple of 32):",fill=width)
+
+        closest_multiple = (int(width + 16) // 32) * 32
+        width = askint("Input Width", "Enter the desired width (must be a multiple of 32):",fill=closest_multiple)
 
     if not output_folder:
         output_folder = file_dir

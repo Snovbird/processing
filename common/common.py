@@ -872,6 +872,76 @@ def walk_delete(folder_path:str):
     except Exception as e:
         print(f"Failed to delete folder {folder_path}: {e}")
 
+def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,hide:bool=False,count:int=1,) -> str:
+    """
+    Args:
+        file_or_folder_path (str): The path to the file or folder.
+        foldername (str): The name of the created folder. Default is empty. If start_at_1 is False, first folder will be named `-`. Subsequent folders will be named after their count value  
+        start_at_1 (bool): if False, first unique created folder in dir does not have "-1" in its name. If exists, will have `-2` appended. Default is `True`. 
+        hide (bool): created folder will be hidden. Default is `False`.
+        count (int): Initial count for folder. If start_at_1 is false,  first `-count` will be hidden, but following will keep this sequence start. Default is `-1`.
+    
+    """
+    
+    import os
+    # Get directory containing the file
+    if os.path.isdir(file_or_folder_path):
+        folder_path = file_or_folder_path
+    else:
+        folder_path = os.path.dirname(file_or_folder_path)
+        # file_name = os.path.splitext(os.path.basename(file_or_folder_path))[0]    # Get filename without extension
+    
+    if not start_at_1 and count == 1: # Start_at_1 == False --> 
+        new_folder_name = f"{foldername if foldername != '' else '-'}" # make sure the name isn't blank for 1st item (where count would be hiden)
+    else:
+        if foldername == '':
+            new_folder_name = f"{count}"
+        else:
+            new_folder_name = f"{foldername[:-1] if foldername.endswith('-') else foldername}-{count}"
+    # Create full path to new folder
+    new_folder_path = os.path.join(folder_path, new_folder_name)
+    
+    # Create the folder if it doesn't exist
+    if os.path.exists(new_folder_path):
+        return makefolder(file_or_folder_path,foldername,hide=hide,count=count+1)
+    else:
+        os.makedirs(new_folder_path)
+        if hide:
+            import subprocess
+            import sys
+            creationflags = 0
+            if sys.platform == 'win32':
+                creationflags = subprocess.CREATE_NO_WINDOW
+            subprocess.run(['attrib', '+h', new_folder_path], check=True, creationflags=creationflags)
+
+        # print(f"Created folder: {new_folder_path}")
+    return new_folder_path
+
+def makefolderpath(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,hide:bool=False,count:int=1,) -> str:
+    """
+    Same as makefolder but returns the path to the created folder instead of creating it. Does not check if path exists.
+    """
+    import os
+    # A simple check for a file extension can differentiate between a file path and a directory path string.
+    # If there's no extension, we assume it's a directory path.
+    if not os.path.splitext(file_or_folder_path)[1]:
+        folder_path = file_or_folder_path
+    else:
+        folder_path = os.path.dirname(file_or_folder_path)
+    
+    # Create folder name
+    if not start_at_1 and count == 1:
+        new_folder_name = f"{foldername if foldername != '' else '-'}"
+    else:
+        if foldername == '':
+            new_folder_name = f"{count}"
+        else:
+            new_folder_name = f"{foldername.replace('-','')}-{count}"
+    # Create full path to new folder
+    new_folder_path = os.path.join(folder_path, new_folder_name)
+    
+    return new_folder_path
+
 # ************************* Str input and str output *************************
 
 def hhmmss_to_seconds(time_str:str) -> int:
@@ -977,6 +1047,46 @@ def letter(text:str) -> str:
     """
     return ''.join(char for char in text if char.isalpha())
 
+# ************************* math *************************
+
+def closest_multiple(number: int, multiple: int) -> int:
+    """
+    Returns the closest multiple of 'multiple' to 'number'.
+    If two multiples are equally close, returns the larger one.
+    """
+    if multiple == 0:
+        raise ValueError("Multiple cannot be zero.")
+    elif number % 32 == 0:
+        return number
+    
+    if multiple % 2 == 0:
+        half_of_multiple = multiple // 2
+
+        closest_multiple = ((number + half_of_multiple) // multiple) * multiple
+    else:
+        closest_multiple = round(number / multiple) * multiple
+
+def avg(list_values: list[int | float]) -> str:
+    from fractions import Fraction
+    
+    if not list_values:
+        raise ValueError("Cannot calculate average of empty list")
+    
+    total = sum(list_values)
+    count = len(list_values)
+    
+    # Create fraction and it will automatically be reduced
+    average_fraction:Fraction = Fraction(total, count)
+
+    normal_float:float = total / count 
+    return average_fraction, normal_float
+
+def abs(number:int) -> int:
+    """Returns the absolute value of an integer"""
+    if number < 0:
+        return -number
+    return number
+
 # ************************* MISC *************************
 def clear_gpu_memory() -> bool:
     import subprocess
@@ -989,76 +1099,6 @@ def clear_gpu_memory() -> bool:
     except Exception as e:
         print(f"GPU memory cleanup failed: {e}")
         return False
-  
-def makefolder(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,hide:bool=False,count:int=1,) -> str:
-    """
-    Args:
-        file_or_folder_path (str): The path to the file or folder.
-        foldername (str): The name of the created folder. Default is empty. If start_at_1 is False, first folder will be named `-`. Subsequent folders will be named after their count value  
-        start_at_1 (bool): if False, first unique created folder in dir does not have "-1" in its name. If exists, will have `-2` appended. Default is `True`. 
-        hide (bool): created folder will be hidden. Default is `False`.
-        count (int): Initial count for folder. If start_at_1 is false,  first `-count` will be hidden, but following will keep this sequence start. Default is `-1`.
-    
-    """
-    
-    import os
-    # Get directory containing the file
-    if os.path.isdir(file_or_folder_path):
-        folder_path = file_or_folder_path
-    else:
-        folder_path = os.path.dirname(file_or_folder_path)
-        # file_name = os.path.splitext(os.path.basename(file_or_folder_path))[0]    # Get filename without extension
-    
-    if not start_at_1 and count == 1: # Start_at_1 == False --> 
-        new_folder_name = f"{foldername if foldername != '' else '-'}" # make sure the name isn't blank for 1st item (where count would be hiden)
-    else:
-        if foldername == '':
-            new_folder_name = f"{count}"
-        else:
-            new_folder_name = f"{foldername[:-1] if foldername.endswith('-') else foldername}-{count}"
-    # Create full path to new folder
-    new_folder_path = os.path.join(folder_path, new_folder_name)
-    
-    # Create the folder if it doesn't exist
-    if os.path.exists(new_folder_path):
-        return makefolder(file_or_folder_path,foldername,hide=hide,count=count+1)
-    else:
-        os.makedirs(new_folder_path)
-        if hide:
-            import subprocess
-            import sys
-            creationflags = 0
-            if sys.platform == 'win32':
-                creationflags = subprocess.CREATE_NO_WINDOW
-            subprocess.run(['attrib', '+h', new_folder_path], check=True, creationflags=creationflags)
-
-        # print(f"Created folder: {new_folder_path}")
-    return new_folder_path
-
-def makefolderpath(file_or_folder_path:str, foldername:str='',start_at_1:bool=True,hide:bool=False,count:int=1,) -> str:
-    """
-    Same as makefolder but returns the path to the created folder instead of creating it. Does not check if path exists.
-    """
-    import os
-    # A simple check for a file extension can differentiate between a file path and a directory path string.
-    # If there's no extension, we assume it's a directory path.
-    if not os.path.splitext(file_or_folder_path)[1]:
-        folder_path = file_or_folder_path
-    else:
-        folder_path = os.path.dirname(file_or_folder_path)
-    
-    # Create folder name
-    if not start_at_1 and count == 1:
-        new_folder_name = f"{foldername if foldername != '' else '-'}"
-    else:
-        if foldername == '':
-            new_folder_name = f"{count}"
-        else:
-            new_folder_name = f"{foldername.replace('-','')}-{count}"
-    # Create full path to new folder
-    new_folder_path = os.path.join(folder_path, new_folder_name)
-    
-    return new_folder_path
 
 def group_from_end(data: list, chunk_size: int) -> list[list[str]]:
     """
@@ -1106,21 +1146,65 @@ def unhide_folder(dir:str):
                 
     subprocess.run(['attrib', '-h', dir], check=True, creationflags=creationflags)
 
-def avg(list_values: list[int | float]) -> str:
-    from fractions import Fraction
-    
-    if not list_values:
-        raise ValueError("Cannot calculate average of empty list")
-    
-    total = sum(list_values)
-    count = len(list_values)
-    
-    # Create fraction and it will automatically be reduced
-    average_fraction:Fraction = Fraction(total, count)
 
-    normal_float:float = total / count 
-    return average_fraction, normal_float
-   
+
+def screenshot(video_path: str, frame_number: int, output_path: str = "screenshot.png",start_at_1=True) -> str:
+    """
+    Extract a specific frame from a video and save it as a PNG image. Will not overwrite existing files; instead, it appends a number to the filename.
+    
+    Args:
+        video_path: Path to the MP4 video file
+        frame_number: The exact frame number to capture
+        output_path: Path for the output PNG file (default: "screenshot.png")
+        start_at_1: If True, png is numbered from 1; if False, no numbering for the first unique image name
+    
+    Returns:
+        screenshot png path
+    """
+    if not os.path.isabs(output_path):
+        output_path = os.path.join(os.path.dirname(video_path), output_path)
+
+    import cv2
+
+    filename, ext = os.path.splitext(os.path.basename(output_path))
+
+    if start_at_1:
+        c = 1
+        output_path = os.path.join(os.path.dirname(output_path), f"{filename}{c}{ext}")
+    
+    while os.path.exists(output_path):
+        c += 1
+        output_path = os.path.join(os.path.dirname(output_path), f"{filename}{c}{ext}")
+
+    # Open the video file
+    cap = cv2.VideoCapture(video_path)
+    
+    if not cap.isOpened():
+        print(f"Error: Could not open video file: {video_path}")
+        return False
+    
+    # Set the frame position
+    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+    
+    # Read the frame
+    ret, frame = cap.read()
+    
+    if not ret:
+        print(f"Error: Could not read frame {frame_number}")
+        cap.release()
+        return False
+    
+    # Save the frame as PNG
+    cv2.imwrite(output_path, frame)
+    
+    # Clean up
+    cap.release()
+    
+    print(f"{os.path.basename(video_path)} screenshot at frame {frame_number} saved to: {output_path}")
+    return output_path
+
+
+# ************************* color functions *************************
 def hex_to_rgb(hex_color:str):
     
     hex_color = hex_color.lstrip('#')
@@ -1203,63 +1287,3 @@ def get_extreme_colors(n):
     
     return colors
 
-def abs(number:int) -> int:
-    """Returns the absolute value of an integer"""
-    if number < 0:
-        return -number
-    return number
-
-def screenshot(video_path: str, frame_number: int, output_path: str = "screenshot.png",start_at_1=True) -> str:
-    """
-    Extract a specific frame from a video and save it as a PNG image. Will not overwrite existing files; instead, it appends a number to the filename.
-    
-    Args:
-        video_path: Path to the MP4 video file
-        frame_number: The exact frame number to capture
-        output_path: Path for the output PNG file (default: "screenshot.png")
-        start_at_1: If True, png is numbered from 1; if False, no numbering for the first unique image name
-    
-    Returns:
-        screenshot png path
-    """
-    if not os.path.isabs(output_path):
-        output_path = os.path.join(os.path.dirname(video_path), output_path)
-
-    import cv2
-
-    filename, ext = os.path.splitext(os.path.basename(output_path))
-
-    if start_at_1:
-        c = 1
-        output_path = os.path.join(os.path.dirname(output_path), f"{filename}{c}{ext}")
-    
-    while os.path.exists(output_path):
-        c += 1
-        output_path = os.path.join(os.path.dirname(output_path), f"{filename}{c}{ext}")
-
-    # Open the video file
-    cap = cv2.VideoCapture(video_path)
-    
-    if not cap.isOpened():
-        print(f"Error: Could not open video file: {video_path}")
-        return False
-    
-    # Set the frame position
-    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
-    
-    # Read the frame
-    ret, frame = cap.read()
-    
-    if not ret:
-        print(f"Error: Could not read frame {frame_number}")
-        cap.release()
-        return False
-    
-    # Save the frame as PNG
-    cv2.imwrite(output_path, frame)
-    
-    # Clean up
-    cap.release()
-    
-    print(f"{os.path.basename(video_path)} screenshot at frame {frame_number} saved to: {output_path}")
-    return output_path

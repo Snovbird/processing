@@ -8,7 +8,8 @@ from extractpng import extractpng
 from markersquick import apply_png_overlay,find_overlay_path
 from newtrim import trim_DS_auto
 from process_folders import group_by_date_and_sessionTime, emergency_overlay_maker
-    
+from resize import resize_width
+
 
 def reset_saved():
     assignval("salvage_processing_step", {})
@@ -358,16 +359,12 @@ def step6_trim_intervals(): # currently unusable
         }
     })
     
-    return step7_apply_markers_and_move()
 
 def step7_apply_markers_and_move():
     last_step = findval("salvage_processing_step")
     if "step7_apply_markers_and_move" not in last_step:
-        error("Error finding last saved step. Starting over.")
-        assignval("salvage_processing_step", {}) # Clear state
-        continuous_process()
-        return
-
+        return step8_resize()
+    
     session_folders = last_step["step7_apply_markers_and_move"]["session_folders"]
     room = last_step["step7_apply_markers_and_move"]["room"]
     created_marked_videos = last_step["step7_apply_markers_and_move"].get("created_marked_videos", [])
@@ -377,7 +374,6 @@ def step7_apply_markers_and_move():
 
     final_outputpath = find_folder_path("3-PROCESSED")    
 
-    msgbox(f"PROBLEMATIC SESSION FOLDERS: {', '.join(created_marker_folders.keys())}\n\nPROBLEMATIC VIDEOS: {', '.join(created_marked_videos)}\n\nIf any videos or sessions are listed here, please review the marked videos and move them to the appropriate folders in 3-PROCESSED (with correct naming) before proceeding.\n\nClick OK to open the folder containing the marked videos.", title="Review Marked Videos")
     for session_folder in session_folders:
         basename = os.path.basename(session_folder)
         # Create folder for marked videos inside the session folder (temp)
@@ -389,18 +385,54 @@ def step7_apply_markers_and_move():
             marked_folder = created_marker_folders[session_folder]
         
         for vid in list_filespaths(session_folder):
-             # markersquick.apply_png_overlay
             if vid in created_marked_videos:
                  continue
             
-            apply_png_overlay(vid, marked_folder, room)
+            apply_png_overlay(video_path=vid, output_folder=marked_folder, room=room)
             created_marked_videos.append(vid)
             assignval("salvage_processing_step", last_step)
-            
+    
+    for folder in created_marker_folders.values():
+        if len(list_filespaths(folder)) == 0:
+            error(f"Processing failed for folder: {folder}")
+
+    assignval("salvage_processing_step", {
+        "step8_resize": {
+            "marked_folders": tuple(created_marker_folders.values()), 
+        }
+    })     
+    return step8_resize()
+
+def step8_resize():
+    last_step = findval("salvage_processing_step")
+    if "step8_resize" not in last_step:
+        error("Error finding last saved step. Starting over.")
+        assignval("salvage_processing_step", {}) # Clear state
+        continuous_process()
+        return
+    folders_to_resize = last_step["step8_resize"]["marked_folders"]
+    resized_videos = last_step["step8_resize"].get("resized_videos", [])
+    last_step["step8_resize"]["resized_videos"] = resized_videos
+    resized_folders: dict[str,str] = last_step["step8_resize"].get("resized_folders", {})
+    last_step["step8_resize"]["resized_folders"] = resized_folders
+
+    for folder in folders_to_resize:
+        if folder not in resized_folders: # then create folder
+            bn = os.path.basename(folder)
+            resized_folders[folder] = makefolder(folder, bn + "_resized", start_at_1=False)
+        assignval("salvage_processing_step", last_step) # save folders
+
+        for video in list_filespaths(folder):
+            if video in resized_videos:
+                continue
+            resize_width(video, width=1440, output_folder=resized_folders[folder]) # overwrite original marked video with resized version
+            resized_videos.append(video)
+            assignval("salvage_processing_step", last_step)
+
+    final_outputpath = find_folder_path("3-PROCESSED")
     msgbox(f"Video processing complete!\n\nPrepared videos are stored in {final_outputpath}.\nClose this message to open the folder.")
     assignval("salvage_processing_step", {})
     os.startfile(final_outputpath) # Open final output folder
-
 
 def continuous_process(recordings_folder=None):
 
@@ -474,6 +506,7 @@ def continuous_process(recordings_folder=None):
                 exec(f"{last_command}()")
             except Exception as e:
                 error(f"Error executing {last_command}: {e}")
+
 
 if __name__ == "__main__":
     continuous_process()
