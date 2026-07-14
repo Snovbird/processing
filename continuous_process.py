@@ -285,7 +285,7 @@ def step5_concatenate_videos():
         if len(videos) == 0:
             continue
         
-        grouped_videos = group_files_by_digits(videos) # important to update (if 2nd time) due to renaming if len(group) == 1
+        grouped_videos = group_files_by_digits(videos) # important to update (if 2nd time) due to renaming by concatenate() if len(group) == 1
         
         for group in grouped_videos:
 
@@ -302,6 +302,7 @@ def step5_concatenate_videos():
         processed_folders.append(session_folder)
         assignval("salvage_processing_step", last_step)
 
+    # delete original parts 
     for vid_group in videos_to_delete:
         if not vid_group or len(vid_group) == 1: # has been renamed by concatenate(). DO NOT DELETE
             continue
@@ -358,6 +359,8 @@ def step6_trim_intervals(): # currently unusable
             "room": room
         }
     })
+
+    return step7_apply_markers_and_move()
     
 
 def step7_apply_markers_and_move():
